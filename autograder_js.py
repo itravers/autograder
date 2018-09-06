@@ -7,7 +7,8 @@ SUBMISSION_DIRECTORY = 'to_test'
 WORKSPACE_DIRECTORY = 'temp'
 FILE_EXTENSION = '.html'
 TESTING_FILE = 'tester.js'
-TESTING_COMMAND = 'testcafe chrome tester.js'
+TESTING_COMMAND = 'testcafe'
+TESTING_OPTIONS = 'chrome'
 WORKING_FILE_NAME = 'pa1.html'
 
 def get_files(testing_location, extension):
@@ -20,7 +21,12 @@ def get_files(testing_location, extension):
          files_to_grade.append(os.path.join(testing_location, item))
    return files_to_grade
 
-def grade(file_to_grade, working_file_name, temp_directory, testing_file, testing_command):
+def clear_files(location):
+   items = os.listdir(location)
+   for item in items:
+      os.remove(os.path.join(location, item))
+
+def grade(file_to_grade, working_file_name, temp_directory, testing_file, testing_command, testing_options):
 
    print("Testing", file_to_grade)
 
@@ -33,12 +39,12 @@ def grade(file_to_grade, working_file_name, temp_directory, testing_file, testin
    shutil.copyfile(testing_file, copy_to_path)
 
    #run test, capture results
-   test_command = os.path.join(temp_directory, testing_command)
-   result = subprocess.check_output(test_command).decode('utf-8')
-
+   command_path = os.path.join(temp_directory, testing_command)
+   result = subprocess.run([testing_command, testing_options, copy_to_path], stdout=subprocess.PIPE, shell=True)
+   result = result.stdout.decode('utf-8').strip()
+   
    #clear workspace directory
-   shutil.rmtree(temp_directory)
-   os.makedirs(temp_directory)
+   clear_files(temp_directory)
 
    #return results
    return result
@@ -46,4 +52,4 @@ def grade(file_to_grade, working_file_name, temp_directory, testing_file, testin
 if __name__ == '__main__':
    submissions = get_files(SUBMISSION_DIRECTORY, FILE_EXTENSION)
    for submission in submissions:
-      grade(submission, WORKING_FILE_NAME, WORKSPACE_DIRECTORY, TESTING_FILE, TESTING_COMMAND)
+      result = grade(submission, WORKING_FILE_NAME, WORKSPACE_DIRECTORY, TESTING_FILE, TESTING_COMMAND, TESTING_OPTIONS)

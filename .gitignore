@@ -331,3 +331,4 @@ ASALocalRun/
 
 #ignore testing files
 /to_test/*.*
+/tester.js
