@@ -5,6 +5,7 @@ import shutil
 
 SUBMISSION_DIRECTORY = 'to_test'
 WORKSPACE_DIRECTORY = 'temp'
+RESULTS_DIRECTORY = 'results'
 FILE_EXTENSION = '.html'
 TESTING_FILE = 'tester.js'
 TESTING_COMMAND = 'testcafe'
@@ -50,6 +51,22 @@ def grade(file_to_grade, working_file_name, temp_directory, testing_file, testin
    return result
 
 if __name__ == '__main__':
+
+   #set up necessary directories
+   if os.path.exists(SUBMISSION_DIRECTORY) == False:
+      os.mkdir(SUBMISSION_DIRECTORY)
+   if os.path.exists(WORKSPACE_DIRECTORY) == False:
+      os.mkdir(WORKSPACE_DIRECTORY)
+   if os.path.exists(RESULTS_DIRECTORY) == False:
+      os.mkdir(RESULTS_DIRECTORY)
+
    submissions = get_files(SUBMISSION_DIRECTORY, FILE_EXTENSION)
    for submission in submissions:
       result = grade(submission, WORKING_FILE_NAME, WORKSPACE_DIRECTORY, TESTING_FILE, TESTING_COMMAND, TESTING_OPTIONS)
+      file_name, file_extension = os.path.splitext(submission)
+      file_name = os.path.split(file_name)
+      file_name = file_name[-1]
+      output = open(os.path.join(RESULTS_DIRECTORY, file_name + '.txt'), 'w', encoding="utf-8")
+      print(result, file=output)
+      output.close()
+      
