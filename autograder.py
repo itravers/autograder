@@ -100,3 +100,7 @@ class Autograder:
          output = open(os.path.join(self._results_directory, file_name + '.txt'), 'w', encoding="utf-8")
          print(result, file=output)
          output.close()
+
+class CppAutograder(Autograder):
+   def run(self):
+      
