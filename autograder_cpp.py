@@ -1,17 +1,18 @@
-import os
+﻿import os
 import subprocess
 import csv
 import shutil
-from autograder import Autograder
+from cpp_autograder import CppAutograder
+import pa1_tester
 
 SUBMISSION_DIRECTORY = 'to_test'
 WORKSPACE_DIRECTORY = 'temp'
 RESULTS_DIRECTORY = 'results'
-FILE_EXTENSION = list({'.cpp', '.h'})
-TESTING_FILE = 'cpp_tester.py'
-TESTING_COMMAND = './cpp_tester.py'
-TESTING_OPTIONS = 'chrome'
-WORKING_FILE_NAME = 'pa1.html'
+FILE_EXTENSION = list({'.cpp'})
+TESTING_FILE = 'main.exe'
+TESTING_COMMAND = pa1_tester.test
+TESTING_OPTIONS = ''
+WORKING_FILE_NAME = ''
 
 
 '''
@@ -23,7 +24,7 @@ Agenda:
 
 if __name__ == '__main__':
 
-   grader = Autograder(FILE_EXTENSION, 
+   grader = CppAutograder(FILE_EXTENSION, 
                        TESTING_FILE, 
                        TESTING_COMMAND,
                        TESTING_OPTIONS, 
