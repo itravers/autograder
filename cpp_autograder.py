@@ -1,4 +1,8 @@
 from autograder import *
+from tester import *
+
+#home pc tools location: E:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\VC\Tools\MSVC\14.15.26726\bin\Hostx86\x86
+#laptop tools location: C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Tools\MSVC\14.14.26428\bin\Hostx86\x86
 
 class CppAutograder(Autograder):
 
@@ -13,8 +17,8 @@ class CppAutograder(Autograder):
                 workspace_directory = 'temp',
                 results_directory = 'results',
                 verbosity = OutputLevel.VERBOSE,
-                output_exe_name = 'main.exe',
-                build_tools_path = r'E:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\VC\Tools\MSVC\14.15.26726\bin\Hostx86\x86',
+                output_exe_name = 'temp/main.exe',
+                build_tools_path = r'C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Tools\MSVC\14.14.26428\bin\Hostx86\x86',
                 build_tools_exe = 'cl.exe',
                 ):
       super().__init__(file_extensions,
@@ -53,11 +57,15 @@ class CppAutograder(Autograder):
       #Now, we can compile each directory
       compiler_command = '"' + os.path.join(self._build_tools_path, self._build_tools_exe) + '"'
       for directory in student_folders:
+
+         #remove previous main.exe
+         if os.path.isfile(self._output_exe_name) == True:
+            os.remove(self._output_exe_name)
          
          if self._verbosity == OutputLevel.VERBOSE:
             print("attempting to compile files in", directory)
 
-         command = compiler_command + " " + directory + "\*.cpp /EHsc /Fetemp/main.exe"
+         command = compiler_command + " \"" + directory + "\*.cpp\" /EHsc /Fe" + self._output_exe_name
          result = ""
          #result = subprocess.run([compiler_command], stdout=subprocess.PIPE, shell=True)
          #result = result.stdout.decode('utf-8').strip()
@@ -68,9 +76,18 @@ class CppAutograder(Autograder):
                print(result)
          except:
             if self._verbosity == OutputLevel.VERBOSE:
-               print("Failed to compile project\n")
+               print("Failed to compile project using command:\n", command)
 
          #only run if we compiled correctly
          if len(result) > 0:
             pass
+         
+         #testing command should be of type Tester, which allows us to configure final destination properties
+         if isinstance(self._testing_command, Tester):
+            
+            normed_path = os.path.normpath(directory)
+            pieces = normed_path.split(os.sep)
+            self._testing_command.author = pieces[1]
+
          self._grade("")
+ 

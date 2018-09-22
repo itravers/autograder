@@ -3,6 +3,7 @@ import subprocess
 import csv
 import shutil
 from enum import Enum
+from tester  import Tester
 
 class OutputLevel(Enum):
    VERBOSE = 1
@@ -58,6 +59,10 @@ class Autograder:
          else:
             file_name, file_extension = os.path.splitext(item)
             if file_extension in self._file_extensions:
+
+               if self._verbosity == OutputLevel.VERBOSE:
+                  print("Found", file_name, "to grade.")
+
                files_to_grade.append(full_path)
       return files_to_grade
 
@@ -82,13 +87,21 @@ class Autograder:
          shutil.copyfile(file_to_grade, copy_to_path)
 
       #copy over testing file to temporary workspace
-      copy_to_path = os.path.join(self._workspace_directory, self._testing_file)
-      shutil.copyfile(self._testing_file, copy_to_path)
+      if len(self._testing_file) > 0:
+         copy_to_path = os.path.join(self._workspace_directory, self._testing_file)
+         try:
+            shutil.copyfile(self._testing_file, copy_to_path)
+         except:
+            if self._verbosity == OutputLevel.VERBOSE:
+               print("Could not locate file", self._testing_file)
+            return ""
 
       #run test, capture results
       result = ""
       if callable(self._testing_command):
          result = self._testing_command()
+      elif isinstance(self._testing_command, Tester):
+         self._testing_command.test()
       else:
          command_path = os.path.join(self._workspace_directory, self._testing_command)
          result = subprocess.run([self._testing_command, self._testing_options, copy_to_path], stdout=subprocess.PIPE, shell=True)

@@ -3,14 +3,16 @@ import subprocess
 import csv
 import shutil
 from cpp_autograder import CppAutograder
-import pa1_tester
+from pa1_tester import Pa1Tester
+
+tester = Pa1Tester()
 
 SUBMISSION_DIRECTORY = 'to_test'
 WORKSPACE_DIRECTORY = 'temp'
 RESULTS_DIRECTORY = 'results'
 FILE_EXTENSION = list({'.cpp'})
-TESTING_FILE = 'main.exe'
-TESTING_COMMAND = pa1_tester.test
+TESTING_FILE = ''
+TESTING_COMMAND = tester
 TESTING_OPTIONS = ''
 WORKING_FILE_NAME = ''
 
