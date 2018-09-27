@@ -8,10 +8,12 @@ SUBMISSION_DIRECTORY = 'to_test'
 WORKSPACE_DIRECTORY = 'temp'
 RESULTS_DIRECTORY = 'results'
 FILE_EXTENSION = list({'.html'})
-TESTING_FILE = 'tester.js'
+
+#AC Note: last file must be file that will be run by testcafe
+TESTING_FILE = ['tiny-turtle.js', 'tester.js']
 TESTING_COMMAND = 'testcafe'
 TESTING_OPTIONS = 'chrome'
-WORKING_FILE_NAME = 'pa1.html'
+WORKING_FILE_NAME = 'pa3.html'
 
 
 if __name__ == '__main__':

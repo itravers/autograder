@@ -31,7 +31,16 @@ class Autograder:
       self._workspace_directory = workspace_directory
       self._results_directory = results_directory
       self._verbosity = verbosity
-      
+   
+   def _copy_file(self, source, dest):
+      try:
+         shutil.copyfile(source, dest)
+         return 0
+      except:
+         if self._verbosity == OutputLevel.VERBOSE:
+            print("Could not locate file", source)
+            return -1
+
    def _get_files(self, base_path = None):
 
       submission_dir = self._submission_directory
@@ -87,14 +96,15 @@ class Autograder:
          shutil.copyfile(file_to_grade, copy_to_path)
 
       #copy over testing file to temporary workspace
-      if len(self._testing_file) > 0:
+      if isinstance(self._testing_file, list):
+         for item in self._testing_file:
+            copy_to_path = os.path.join(self._workspace_directory, item)
+            if self._copy_file(item, copy_to_path) != 0:
+               return ""
+      elif len(self._testing_file) > 0:
          copy_to_path = os.path.join(self._workspace_directory, self._testing_file)
-         try:
-            shutil.copyfile(self._testing_file, copy_to_path)
-         except:
-            if self._verbosity == OutputLevel.VERBOSE:
-               print("Could not locate file", self._testing_file)
-            return ""
+         if self._copy_file(self._testing_file, copy_to_path) != 0:
+               return ""
 
       #run test, capture results
       result = ""
@@ -117,7 +127,7 @@ class Autograder:
    def run(self):
       submissions = self._get_files()
       for submission in submissions:
-         result = grade(submission)
+         result = self._grade(submission)
          file_name, file_extension = os.path.splitext(submission)
          file_name = os.path.split(file_name)
          file_name = file_name[-1]
