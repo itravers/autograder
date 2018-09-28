@@ -35,12 +35,6 @@ class CppAutograder(Autograder):
       self._build_tools_exe = build_tools_exe
    
    def run(self):
-      '''
-      Agenda:
-      Find location of cpp file, run cl on that folder location.  Save output as studentName.exe
-      For each test case:
-            Run program on test case, capture results
-      '''
 
       #stores location of each student code folder
       student_folders = dict()

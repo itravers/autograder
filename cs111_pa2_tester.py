@@ -1,7 +1,7 @@
 import shutil
 import subprocess
 import os
-from tester import *
+from autograder import tester
 
 class Pa1Tester(Tester):
    def __init__(self):
@@ -17,12 +17,7 @@ class Pa1Tester(Tester):
          return
 
       tests = [
-               'test1_add.txt', 
-               'test2_update.txt', 
-               'test3_remove.txt',
-               'test4_compound1.txt',
-               'test5_compound2.txt',
-               'test6_compound3.txt']
+               'test1.txt']
       for test in tests:
 
          test_name = os.path.splitext(test)[0]

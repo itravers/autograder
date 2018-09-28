@@ -2,7 +2,7 @@ import os
 import subprocess
 import csv
 import shutil
-from autograder import Autograder
+from autograder import autograder
 
 SUBMISSION_DIRECTORY = 'to_test'
 WORKSPACE_DIRECTORY = 'temp'

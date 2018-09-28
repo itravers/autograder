@@ -2,8 +2,8 @@
 import subprocess
 import csv
 import shutil
-from cpp_autograder import CppAutograder
-from pa1_tester import Pa1Tester
+from autograder import cpp_autograder
+from cs211_pa1_tester import Pa1Tester
 
 tester = Pa1Tester()
 
@@ -15,14 +15,6 @@ TESTING_FILE = ''
 TESTING_COMMAND = tester
 TESTING_OPTIONS = ''
 WORKING_FILE_NAME = ''
-
-
-'''
-Agenda:
-   Find location of cpp file, run cl on that folder location.  Save output as studentName.exe
-   For each test case:
-      Run program on test case, capture results
-'''
 
 if __name__ == '__main__':
 
