@@ -333,3 +333,5 @@ ASALocalRun/
 /to_test/*.*
 /tester.js
 /results/*.txt
+/output
+/to_test
