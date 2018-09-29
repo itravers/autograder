@@ -3,7 +3,7 @@ import subprocess
 import csv
 import shutil
 from enum import Enum
-from tester  import Tester
+from .tester import Tester
 
 class OutputLevel(Enum):
    VERBOSE = 1

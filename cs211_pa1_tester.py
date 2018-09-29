@@ -1,7 +1,7 @@
 import shutil
 import subprocess
 import os
-from autograder import tester
+from autograder.tester import Tester
 
 class Pa1Tester(Tester):
    def __init__(self):

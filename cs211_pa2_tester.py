@@ -1,9 +1,9 @@
 import shutil
 import subprocess
 import os
-from autograder import tester
+from autograder.tester import Tester
 
-class Pa1Tester(Tester):
+class Pa2Tester(Tester):
    def __init__(self):
       super().__init__()
 
@@ -17,7 +17,7 @@ class Pa1Tester(Tester):
          return
 
       tests = [
-               'test1.txt']
+               'test1.txt', 'test2.txt', 'test3.txt']
       for test in tests:
 
          test_name = os.path.splitext(test)[0]
@@ -25,17 +25,9 @@ class Pa1Tester(Tester):
          #doing a copy for ever test ensures purity in the event that
          #the student's EXE screws things up
          print("currently in:", os.getcwd())
-         self.copy_files("pa1", "temp")
+         self.copy_files("pa2", "temp")
          test_command = '< ' + test #command + " < temp/" + test
          result = ""
-         '''
-         try:
-            print(test_command)
-            result = subprocess.check_output(test_command).decode('utf-8')
-            print(result)
-         except:
-            print("Failed to compile project\n")
-         '''
          os.chdir('temp')
          print("testing", test)
          with open(test, 'rb') as input_file:
@@ -47,19 +39,25 @@ class Pa1Tester(Tester):
             os.chdir('../')
             continue
 
+         #copy resulting CSV for later inspection
+         for full_name in os.listdir('.'):
+            file_name, ext = os.path.splitext(full_name)
+            if ext == '.csv' and file_name[0:4] != "test":
+               print("coyping", full_name, "to", test_name + '.csv')
+               shutil.copy(full_name, test_name + '.csv')
+
          result = result.stdout.decode('utf-8').strip()
          with open('output_' + test, 'w') as output_file:
             print(result, file=output_file)
-         shutil.copy('inventory.csv', test_name + '_inventory.csv')
          os.chdir('../')
 
-         #with all tests run, log results for long term
-         if os.path.exists(self.output_path) == False:
-            os.mkdir(self.output_path)
-         destination = os.path.join(self.output_path, self.author)
-         if os.path.exists(destination) == False:
-            os.mkdir(destination)
-         self.copy_files("temp", destination)
+      #with all tests run, log results for long term
+      if os.path.exists(self.output_path) == False:
+         os.mkdir(self.output_path)
+      destination = os.path.join(self.output_path, self.author)
+      if os.path.exists(destination) == False:
+         os.mkdir(destination)
+      self.copy_files("temp", destination)
          
 
 
