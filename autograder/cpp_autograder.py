@@ -3,7 +3,7 @@ from .tester import *
 
 #home pc tools location: E:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\VC\Tools\MSVC\14.15.26726\bin\Hostx86\x86
 #laptop tools location: C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Tools\MSVC\14.14.26428\bin\Hostx86\x86
-#work tools location: C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\VC\Tools\MSVC\14.14.26428\bin\Hostx86\x86
+#work tools location: C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\VC\Tools\MSVC\14.15.26726\bin\Hostx86\x86
 class CppAutograder(Autograder):
 
    def __init__(self,
@@ -18,7 +18,7 @@ class CppAutograder(Autograder):
                 results_directory = 'results',
                 verbosity = OutputLevel.VERBOSE,
                 output_exe_name = 'temp/main.exe',
-                build_tools_path = r'E:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\VC\Tools\MSVC\14.15.26726\bin\Hostx86\x86',
+                build_tools_path = r'C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\VC\Tools\MSVC\14.14.26428\bin\Hostx86\x86',
                 build_tools_exe = 'cl.exe',
                 ):
       super().__init__(file_extensions,
@@ -49,7 +49,8 @@ class CppAutograder(Autograder):
          student_folders[directory] = directory
       
       #Now, we can compile each directory
-      compiler_command = '"' + os.path.join(self._build_tools_path, self._build_tools_exe) + '"'
+      #compiler_command = '"' + os.path.join(self._build_tools_path, self._build_tools_exe) + '"'
+      compiler_command = '"' + self._build_tools_exe + '"'
       for directory in student_folders:
          normed_path = os.path.normpath(directory)
          pieces = normed_path.split(os.sep)
