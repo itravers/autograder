@@ -70,6 +70,12 @@ router.post('/uploadCode', function (req, res) {
    });
 });
 
+
+router.delete('/uploadCode', function (req, res) {
+   //AC: I'm not getting FilePond's ID request on delete.  Will need to fix.
+   res.json({response: "Not Implemented"});
+});
+
 // REGISTER OUR ROUTES -------------------------------
 // all of our routes will be prefixed with /api
 app.use('/api', router);
