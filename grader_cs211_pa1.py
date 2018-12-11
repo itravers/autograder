@@ -2,7 +2,8 @@
 import subprocess
 import csv
 import shutil
-from autograder import cpp_autograder
+from autograder.cpp_autograder import CppAutograder
+from tester_generic_simple_cpp import GenericTester
 from cs211_pa1_tester import Pa1Tester
 
 tester = Pa1Tester()
