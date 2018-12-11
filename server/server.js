@@ -16,10 +16,13 @@ const fs = require('fs');
 const fileUpload = require('express-fileupload');
 
 const config = require('./config.js');
+const setup = require('./setup.js');
 const FilePondManager = require('./FilePondManager.js');
 
 var server_config = config.ServerConstants();
 var file_pond_manager = FilePondManager.FilePondManager(server_config.temp_folder, server_config.uploads_folder);
+
+setup.setupFolders(server_config);
 
 // configure app to use bodyParser()
 // this will let us get the data from a POST
