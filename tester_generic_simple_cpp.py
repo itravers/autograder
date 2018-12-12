@@ -17,7 +17,7 @@ class GenericTester(Tester):
          return
 
       tests = [
-               'input.txt']
+               'input1.txt', 'input2.txt', 'input3.txt', 'input4.txt']
       for test in tests:
 
          test_name = os.path.splitext(test)[0]
@@ -39,7 +39,10 @@ class GenericTester(Tester):
             os.chdir('../')
             continue
 
-         result = result.stdout.decode('utf-8').strip()
+         try:
+            result = result.stdout.decode('utf-8').strip()
+         except:
+            pass
          with open('output_' + test, 'w') as output_file:
             print(result, file=output_file)
          os.chdir('../')
