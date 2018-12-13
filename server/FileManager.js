@@ -1,6 +1,6 @@
 const fs = require('fs');
 
-class FilePondManager {
+class FileManager {
    constructor(temp_root, final_root) {
       this.temp_folder_root = temp_root;
       this.final_dest_root = final_root;
@@ -37,6 +37,6 @@ class FilePondManager {
    }
 }
 
-exports.FilePondManager = function (temp_folder, uploads_folder) {
-   return new FilePondManager(temp_folder, uploads_folder);
+exports.FileManager = function (temp_folder, uploads_folder) {
+   return new FileManager(temp_folder, uploads_folder);
 }

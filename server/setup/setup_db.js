@@ -1,3 +1,0 @@
-function create_users(){
-
-}
