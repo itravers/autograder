@@ -14,20 +14,22 @@ class App extends Component {
    constructor(props) {
       super(props);
 
-      this.state = {
-         links: {
-            add_files: {
-               url: "/add-files",
-               name: "Add File(s)",
-               css: "nav-link active"
-            },
-            test_cases: {
+      this.base_links = 
+         [{
+            url: "/add-files",
+            name: "Add File(s)",
+            css: "nav-link"
+         },
+            {
                url: "/test_cases",
                name: "Test Cases",
                css: "nav-link"
             }
-         },
-         files: []
+         ];
+      this.state = {
+         links: this.base_links,
+         files: [],
+         active_tab: "/add-files"
       };
 
       this.setActiveLink = this.setActiveLink.bind(this);
@@ -35,20 +37,24 @@ class App extends Component {
    }
 
    setActiveLink(evt) {
-      let url = evt.target.pathname;
-      let links = this.state.links;
-      for (let key of Object.keys(links)) {
-         let link = links[key];
-         link.css = "nav-link";
-         if (link.url === url) {
-            link.css += " active";
-         }
+      const url = evt.target.pathname;
+      this.setState({ active_tab: url });
+   }
+
+   updateTabs() {
+      const files = this.state.files;
+      let links = [...this.base_links];
+      for (let key of Object.keys(files)) {
+         const file = files[key];
+         const url = "/files/" + file.name.toLowerCase();
+         const tab = { url: url, name: file.name, css: "nav-link" };
+         links.push(tab);
       }
-      this.setState({ links: links });
+      this.setState({links: links});
    }
 
    updateFiles(files) {
-      this.setState({files: files});
+      this.setState({ files: files }, () => { this.updateTabs() });
    }
 
    render() {
@@ -61,11 +67,16 @@ class App extends Component {
                      <ul class="nav nav-tabs">
                         {Object.keys(links).map((key) => {
                            const item = links[key];
+                           const active_tab = this.state.active_tab;
+                           let style = "nav-link";
+                           if (active_tab === item.url) {
+                              style += " active";
+                           }
                            return (
                               <li key={item.url} className="nav-item">
                                  <Link
                                     to={item.url}
-                                    className={item.css}
+                                    className={style}
                                     onClick={this.setActiveLink}
                                  >{item.name}</Link>
                               </li>
