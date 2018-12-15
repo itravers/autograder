@@ -4,7 +4,7 @@ class FileManager {
    constructor(temp_root, final_root) {
       this.temp_folder_root = temp_root;
       this.final_dest_root = final_root;
-      this.unique_counter_file = this.temp_folder_root + "/counter.txt";
+      this.unique_counter_file = this.temp_folder_root + "counter.txt";
    }
 
    uploadTemp(file, callback) {
@@ -17,7 +17,7 @@ class FileManager {
          fs.writeFile(this.unique_counter_file, counter + 1, { encoding: "utf8" }, (err) => {
 
             //make folder
-            const temp_path = this.temp_folder_root + "/" + counter;
+            const temp_path = this.temp_folder_root + counter;
             const file_path = temp_path + "/" + file.name;
 
             fs.mkdir(temp_path, (err) => {

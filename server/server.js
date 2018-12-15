@@ -21,7 +21,7 @@ const Database = require('./Models/Database.js');
 
 let config = ini.parse(fs.readFileSync('./config.ini', 'utf-8'));
 config.database.connection_string = config.database.db_path + config.database.db_name;;
-let file_manager = FileManager.FileManager(config.temp_folder, config.uploads_folder);
+let file_manager = FileManager.FileManager(config.temp_path, config.uploads_path);
 let db = Database.createDatabase(config.database.connection_string, config.database.secret_hash, config.database.crypto_method);
 
 // configure app to use bodyParser()
