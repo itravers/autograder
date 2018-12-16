@@ -7,11 +7,14 @@ class ServerConstants {
 class SharedConfig{
    constructor(){
       this.server_endpoint = "http://localhost:8080";
-      this.code_upload_endpoint = "/api/uploadCode";
    }
 
    get CodeUploadEndpoint(){
-      return this.server_endpoint + this.code_upload_endpoint;
+      return this.server_endpoint + "/api/uploadCode";
+   }
+
+   get LoginEndpoint(){
+      return this.server_endpoint + "/api/user/login"; 
    }
 }
 

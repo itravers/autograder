@@ -9,7 +9,7 @@ class AddFilesViews extends Component{
 
    constructor(props){
       super(props);
-
+      this.pond = null;
       this.file_types = ['text/x-c', 'text/x-h', 'text/plain'];
    }
 
@@ -20,9 +20,11 @@ class AddFilesViews extends Component{
          <div>
             <h1>Add Files</h1>
             <p>
-               Add your project files here.  Navigate away when you're done.
+               Add your project files here  Uploading files with the same name will overwrite existing files on the server.<br />
+               Navigate away when you're done.                
             </p>
             <FilePond 
+               ref={ref => this.pond = ref}
                allowMultiple={true} 
                server={serverEndpoint} 
                allowFileSizeValidation="true"

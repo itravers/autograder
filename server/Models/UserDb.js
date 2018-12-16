@@ -11,13 +11,13 @@ class UsersDb{
 
    /**
     * Attempts to authenticate the supplied email / password combo.  
-    * Returns user ID if valid, -1 otherwise.
+    * Returns user if valid, -1 otherwise.
     * @param {*} email 
     * @param {*} password 
     * @param {function} callback 
     */
    authenticate(email, password, callback){
-      const sql = "SELECT * FROM users WHERE email = $email AND password = $password LIMIT 1";
+      const sql = "SELECT id, email, first_name, last_name, is_admin FROM users WHERE email = $email AND password = $password LIMIT 1";
       password = this.hash_password(password, email);
       const params = {$email: email, $password: password};
       let result = this.db.get(sql, params, (err, row) => {
@@ -25,7 +25,7 @@ class UsersDb{
             callback = function(x, y){};
          }
          if (err === null && row !== undefined) {
-            callback(row.id, null);
+            callback(row, null);
          }
          else{
             callback(-1, err);

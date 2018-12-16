@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Route, Link, Redirect } from 'react-router-dom
 
 //views
 import AddFilesView from './views/AddFilesView.js';
+import LoginView from './views/LoginView.js';
 
 import './App.css';
 import ConfigManager from './config.js';
@@ -29,6 +30,7 @@ class App extends Component {
       this.state = {
          links: this.base_links,
          files: [],
+         previous_files: [],
          active_tab: "/add-files"
       };
 
@@ -44,17 +46,26 @@ class App extends Component {
    updateTabs() {
       const files = this.state.files;
       let links = [...this.base_links];
+      let links_by_name = {};
+      for(let file of this.state.previous_files){
+         const url = "/files/" + file.name.toLowerCase();
+         const tab = { url: url, name: file.name, css: "nav-link" };
+         links_by_name[tab.url] = tab;
+      }
       for (let key of Object.keys(files)) {
          const file = files[key];
          const url = "/files/" + file.name.toLowerCase();
          const tab = { url: url, name: file.name, css: "nav-link" };
-         links.push(tab);
+         links_by_name[tab.url] = tab;
+      }
+      for(let key of Object.keys(links_by_name)){
+         links.push(links_by_name[key]);
       }
       this.setState({links: links});
    }
 
    updateFiles(files) {
-      this.setState({ files: files }, () => { this.updateTabs() });
+      this.setState({ previous_files: this.state.files, files: files }, () => { this.updateTabs() });
    }
 
    render() {
@@ -64,7 +75,7 @@ class App extends Component {
             <Router>
                <div>
                   <nav>
-                     <ul class="nav nav-tabs">
+                     <ul className="nav nav-tabs">
                         {Object.keys(links).map((key) => {
                            const item = links[key];
                            const active_tab = this.state.active_tab;
@@ -92,6 +103,18 @@ class App extends Component {
                                  <AddFilesView
                                     server_endpoint={config.CodeUploadEndpoint}
                                     file_update_callback={this.updateFiles}
+                                    files={this.state.files}
+                                 />
+                              </div>
+                           )
+                        }} />
+                  <Route path="/login"
+                     render={
+                        (props) => {
+                           return (
+                              <div className="container">
+                                 <LoginView
+                                    server_endpoint={config.LoginEndpoint}
                                  />
                               </div>
                            )
