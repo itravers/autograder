@@ -5,6 +5,10 @@ import { BrowserRouter as Router, Route, Link, Redirect } from 'react-router-dom
 import AddFilesView from './views/AddFilesView.js';
 import LoginView from './views/LoginView.js';
 
+//view models
+import WebRequest from './view_models/WebRequest.js';
+import PrivateRoute from './view_models/PrivateRoute.js';
+
 import './App.css';
 import ConfigManager from './config.js';
 
@@ -31,16 +35,40 @@ class App extends Component {
          links: this.base_links,
          files: [],
          previous_files: [],
-         active_tab: "/add-files"
+         active_tab: "/add-files",
+         current_user: null,
+         courses: [],
+         assignments: [],
+         current_course: -1,
+         current_assignment: -1
       };
 
       this.setActiveLink = this.setActiveLink.bind(this);
       this.updateFiles = this.updateFiles.bind(this);
+      this.updateCurrentUser = this.updateCurrentUser.bind(this);
+      this.getCourseData = this.getCourseData.bind(this);
+      this.getCourseAssignments = this.getCourseAssignments.bind(this);
+   }
+
+   getCourseData(){
+      WebRequest.makeCacheableUrlRequest(config.UserCoursesEndpoint + "/" + this.state.current_user.id, (result) =>{
+         this.setState({courses: result});
+      });
+   }
+
+   getCourseAssignments(){
+      WebRequest.makeUrlRequest(config.CourseActiveAssignmentsEndpoint + "/" + this.state.current_course, (result) =>{
+         this.setState({assignments: result});
+      });
    }
 
    setActiveLink(evt) {
       const url = evt.target.pathname;
       this.setState({ active_tab: url });
+   }
+
+   updateCurrentUser(user){
+      this.setState({current_user: user}, () => {this.getCourseData();});
    }
 
    updateTabs() {
@@ -70,8 +98,16 @@ class App extends Component {
 
    render() {
       const links = this.state.links;
+      const courses = this.state.courses;
       return (
          <div className="App">
+            <select>
+               {courses.map((item) =>{
+                  return(
+                     <option key={item}>item</option>
+                  );
+               })}
+            </select>
             <Router>
                <div>
                   <nav>
@@ -115,6 +151,7 @@ class App extends Component {
                               <div className="container">
                                  <LoginView
                                     server_endpoint={config.LoginEndpoint}
+                                    update_user={this.updateCurrentUser}
                                  />
                               </div>
                            )

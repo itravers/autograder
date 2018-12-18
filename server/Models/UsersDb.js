@@ -79,6 +79,6 @@ class UsersDb{
    }
 }
 
-exports.createUserDb = function(db_connection, crypto_method){
+exports.createUsersDb = function(db_connection, crypto_method){
    return new UsersDb(db_connection, crypto_method);
 }

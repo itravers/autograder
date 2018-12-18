@@ -16,6 +16,14 @@ class SharedConfig{
    get LoginEndpoint(){
       return this.server_endpoint + "/api/user/login"; 
    }
+
+   get UserCoursesEndpoint(){
+      return this.server_endpoint + "/api/course/forUser"; 
+   }
+
+   get CourseActiveAssignmentsEndpoint(){
+      return this.server_endpoint + "/course/assignments/active";
+   }
 }
 
 class DebugConfig extends SharedConfig {

@@ -1,6 +1,5 @@
 import React, { Component } from 'react';
 import Session from '../view_models/Session.js';
-import User from '../view_models/User.js';
 import WebRequest from '../view_models/WebRequest.js';
 
 class LoginView extends Component {
@@ -30,11 +29,16 @@ class LoginView extends Component {
 
    login(evt) {
       evt.preventDefault();
-      let user = new User();
-      user.email = this.state.email;
-      user.password = this.state.password;
+      const user = {email: this.state.email, password: this.state.password};
       WebRequest.makePost(this.props.server_endpoint, user, (result) => {
-         this.props.update_user(result)
+         const user = result.data.response;
+         if(user.id !== undefined){
+            this.props.update_user(result.data.response);
+         }
+         else{
+            //invalid user / pass.
+         }
+         
       });
    }
 

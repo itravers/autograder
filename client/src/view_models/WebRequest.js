@@ -9,7 +9,7 @@ class WebRequest {
     */
    static makeCacheableUrlRequest(url, callback) {
       if (sessionStorage.getItem(url) === null) {
-         axios(url).then(result => {
+         axios(url, {withCredentials: true}).then(result => {
             sessionStorage.setItem(url, JSON.stringify(result));
             callback(result);
          });
@@ -25,13 +25,13 @@ class WebRequest {
     * @param {*} callback 
     */
    static makeUrlRequest(url, callback) {
-      axios(url).then(result => {
+      axios(url, {withCredentials: true}).then(result => {
          callback(result);
       });
    }
 
    static makePost(url, post, callback){
-      axios.post(url, post).then(callback);
+      axios.post(url, post, {withCredentials: true}).then(callback);
    }
 }
 
