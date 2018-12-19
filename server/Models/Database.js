@@ -1,7 +1,8 @@
 const sqlite3 = require('sqlite3').verbose();
-const crypto = require('crypto');
 const UsersDb = require('./UsersDb.js');
 const CoursesDb = require('./CourseDb.js');
+const AssignmentsDb = require('./AssignmentsDb.js');
+const AssignmentFilesDb = require('./AssignmentFilesDb.js');
 
 
 class Database{
@@ -18,6 +19,8 @@ class Database{
 
       this.Users = UsersDb.createUsersDb(this.db, this.crypto_method);
       this.Courses = CoursesDb.createCoursesDb(this.db);
+      this.Assignments = AssignmentsDb.createAssignmentsDb(this.db);
+      this.AssignmentFiles = AssignmentFilesDb.createAssignmentFilesDb(this.db);
    }
 
    

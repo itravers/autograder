@@ -51,13 +51,14 @@ class App extends Component {
    }
 
    getCourseData(){
-      WebRequest.makeCacheableUrlRequest(config.UserCoursesEndpoint + "/" + this.state.current_user.id, (result) =>{
-         this.setState({courses: result});
+      WebRequest.makeCacheableUrlRequest(config.endpoints.course.for_user + "/" + this.state.current_user.id, (result) =>{
+         //this.setState({courses: result});
+         alert(result);
       });
    }
 
    getCourseAssignments(){
-      WebRequest.makeUrlRequest(config.CourseActiveAssignmentsEndpoint + "/" + this.state.current_course, (result) =>{
+      WebRequest.makeUrlRequest(config.endpoints.course.active_assignments + "/" + this.state.current_course, (result) =>{
          this.setState({assignments: result});
       });
    }
@@ -137,7 +138,7 @@ class App extends Component {
                            return (
                               <div className="container">
                                  <AddFilesView
-                                    server_endpoint={config.CodeUploadEndpoint}
+                                    server_endpoint={config.endpoints.assignment.file}
                                     file_update_callback={this.updateFiles}
                                     files={this.state.files}
                                  />
@@ -150,7 +151,7 @@ class App extends Component {
                            return (
                               <div className="container">
                                  <LoginView
-                                    server_endpoint={config.LoginEndpoint}
+                                    server_endpoint={config.endpoints.user.login}
                                     update_user={this.updateCurrentUser}
                                  />
                               </div>
@@ -163,15 +164,5 @@ class App extends Component {
    }
 }
 
-const AddFiles = (source) => {
-
-   return (
-      <div className="container">
-         <AddFilesView
-            server_endpoint={config.code_upload_endpoint}
-         />
-      </div>
-   );
-};
 
 export default App;

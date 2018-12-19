@@ -30,35 +30,42 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 app.use(fileUpload());
 
-let cookie = {secure: false, httpOnly: false, maxAge: 60000};
-app.use(session({ 
-   secret: config.database.secret_hash, 
-   resave: false, 
-   saveUninitialized: false, 
-   cookie: cookie }));
+let cookie = { secure: false, httpOnly: false, maxAge: 60000 };
+app.use(session({
+   secret: config.database.secret_hash,
+   resave: false,
+   saveUninitialized: false,
+   cookie: cookie
+}));
 
 var port = process.env.PORT || 8080;        // set our port
 
-//Allow CORS from react (not safe for production)
 if (config.mode === "debug") {
    console.log("running in debug mode.");
-   app.use((req, res, next) => {
-      const origin = req.get('origin');
-
-      // Add origin validation
-      res.header('Access-Control-Allow-Origin', origin);
-      res.header('Access-Control-Allow-Credentials', true);
-      res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE');
-      res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, Cache-Control, Pragma');
-
-      // intercept OPTIONS method
-      if (req.method === 'OPTIONS') {
-         res.sendStatus(204);
-      } else {
-         next();
-      }
-   });
 }
+
+app.use((req, res, next) => {
+
+   //Allow CORS from react (not safe for production)
+   if (config.mode === "debug") {
+      const origin = req.get('origin');
+      res.header('Access-Control-Allow-Origin', origin);
+   }
+
+   res.header('Access-Control-Allow-Credentials', true);
+   res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, HEAD, OPTIONS');
+   res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, Cache-Control, Pragma');
+
+
+
+   // intercept OPTIONS method
+   if (req.method === 'OPTIONS') {
+      res.sendStatus(204);
+   } else {
+      next();
+   }
+});
+
 
 // ROUTES FOR OUR API
 // =============================================================================
@@ -67,6 +74,45 @@ var router = express.Router();              // get an instance of the express Ro
 // test route to make sure everything is working (accessed at GET http://localhost:8080/api)
 router.get('/', (req, res) => {
    res.json({ message: 'hooray! welcome to our api!' });
+});
+
+/**
+ * Uploads a file.  :id is the assignment ID that this file will belong to.
+ */
+router.post('/assignment/file/:id', (req, res) => {
+   const current_user = req.session.user;
+   const assignment_id = req.params.id;
+   const uploaded_file = req.files.filepond;
+
+   //make sure user can upload to this assignment
+   if (current_user !== undefined) {
+      db.Assignments.has_user(assignment_id, current_user.id, (result, err) => {
+         if (result === true) {
+            let buffer_data = Buffer.from(uploaded_file.data);
+            const text = buffer_data.toString('utf8');
+            db.AssignmentFiles.add(current_user.id, assignment_id, uploaded_file.name, text, (result, err)=>{
+               if(result !== null){
+                  res.json({ result });
+               }
+               else{
+                  return res.status(500).send(err);
+               }
+            });
+         }
+         else{
+            return res.status(500).send("Invalid user");
+         }
+      });
+   }
+   else{
+      return res.status(500).send("No user");
+   }
+});
+
+router.delete('/assignment/file/:id', (req, res) => {
+   //AC: I'm not getting FilePond's ID request on delete.  Will need to fix.
+   const id = req.params.id;
+   res.json({ response: "Not Implemented" });
 });
 
 router.get('/course/assignments/active/:id', (req, res) => {
@@ -91,26 +137,10 @@ router.get('/course/forUser/:id', (req, res) => {
          res.json({ response: {} });
       }
    }
-   else{
+   else {
       res.json({ response: {} });
    }
-   
-});
 
-router.post('/uploadCode', (req, res) => {
-   file_manager.uploadTemp(req.files.filepond, (result, err) => {
-      if (err !== null) {
-         return res.status(500).send(err);
-      }
-      else {
-         res.json({ result });
-      }
-   });
-});
-
-router.delete('/uploadCode', (req, res) => {
-   //AC: I'm not getting FilePond's ID request on delete.  Will need to fix.
-   res.json({ response: "Not Implemented" });
 });
 
 router.get('/user/login', (req, res) => {

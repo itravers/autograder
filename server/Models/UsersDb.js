@@ -1,9 +1,9 @@
 const sqlite3 = require('sqlite3').verbose();
 const crypto = require('crypto');
 
-class UsersDb{
+class UsersDb {
 
-   constructor(db_connection, crypto_method){
+   constructor(db_connection, crypto_method) {
       this.db = db_connection;
       this.crypto_method = crypto_method;
    }
@@ -16,18 +16,18 @@ class UsersDb{
     * @param {*} password 
     * @param {function} callback 
     */
-   authenticate(email, password, callback){
+   authenticate(email, password, callback) {
       const sql = "SELECT id, email, first_name, last_name, is_admin FROM users WHERE email = $email AND password = $password LIMIT 1";
       password = this.hash_password(password, email);
-      const params = {$email: email, $password: password};
+      const params = { $email: email, $password: password };
       let result = this.db.get(sql, params, (err, row) => {
-         if(typeof(callback) !== "function"){
-            callback = function(x, y){};
+         if (typeof (callback) !== "function") {
+            callback = function (x, y) { };
          }
          if (err === null && row !== undefined) {
             callback(row, null);
          }
-         else{
+         else {
             callback(-1, err);
          }
       });
@@ -42,27 +42,30 @@ class UsersDb{
     * @param {*} is_admin 
     * @param {function} callback 
     */
-   create(email, first_name, last_name, password, is_admin, callback){
+   create(email, first_name, last_name, password, is_admin, callback) {
       const sql = "INSERT INTO users " +
-                  " (email, first_name, last_name, password, is_admin) " + 
-                  " VALUES ($email, $first_name, $last_name, $password, $is_admin)";
-      
+         " (email, first_name, last_name, password, is_admin) " +
+         " VALUES ($email, $first_name, $last_name, $password, $is_admin)";
+
       //hash password
       password = this.hash_password(password, email);
-      
-      const params = {$email: email, $first_name: first_name, $last_name: last_name, $password: password, $is_admin: is_admin};
-      this.db.run(sql, params, (err) =>{
-         if(typeof(callback) !== "function"){
-            callback = function(x, y){};
+
+      const params = { $email: email, $first_name: first_name, $last_name: last_name, $password: password, $is_admin: is_admin };
+      //AC: placing db callback function into its own variable changes 
+      //*this* from local AssignmentFilesDb object to result of sqlite3 db call.
+      var local_callback = function (err) {
+         if (typeof (callback) !== "function") {
+            callback = function (x, y) { };
          }
          if (err === null) {
             callback(this.lastID, null);
          }
-         else{
+         else {
             console.log(err);
             callback(null, err);
          }
-      });
+      };
+      this.db.run(sql, params, local_callback);
    }
 
    /**
@@ -70,7 +73,7 @@ class UsersDb{
     * @param {*} password 
     * @param {*} salt 
     */
-   hash_password(password, salt){
+   hash_password(password, salt) {
       let hasher = crypto.createHash(this.crypto_method);
       password += this.hash_salt + salt;
       hasher.update(password);
@@ -79,6 +82,6 @@ class UsersDb{
    }
 }
 
-exports.createUsersDb = function(db_connection, crypto_method){
+exports.createUsersDb = function (db_connection, crypto_method) {
    return new UsersDb(db_connection, crypto_method);
 }

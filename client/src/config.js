@@ -6,23 +6,23 @@ class ServerConstants {
 
 class SharedConfig{
    constructor(){
-      this.server_endpoint = "http://localhost:8080";
-   }
+      const root_endpoint = "http://localhost:8080";
 
-   get CodeUploadEndpoint(){
-      return this.server_endpoint + "/api/uploadCode";
-   }
-
-   get LoginEndpoint(){
-      return this.server_endpoint + "/api/user/login"; 
-   }
-
-   get UserCoursesEndpoint(){
-      return this.server_endpoint + "/api/course/forUser"; 
-   }
-
-   get CourseActiveAssignmentsEndpoint(){
-      return this.server_endpoint + "/course/assignments/active";
+      this.endpoints = {
+         root: root_endpoint,
+         assignment: {
+            file: root_endpoint + "/api/assignment/file"
+         },
+         course: {
+            for_user: root_endpoint + "/api/course/forUser",
+            active_assignments: root_endpoint + "/api/course/assignments/active",
+            all_assignments: root_endpoint + "/api/course/assignments",
+            deleted_assignments: root_endpoint + "/api/course/assignments/inactive"
+         },
+         user: {
+            login: root_endpoint + "/api/user/login"
+         }
+      };
    }
 }
 

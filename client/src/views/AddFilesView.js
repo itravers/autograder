@@ -14,8 +14,9 @@ class AddFilesViews extends Component{
    }
 
    render(){
-      const serverEndpoint = this.props.server_endpoint;
       const update_callback = this.props.file_update_callback;
+      const assignment_id = 1; //this will get changed to a dynamic prop
+      const serverEndpoint = this.props.server_endpoint + "/" + assignment_id;
       return(
          <div>
             <h1>Add Files</h1>
@@ -26,13 +27,18 @@ class AddFilesViews extends Component{
             <FilePond 
                ref={ref => this.pond = ref}
                allowMultiple={true} 
-               server={serverEndpoint} 
+               server={{
+                  url: serverEndpoint,
+                  process: {
+                     withCredentials: true
+                  }
+               }} 
                allowFileSizeValidation="true"
                maxFileSize="100KB"
+               withCredentials = {true}
                onupdatefiles={(fileItems) =>{
                   update_callback(fileItems.map(fileItem => fileItem.file))
-               }
-               }
+               }}
                />
          </div>
       );
