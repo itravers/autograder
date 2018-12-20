@@ -8,6 +8,7 @@ import LoginView from './views/LoginView.js';
 //view models
 import WebRequest from './view_models/WebRequest.js';
 import PrivateRoute from './view_models/PrivateRoute.js';
+import Session from './view_models/Session.js';
 
 import './App.css';
 import ConfigManager from './config.js';
@@ -21,11 +22,13 @@ class App extends Component {
 
       this.base_links = 
          [{
+            id: -1,
             url: "/add-files",
             name: "Add File(s)",
             css: "nav-link"
          },
             {
+               id: -1,
                url: "/test_cases",
                name: "Test Cases",
                css: "nav-link"
@@ -34,20 +37,22 @@ class App extends Component {
       this.state = {
          links: this.base_links,
          files: [],
-         previous_files: [],
          active_tab: "/add-files",
          current_user: null,
          courses: [],
          assignments: [],
-         current_course: -1,
-         current_assignment: -1
+         current_course: 1, //dummy value that will need to be changed
+         current_assignment: 1 //dummy value that will need to be changed
       };
+
+      this.session = Session;
 
       this.setActiveLink = this.setActiveLink.bind(this);
       this.updateFiles = this.updateFiles.bind(this);
       this.updateCurrentUser = this.updateCurrentUser.bind(this);
       this.getCourseData = this.getCourseData.bind(this);
       this.getCourseAssignments = this.getCourseAssignments.bind(this);
+      this.removeTab = this.removeTab.bind(this);
    }
 
    getCourseData(){
@@ -70,21 +75,17 @@ class App extends Component {
 
    updateCurrentUser(user){
       this.setState({current_user: user}, () => {this.getCourseData();});
+      this.session.set("current_user", user);
    }
 
    updateTabs() {
       const files = this.state.files;
       let links = [...this.base_links];
       let links_by_name = {};
-      for(let file of this.state.previous_files){
-         const url = "/files/" + file.name.toLowerCase();
-         const tab = { url: url, name: file.name, css: "nav-link" };
-         links_by_name[tab.url] = tab;
-      }
       for (let key of Object.keys(files)) {
          const file = files[key];
          const url = "/files/" + file.name.toLowerCase();
-         const tab = { url: url, name: file.name, css: "nav-link" };
+         const tab = { id: file.id, url: url, name: file.name, css: "nav-link" };
          links_by_name[tab.url] = tab;
       }
       for(let key of Object.keys(links_by_name)){
@@ -94,7 +95,19 @@ class App extends Component {
    }
 
    updateFiles(files) {
-      this.setState({ previous_files: this.state.files, files: files }, () => { this.updateTabs() });
+      let previous_files = {...this.state.files};
+      for(let file of files){
+         previous_files[file.name] = file;
+      }
+      this.setState({ files: previous_files }, () => { this.updateTabs() });
+   }
+
+   removeTab(file_name){
+      let files = {...this.state.files};
+      delete files[file_name];
+      this.setState({files: files}, () =>{
+         this.updateTabs();
+      });
    }
 
    render() {
@@ -139,7 +152,8 @@ class App extends Component {
                               <div className="container">
                                  <AddFilesView
                                     server_endpoint={config.endpoints.assignment.file}
-                                    file_update_callback={this.updateFiles}
+                                    file_add_callback={this.updateFiles}
+                                    file_remove_callback={this.removeTab}
                                     files={this.state.files}
                                  />
                               </div>

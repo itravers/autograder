@@ -17,12 +17,14 @@ const ini = require('ini');
 const session = require('express-session');
 const FileManager = require('./FileManager.js');
 const Database = require('./Models/Database.js');
+const AccessControlList = require('./Models/AccessControlList.js');
 
 
 let config = ini.parse(fs.readFileSync('./config.ini', 'utf-8'));
 config.database.connection_string = config.database.db_path + config.database.db_name;;
 let file_manager = FileManager.FileManager(config.temp_path, config.uploads_path);
 let db = Database.createDatabase(config.database.connection_string, config.database.secret_hash, config.database.crypto_method);
+let acl = AccessControlList.createACL(db);
 
 // configure app to use bodyParser()
 // this will let us get the data from a POST
@@ -77,42 +79,93 @@ router.get('/', (req, res) => {
 });
 
 /**
+ * Retrieves all files for the specified assignment
+ */
+router.get('/assignment/file/:id', (req, res) => {
+   let session = req.session;
+   const current_user = session.user;
+   const assignment_id = req.params.id;
+
+   //do we have an active user?
+   acl.isLoggedIn(session)
+
+      //and this user can access the current assignment
+      .then(() => acl.userHasAssignment(current_user, assignment_id))
+
+      //then make the call
+      .then(() => {
+         db.AssignmentFiles.all(assignment_id, current_user.id, (data) => {
+            res.json({ response: data });
+         });
+      })
+      .catch((error) => {
+         return res.status(500).send("Error");
+      });
+});
+
+/**
  * Uploads a file.  :id is the assignment ID that this file will belong to.
  */
 router.post('/assignment/file/:id', (req, res) => {
    const current_user = req.session.user;
    const assignment_id = req.params.id;
    const uploaded_file = req.files.filepond;
+   let session = req.session;
 
    //make sure user can upload to this assignment
-   if (current_user !== undefined) {
-      db.Assignments.has_user(assignment_id, current_user.id, (result, err) => {
-         if (result === true) {
-            let buffer_data = Buffer.from(uploaded_file.data);
-            const text = buffer_data.toString('utf8');
-            db.AssignmentFiles.add(current_user.id, assignment_id, uploaded_file.name, text, (result, err)=>{
-               if(result !== null){
-                  res.json({ result });
-               }
-               else{
-                  return res.status(500).send(err);
-               }
-            });
-         }
-         else{
-            return res.status(500).send("Invalid user");
-         }
+   acl.isLoggedIn(session)
+
+      //and belongs to the current assignment
+      .then(result => acl.userHasAssignment(current_user, assignment_id))
+
+      //then allow them to upload the file
+      .then(result => {
+         let buffer_data = Buffer.from(uploaded_file.data);
+         const text = buffer_data.toString('utf8');
+         db.AssignmentFiles.add(current_user.id, assignment_id, uploaded_file.name, text, (result, err) => {
+            if (result !== null) {
+               res.type('html').send(String(result));
+            }
+            else {
+               return res.status(500).send(err);
+            }
+         });
+      })
+      .catch(() => {
+         return res.status(500).send("Invalid user");
       });
-   }
-   else{
-      return res.status(500).send("No user");
-   }
 });
 
+/**
+ * Unlike every other /assignment/file method, :id in this case refers to the actual file ID
+ */
 router.delete('/assignment/file/:id', (req, res) => {
-   //AC: I'm not getting FilePond's ID request on delete.  Will need to fix.
-   const id = req.params.id;
-   res.json({ response: "Not Implemented" });
+   let session = req.session;
+   const current_user = session.user;
+   const file_id = req.params.id;
+
+   //do we have an active user?
+   acl.isLoggedIn(session)
+
+      //and this user can access the current assignment
+      .then(() => acl.userOwnsFile(current_user, file_id))
+
+      //then make the call
+      .then(() => {
+         db.AssignmentFiles.remove(file_id, (changes, err) => {
+            if (err === null) {
+               return res.json({response: file_id});
+            }
+            else{
+               console.log(err);
+               return res.status(500).send("Error");
+            }
+         });
+      })
+      .catch((error) => {
+         return res.status(500).send("Error");
+      });
+
 });
 
 router.get('/course/assignments/active/:id', (req, res) => {
