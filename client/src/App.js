@@ -1,6 +1,9 @@
 import React, { Component } from 'react';
 import { BrowserRouter as Router, Route, Link, Redirect } from 'react-router-dom';
 
+//right click context menu
+import { ContextMenu, MenuItem, ContextMenuTrigger } from "react-contextmenu";
+
 //views
 import AddFilesView from './views/AddFilesView.js';
 import LoginView from './views/LoginView.js';
@@ -20,19 +23,19 @@ class App extends Component {
    constructor(props) {
       super(props);
 
-      this.base_links = 
+      this.base_links =
          [{
             id: -1,
             url: "/add-files",
             name: "Add File(s)",
             css: "nav-link"
          },
-            {
-               id: -1,
-               url: "/test_cases",
-               name: "Test Cases",
-               css: "nav-link"
-            }
+         {
+            id: -1,
+            url: "/test_cases",
+            name: "Test Cases",
+            css: "nav-link"
+         }
          ];
       this.state = {
          links: this.base_links,
@@ -55,16 +58,16 @@ class App extends Component {
       this.removeTab = this.removeTab.bind(this);
    }
 
-   getCourseData(){
-      WebRequest.makeCacheableUrlRequest(config.endpoints.course.for_user + "/" + this.state.current_user.id, (result) =>{
+   getCourseData() {
+      WebRequest.makeCacheableUrlRequest(config.endpoints.course.for_user + "/" + this.state.current_user.id, (result) => {
          //this.setState({courses: result});
          alert(result);
       });
    }
 
-   getCourseAssignments(){
-      WebRequest.makeUrlRequest(config.endpoints.course.active_assignments + "/" + this.state.current_course, (result) =>{
-         this.setState({assignments: result});
+   getCourseAssignments() {
+      WebRequest.makeUrlRequest(config.endpoints.course.active_assignments + "/" + this.state.current_course, (result) => {
+         this.setState({ assignments: result });
       });
    }
 
@@ -73,8 +76,8 @@ class App extends Component {
       this.setState({ active_tab: url });
    }
 
-   updateCurrentUser(user){
-      this.setState({current_user: user}, () => {this.getCourseData();});
+   updateCurrentUser(user) {
+      this.setState({ current_user: user }, () => { this.getCourseData(); });
       this.session.set("current_user", user);
    }
 
@@ -88,24 +91,24 @@ class App extends Component {
          const tab = { id: file.id, url: url, name: file.name, css: "nav-link" };
          links_by_name[tab.url] = tab;
       }
-      for(let key of Object.keys(links_by_name)){
+      for (let key of Object.keys(links_by_name)) {
          links.push(links_by_name[key]);
       }
-      this.setState({links: links});
+      this.setState({ links: links });
    }
 
    updateFiles(files) {
-      let previous_files = {...this.state.files};
-      for(let file of files){
+      let previous_files = { ...this.state.files };
+      for (let file of files) {
          previous_files[file.name] = file;
       }
       this.setState({ files: previous_files }, () => { this.updateTabs() });
    }
 
-   removeTab(file_name){
-      let files = {...this.state.files};
+   removeTab(file_name) {
+      let files = { ...this.state.files };
       delete files[file_name];
-      this.setState({files: files}, () =>{
+      this.setState({ files: files }, () => {
          this.updateTabs();
       });
    }
@@ -116,8 +119,8 @@ class App extends Component {
       return (
          <div className="App">
             <select>
-               {courses.map((item) =>{
-                  return(
+               {courses.map((item) => {
+                  return (
                      <option key={item}>item</option>
                   );
                })}
@@ -135,11 +138,18 @@ class App extends Component {
                            }
                            return (
                               <li key={item.url} className="nav-item">
-                                 <Link
-                                    to={item.url}
-                                    className={style}
-                                    onClick={this.setActiveLink}
-                                 >{item.name}</Link>
+                                 <ContextMenuTrigger
+                                    id="FileTabs"
+                                    name={item.id}
+                                    holdToDisplay={1000}
+                                    className="well"
+                                 >
+                                    <Link
+                                       to={item.url}
+                                       className={style}
+                                       onClick={this.setActiveLink}
+                                    >{item.name}</Link>
+                                 </ContextMenuTrigger>
                               </li>
                            );
                         })}
@@ -173,6 +183,9 @@ class App extends Component {
                         }} />
                </div>
             </Router>
+            <ContextMenu id="FileTabs">
+               <MenuItem>Remove File</MenuItem>
+            </ContextMenu>
          </div>
       );
    }

@@ -137,12 +137,13 @@ router.post('/assignment/file/:id', (req, res) => {
 });
 
 /**
- * Unlike every other /assignment/file method, :id in this case refers to the actual file ID
+ * :id is the assignment ID that this file will belong to.   The file ID to delete 
+ * should be in req.body.id.
  */
 router.delete('/assignment/file/:id', (req, res) => {
    let session = req.session;
    const current_user = session.user;
-   const file_id = req.params.id;
+   const file_id = req.body.id;
 
    //do we have an active user?
    acl.isLoggedIn(session)

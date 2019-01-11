@@ -5,7 +5,7 @@ class AccessControlList{
 
    isLoggedIn(session){
       return new Promise( (resolve, reject) =>{
-         if(session.user !== undefined || session.user !== null){
+         if(session.user !== undefined && session.user !== null){
             resolve(true);
          }
          else{

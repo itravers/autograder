@@ -3,6 +3,7 @@ import { FilePond, File, registerPlugin } from 'react-filepond';
 import 'filepond/dist/filepond.min.css';
 import FilePondPluginFileValidateSize from 'filepond-plugin-file-validate-size';
 import FilePondPluginFileValidateType from 'filepond-plugin-file-validate-type';
+import WebRequest from '../view_models/WebRequest.js';
 registerPlugin(FilePondPluginFileValidateType, FilePondPluginFileValidateSize);
 
 class AddFilesViews extends Component{
@@ -14,6 +15,7 @@ class AddFilesViews extends Component{
 
       this.addFile = this.addFile.bind(this);
       this.removeFile = this.removeFile.bind(this);
+      this.serverEndpoint = this.serverEndpoint.bind(this);
    }
 
    addFile(error, file){
@@ -27,13 +29,25 @@ class AddFilesViews extends Component{
       }
    }
 
+   serverEndpoint(){
+      const assignment_id = 1; //this will get changed to a dynamic prop
+      const serverEndpoint = this.props.server_endpoint + "/" + assignment_id;
+      return serverEndpoint;
+   }
+
    removeFile(raw_file){
-      this.props.file_remove_callback(raw_file.file.name);
+
+      //file pond isn't sending delete messages to server correctly.  Manual hack
+      //until I figure it out.
+      const endpoint = this.serverEndpoint();
+      const callback = this.props.file_remove_callback;
+      WebRequest.makeDelete(endpoint, {id: raw_file.serverId}, function(){
+         callback(raw_file.file.name);
+      });
    }
 
    render(){
-      const assignment_id = 1; //this will get changed to a dynamic prop
-      const serverEndpoint = this.props.server_endpoint + "/" + assignment_id;
+      const serverEndpoint = this.serverEndpoint();
       return(
          <div>
             <h1>Add Files</h1>

@@ -38,6 +38,15 @@ class WebRequest {
       })
          .then(callback);
    }
+
+   static makeDelete(url, data, callback){
+      axios(url, {
+         method: "delete",
+         data: data,
+         withCredentials: true
+      })
+         .then(callback);
+   }
 }
 
 export { WebRequest };
