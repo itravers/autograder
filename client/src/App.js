@@ -7,11 +7,13 @@ import { ContextMenu, MenuItem, ContextMenuTrigger } from "react-contextmenu";
 //views
 import AddFilesView from './views/AddFilesView.js';
 import LoginView from './views/LoginView.js';
+import SourceView from './views/SourceView.js';
 
 //view models
 import WebRequest from './view_models/WebRequest.js';
 import PrivateRoute from './view_models/PrivateRoute.js';
 import Session from './view_models/Session.js';
+
 
 import './App.css';
 import ConfigManager from './config.js';
@@ -40,6 +42,7 @@ class App extends Component {
       this.state = {
          links: this.base_links,
          files: [],
+         file_data: {},
          active_tab: "/add-files",
          current_user: null,
          courses: [],
@@ -53,9 +56,23 @@ class App extends Component {
       this.setActiveLink = this.setActiveLink.bind(this);
       this.updateFiles = this.updateFiles.bind(this);
       this.updateCurrentUser = this.updateCurrentUser.bind(this);
+      this.getAssignmentFiles = this.getAssignmentFiles.bind(this);
       this.getCourseData = this.getCourseData.bind(this);
       this.getCourseAssignments = this.getCourseAssignments.bind(this);
       this.removeTab = this.removeTab.bind(this);
+      this.renderSource = this.renderSource.bind(this);
+   }
+
+   getAssignmentFiles(callback){
+      const url = config.endpoints.assignment.file + "/" + this.state.current_assignment;
+      WebRequest.makeUrlRequest(url, (result) =>{
+         const data = result.data.response;
+         let file_data = {};
+         for(const item of data){
+            file_data[item.file_name] = item;
+         }
+         this.setState({file_data: file_data});
+      });
    }
 
    getCourseData() {
@@ -74,6 +91,10 @@ class App extends Component {
    setActiveLink(evt) {
       const url = evt.target.pathname;
       this.setState({ active_tab: url });
+   }
+
+   renderSource({params}){
+
    }
 
    updateCurrentUser(user) {
@@ -102,7 +123,10 @@ class App extends Component {
       for (let file of files) {
          previous_files[file.name] = file;
       }
-      this.setState({ files: previous_files }, () => { this.updateTabs() });
+      this.setState({ files: previous_files }, () => { 
+         this.updateTabs();
+         this.getAssignmentFiles();
+      });
    }
 
    removeTab(file_name) {
@@ -116,6 +140,7 @@ class App extends Component {
    render() {
       const links = this.state.links;
       const courses = this.state.courses;
+      const state = this.state;
       return (
          <div className="App">
             <select>
@@ -155,6 +180,20 @@ class App extends Component {
                         })}
                      </ul>
                   </nav>
+                  <Route path="/files/:name" 
+                  render={
+                     ({match}, props) => {
+                        const file_name = match.params.name;
+                        const file_data = state.file_data[file_name];
+                        return(
+                           <div className="container">
+                              <SourceView
+                                 source={file_data}
+                              />
+                           </div>
+                        )
+                     }
+                  }/>
                   <Route path="/add-files"
                      render={
                         (props) => {
