@@ -6,8 +6,8 @@ import { ContextMenu, MenuItem, ContextMenuTrigger } from "react-contextmenu";
 
 //views
 import AddFilesView from './views/AddFilesView.js';
-import LoginView from './views/LoginView.js';
 import SourceView from './views/SourceView.js';
+import UserSession from './views/UserSession.js';
 
 //view models
 import WebRequest from './view_models/WebRequest.js';
@@ -57,10 +57,13 @@ class App extends Component {
       this.updateFiles = this.updateFiles.bind(this);
       this.updateCurrentUser = this.updateCurrentUser.bind(this);
       this.getAssignmentFiles = this.getAssignmentFiles.bind(this);
-      this.getCourseData = this.getCourseData.bind(this);
-      this.getCourseAssignments = this.getCourseAssignments.bind(this);
       this.removeTab = this.removeTab.bind(this);
-      this.renderSource = this.renderSource.bind(this);
+      this.render = this.render.bind(this);
+      this.assignmentChanged = this.assignmentChanged.bind(this);
+   }
+
+   assignmentChanged(assignment){
+
    }
 
    getAssignmentFiles(callback){
@@ -75,26 +78,9 @@ class App extends Component {
       });
    }
 
-   getCourseData() {
-      WebRequest.makeCacheableUrlRequest(config.endpoints.course.for_user + "/" + this.state.current_user.id, (result) => {
-         //this.setState({courses: result});
-         alert(result);
-      });
-   }
-
-   getCourseAssignments() {
-      WebRequest.makeUrlRequest(config.endpoints.course.active_assignments + "/" + this.state.current_course, (result) => {
-         this.setState({ assignments: result });
-      });
-   }
-
    setActiveLink(evt) {
       const url = evt.target.pathname;
       this.setState({ active_tab: url });
-   }
-
-   renderSource({params}){
-
    }
 
    updateCurrentUser(user) {
@@ -139,17 +125,10 @@ class App extends Component {
 
    render() {
       const links = this.state.links;
-      const courses = this.state.courses;
       const state = this.state;
       return (
          <div className="App">
-            <select>
-               {courses.map((item) => {
-                  return (
-                     <option key={item}>item</option>
-                  );
-               })}
-            </select>
+            <UserSession config={config} onAssignmentChange={this.assignmentChanged} />
             <Router>
                <div>
                   <nav>
@@ -208,18 +187,7 @@ class App extends Component {
                               </div>
                            )
                         }} />
-                  <Route path="/login"
-                     render={
-                        (props) => {
-                           return (
-                              <div className="container">
-                                 <LoginView
-                                    server_endpoint={config.endpoints.user.login}
-                                    update_user={this.updateCurrentUser}
-                                 />
-                              </div>
-                           )
-                        }} />
+                  
                </div>
             </Router>
             <ContextMenu id="FileTabs">
