@@ -1,6 +1,10 @@
 class AccessControlList{
    constructor(db){
       this.db = db;
+
+      this.isLoggedIn = this.isLoggedIn.bind(this);
+      this.userHasAssignment = this.userHasAssignment.bind(this);
+      this.userOwnsFile = this.userOwnsFile.bind(this);
    }
 
    isLoggedIn(session){

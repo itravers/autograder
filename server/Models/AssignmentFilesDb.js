@@ -4,6 +4,12 @@ class AssignmentFilesDb {
 
    constructor(db_connection) {
       this.db = db_connection;
+
+      this.add = this.add.bind(this);
+      this.all = this.all.bind(this);
+      this.get = this.get.bind(this);
+      this.remove = this.remove.bind(this);
+      this.removePrior = this.removePrior.bind(this);
    }
 
    /**

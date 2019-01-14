@@ -18,6 +18,7 @@ const session = require('express-session');
 const FileManager = require('./FileManager.js');
 const Database = require('./Models/Database.js');
 const AccessControlList = require('./Models/AccessControlList.js');
+const Compiler = require('./Models/Compiler.js');
 
 
 let config = ini.parse(fs.readFileSync('./config.ini', 'utf-8'));
@@ -78,6 +79,26 @@ router.get('/', (req, res) => {
    res.json({ message: 'hooray! welcome to our api!' });
 });
 
+router.post('/assignment/:assignment_id/compile/:student_id', (req, res) => {
+   const tools_command = config.compiler.tools_path + "\\" + config.compiler.tools_batch;
+   const compile_cmd = config.compiler.compile_command;
+   let compiler = Compiler.createCompiler(
+      db,
+      config.temp_path,
+      req.params.assignment_id,
+      req.params.student_id,
+      tools_command,
+      compile_cmd
+   );
+   compiler.begin()
+      .then((result) => { 
+         res.json({response: result});
+      })
+      .catch((err) => { 
+         res.json({response: err});
+      });
+});
+
 /**
  * Retrieves all files for the specified assignment
  */
@@ -104,7 +125,7 @@ router.get('/assignment/file/:id', (req, res) => {
 });
 
 /**
- * Uploads a file.  :id is the assignment ID that this file will belong to.
+ * Uploads a file. :id is the assignment ID that this file will belong to.
  */
 router.post('/assignment/file/:id', (req, res) => {
    const current_user = req.session.user;
@@ -155,9 +176,9 @@ router.delete('/assignment/file/:id', (req, res) => {
       .then(() => {
          db.AssignmentFiles.remove(file_id, (changes, err) => {
             if (err === null) {
-               return res.json({response: file_id});
+               return res.json({ response: file_id });
             }
-            else{
+            else {
                console.log(err);
                return res.status(500).send("Error");
             }

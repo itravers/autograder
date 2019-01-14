@@ -6,6 +6,10 @@ class UsersDb {
    constructor(db_connection, crypto_method) {
       this.db = db_connection;
       this.crypto_method = crypto_method;
+
+      this.authenticate = this.authenticate.bind(this);
+      this.create = this.create.bind(this);
+      this.hash_password = this.hash_password.bind(this);
    }
 
 

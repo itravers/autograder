@@ -4,6 +4,8 @@ class AssignmentsDb {
 
    constructor(db_connection) {
       this.db = db_connection;
+
+      this.has_user = this.has_user.bind(this);
    }
 
    /**

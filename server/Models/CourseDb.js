@@ -4,11 +4,14 @@ class CoursesDb {
 
    constructor(db_connection) {
       this.db = db_connection;
+
+      this.assignments = this.assignments.bind(this);
+      this.forUser = this.forUser.bind(this);
    }
 
    assignments(course_id, callback) {
       const sql = "SELECT * FROM assignments WHERE course_id = $course_id";
-      let result = this.db.all(sql, {$course_id: course_id}, (err, rows) =>{
+      this.db.all(sql, {$course_id: course_id}, (err, rows) =>{
          if (err === null && rows !== undefined) {
             callback(rows);
             return;
@@ -24,7 +27,7 @@ class CoursesDb {
       const sql = "SELECT * FROM courses c " +
          " INNER JOIN course_users cu ON c.id = cu.course_id " +
          " WHERE cu.user_id = $user_id";
-      let result = this.db.all(sql, {$user_id: user_id}, (err, rows) =>{
+      this.db.all(sql, {$user_id: user_id}, (err, rows) =>{
          if (err === null && rows !== undefined) {
             callback(rows);
             return;
