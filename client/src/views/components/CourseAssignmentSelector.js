@@ -34,7 +34,7 @@ class CourseAssignmentSelector extends Component {
    getAssignmentsForCourse() {
       this.course_manager.getActiveAssignmentsForCourse(this.state.selected_course.course_id)
          .then((assignments) => {
-            this.setState({ assignments: assignments, selected_assignment: assignments[0] }, () =>{
+            this.setState({ assignments: assignments, selected_assignment: assignments[0] }, () => {
                this.props.onAssignmentChange(this.state.selected_assignment);
             });
          })
@@ -42,19 +42,15 @@ class CourseAssignmentSelector extends Component {
    }
 
    updateSelectedCourse(evt) {
-      this.setState({selected_course: this.state.courses[evt.target.value]}, () => {
+      this.setState({ selected_course: this.state.courses[evt.target.value] }, () => {
          this.getAssignmentsForCourse();
       });
    }
 
    updateSelectedAssignment(evt) {
-<<<<<<< HEAD
-      this.setState({selected_assignment: this.state.assignments[evt.target.value]}, () =>{
+      this.setState({ selected_assignment: this.state.assignments[evt.target.value] }, () => {
          this.props.onAssignmentChange(this.state.selected_assignment);
       });
-=======
-      this.setState({selected_assignment: this.state.assignments[evt.target.value]});
->>>>>>> d2554608717bf887f2acbf97b4181fd6f71f1641
    }
 
    formatCourseName(course) {
@@ -66,32 +62,24 @@ class CourseAssignmentSelector extends Component {
          <article>
             <div className="row">
                <div className="col">
-<<<<<<< HEAD
                   Course:
-=======
-                  Courses:
->>>>>>> d2554608717bf887f2acbf97b4181fd6f71f1641
                   <select value={this.state.selected_course.course_id} onChange={this.updateSelectedCourse}>
                      {this.state.courses.map((value, index) =>
-                        <option 
-                        key={index} 
-                        value={value.course_id}>
+                        <option
+                           key={index}
+                           value={value.course_id}>
                            {this.formatCourseName(value)}
                         </option>
                      )}
                   </select>
                </div>
                <div className="col">
-<<<<<<< HEAD
                   Assignment:
-=======
-                  Assignments:
->>>>>>> d2554608717bf887f2acbf97b4181fd6f71f1641
                   <select value={this.state.selected_assignment.id} onChange={this.updateSelectedAssignment}>
                      {this.state.assignments.map((value, index) =>
-                        <option 
-                        key={value.id} 
-                        value={index}>
+                        <option
+                           key={value.id}
+                           value={index}>
                            {value.name}
                         </option>
                      )}

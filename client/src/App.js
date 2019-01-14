@@ -5,20 +5,10 @@ import { BrowserRouter as Router, Route, Link, Redirect } from 'react-router-dom
 import { ContextMenu, MenuItem, ContextMenuTrigger } from "react-contextmenu";
 
 //views
-<<<<<<< HEAD
 import UserSessionView from './views/UserSessionView.js';
 import AssignmentFilesView from './views/AssignmentFilesView.js';
 
 //view models
-=======
-import AddFilesView from './views/AddFilesView.js';
-import SourceView from './views/SourceView.js';
-import UserSession from './views/UserSession.js';
-
-//view models
-import WebRequest from './view_models/WebRequest.js';
-import PrivateRoute from './view_models/PrivateRoute.js';
->>>>>>> d2554608717bf887f2acbf97b4181fd6f71f1641
 import Session from './view_models/Session.js';
 
 
