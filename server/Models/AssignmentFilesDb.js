@@ -26,6 +26,9 @@ class AssignmentFilesDb {
             $file_name: file_name, 
             $contents: contents 
          };
+
+         //AC: placing db callback function into its own variable changes 
+         //*this* from local AssignmentFilesDb object to result of sqlite3 db call.
          var local_callback = function(err){
             if (typeof (callback) !== "function") {
                callback = function (x, y) { };
@@ -39,6 +42,46 @@ class AssignmentFilesDb {
             }
          };
          this.db.run(sql, params, local_callback);
+      });
+   }
+
+   /**
+    * Returns all assignments for the specified user
+    * @param {*} assignment_id 
+    * @param {*} user_id 
+    */
+   all(assignment_id, user_id, callback){
+      const sql = "SELECT * FROM assignment_files WHERE assignment_id = $assignment_id AND owner_id = $user_id AND is_deleted = 0";
+      this.db.all(sql, {$assignment_id: assignment_id, $user_id: user_id}, (err, rows) =>{
+         if (err === null && rows !== undefined) {
+            callback(rows);
+            return;
+         }
+         else if(err !== null){
+            console.log(err);
+         }
+         callback({});
+      });
+   }
+
+   /**
+    * Returns a single file based on its unique ID
+    * @param {*} file_id 
+    * @param {*} callback 
+    */
+   get(file_id, callback){
+      const sql = "SELECT * FROM assignment_files WHERE id = $file_id";
+      const params = { $file_id: file_id };
+      this.db.get(sql, params, (err, row) => {
+         if (typeof (callback) !== "function") {
+            callback = function (x, y) { };
+         }
+         if (err === null && row !== undefined) {
+            callback(row, null);
+         }
+         else {
+            callback(null, err);
+         }
       });
    }
 
