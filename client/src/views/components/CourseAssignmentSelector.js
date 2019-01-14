@@ -48,9 +48,13 @@ class CourseAssignmentSelector extends Component {
    }
 
    updateSelectedAssignment(evt) {
+<<<<<<< HEAD
       this.setState({selected_assignment: this.state.assignments[evt.target.value]}, () =>{
          this.props.onAssignmentChange(this.state.selected_assignment);
       });
+=======
+      this.setState({selected_assignment: this.state.assignments[evt.target.value]});
+>>>>>>> d2554608717bf887f2acbf97b4181fd6f71f1641
    }
 
    formatCourseName(course) {
@@ -62,7 +66,11 @@ class CourseAssignmentSelector extends Component {
          <article>
             <div className="row">
                <div className="col">
+<<<<<<< HEAD
                   Course:
+=======
+                  Courses:
+>>>>>>> d2554608717bf887f2acbf97b4181fd6f71f1641
                   <select value={this.state.selected_course.course_id} onChange={this.updateSelectedCourse}>
                      {this.state.courses.map((value, index) =>
                         <option 
@@ -74,7 +82,11 @@ class CourseAssignmentSelector extends Component {
                   </select>
                </div>
                <div className="col">
+<<<<<<< HEAD
                   Assignment:
+=======
+                  Assignments:
+>>>>>>> d2554608717bf887f2acbf97b4181fd6f71f1641
                   <select value={this.state.selected_assignment.id} onChange={this.updateSelectedAssignment}>
                      {this.state.assignments.map((value, index) =>
                         <option 

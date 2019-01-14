@@ -15,6 +15,7 @@ class SourceView extends Component {
                language="cpp"
                style={vs}
                showLineNumbers={true}
+
             >{source_file.contents}</SyntaxHighlighter>
          </div>
       );
