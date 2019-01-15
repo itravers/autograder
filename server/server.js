@@ -79,24 +79,69 @@ router.get('/', (req, res) => {
    res.json({ message: 'hooray! welcome to our api!' });
 });
 
-router.post('/assignment/:assignment_id/compile/:student_id', (req, res) => {
+//runs student's code without compiling first (saves time)
+router.post('/assignment/run/:assignment_id', (req, res) =>{
+   let session = req.session;
+   const current_user = session.user;
+   const assignment_id = req.params.assignment_id;
    const tools_command = config.compiler.tools_path + "\\" + config.compiler.tools_batch;
    const compile_cmd = config.compiler.compile_command;
-   let compiler = Compiler.createCompiler(
-      db,
-      config.temp_path,
-      req.params.assignment_id,
-      req.params.student_id,
-      tools_command,
-      compile_cmd
-   );
-   compiler.begin()
-      .then((result) => { 
-         res.json({response: result});
+   const stdin = req.body.stdin;
+
+   //do we have an active user?
+   acl.isLoggedIn(session)
+
+      //and this user can access the current assignment
+      .then(() => acl.userHasAssignment(current_user, assignment_id))
+
+      //then, try to compile and build the assignment
+      .then(() => {
+         let compiler = Compiler.createCompiler(
+            db,
+            config.temp_path,
+            req.params.assignment_id,
+            current_user.id,
+            tools_command,
+            compile_cmd,
+            stdin
+         );
+         return compiler.canRunFiles()
+            .then(() => compiler.runFiles());
       })
-      .catch((err) => { 
-         res.json({response: err});
-      });
+      .then((result) => {res.json({response: result});})
+      .catch((err) => {res.json({response: err});});
+});
+
+//compiles & runs student's code
+router.post('/assignment/compile/:assignment_id', (req, res) => {
+   let session = req.session;
+   const current_user = session.user;
+   const assignment_id = req.params.assignment_id;
+   const tools_command = config.compiler.tools_path + "\\" + config.compiler.tools_batch;
+   const compile_cmd = config.compiler.compile_command;
+   const stdin = req.body.stdin;
+
+   //do we have an active user?
+   acl.isLoggedIn(session)
+
+      //and this user can access the current assignment
+      .then(() => acl.userHasAssignment(current_user, assignment_id))
+
+      //then, try to compile and build the assignment
+      .then(() => {
+         let compiler = Compiler.createCompiler(
+            db,
+            config.temp_path,
+            req.params.assignment_id,
+            current_user.id,
+            tools_command,
+            compile_cmd,
+            stdin
+         );
+         return compiler.begin();
+      })
+      .then((result) => {res.json({response: result});})
+      .catch((err) => {res.json({response: err});});
 });
 
 /**

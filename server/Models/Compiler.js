@@ -1,9 +1,9 @@
 const fs = require('fs');
-const { exec, execFile } = require('child_process');
+const { exec, execFile, spawn, onExit } = require('child_process');
 const path = require("path");
 
 class Compiler {
-   constructor(db, workspace_path, assignment_id, student_id, tools_setup_cmd, compile_cmd) {
+   constructor(db, workspace_path, assignment_id, student_id, tools_setup_cmd, compile_cmd, stdin) {
       this.db = db;
       this.workspace_path = workspace_path;
       this.assignment_id = assignment_id;
@@ -12,6 +12,7 @@ class Compiler {
       this.compile_cmd = compile_cmd;
       this.assignment_workspace = this.workspace_path + "/" + assignment_id;
       this.student_workspace = this.assignment_workspace + "/" + student_id;
+      this.stdin = stdin;
 
       this.compileFiles = this.compileFiles.bind(this);
       this.loadFiles = this.loadFiles.bind(this);
@@ -46,6 +47,9 @@ class Compiler {
             if (files.length === 0) {
                reject("No files found");
             }
+
+            //add stdin as a file
+            files.push({file_name: "stdin.txt", contents: this.stdin});
 
             //and throw them into a temp workspace
             let write_counter = 0;
@@ -83,7 +87,8 @@ class Compiler {
          //create BATCH file
          const absolute_path = path.resolve(this.student_workspace);
          const bat_path = absolute_path + "/compile.bat";
-         const bat_commands = "CALL \"" + this.tools_setup_cmd + "\"\r\n" +
+         const bat_commands = "@ECHO OFF\r\n" + 
+         "CALL \"" + this.tools_setup_cmd + "\"\r\n" +
             "CD \"" + absolute_path + "\"\r\n" +
             this.compile_cmd;
          
@@ -110,19 +115,59 @@ class Compiler {
     */
    runFiles() {
       return new Promise((resolve, reject) => {
-         const exe_path = this.student_workspace + "/main.exe";
-         execFile(exe_path, [], {timeout: 15000}, (error, stdout, stderr) => {
-            if (!error) {
-               resolve(stdout);
+         const exe_path = this.student_workspace + "/main.exe";         
+
+         //create BATCH file
+         const absolute_path = path.resolve(this.student_workspace);
+         const bat_path = absolute_path + "/run.bat";
+         const bat_commands = "@ECHO OFF\r\n" +
+            "CD \"" + absolute_path + "\"\r\n" +
+            "main.exe < stdin.txt";
+         
+         fs.writeFile(bat_path, bat_commands, { encoding: "utf8" }, (err) => {
+            if (!err) {
+               exec(bat_path, {timeout: 15000}, (err, stdout, stderr) => {
+                  if (!err) {
+                     resolve(stdout);
+                  }
+                  else {
+                     reject(err);
+                  }
+               })
             }
-            else {
-               reject(error);
+         });
+      });
+   }
+
+   /**
+    * If we're just testing the same program against multiple tests, it's wasteful to always
+    * compile.  This function tells us if we can run an existing program without a compile
+    * by checking to see if the necessasry files already exist (i.e. main.exe)
+    */
+   canRunFiles(){
+      return new Promise((resolve, reject) => {
+         const exe_path = this.student_workspace + "/main.exe";  
+         fs.access(exe_path, fs.constants.F_OK, (err) =>{
+            if(!err){
+               //create new testing file
+               const file_path = this.student_workspace + "/stdin.txt";
+               fs.writeFile(file_path, this.stdin, { encoding: "utf8" }, (err) => {
+                  if(!err){
+                     resolve(true);
+                  }
+                  else{
+                     reject(err);
+                  }
+               });
+            }
+            else{
+               reject("main.exe does not exist");
             }
          });
       });
    }
 }
 
-exports.createCompiler = function (db, workspace_path, assignment_id, student_id, tools_setup_cmd, compile_cmd) {
-   return new Compiler(db, workspace_path, assignment_id, student_id, tools_setup_cmd, compile_cmd);
+exports.createCompiler = function (db, workspace_path, assignment_id, student_id, tools_setup_cmd, compile_cmd, stdin) {
+   return new Compiler(db, workspace_path, assignment_id, student_id, tools_setup_cmd, compile_cmd, stdin);
 }
