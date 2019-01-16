@@ -82,10 +82,10 @@ router.get('/', (req, res) => {
 router.get('/assignment/testCases/:assignment_id', (req, res) =>{
    db.Assignments.TestCases.forAssignment(req.params.assignment_id, (result, err) =>{
       if(!err){
-         res.json({result: result});
+         res.json({response: result});
       }
       else{
-         res.json({result: err});
+         res.json({response: err});
       }
    });
 });

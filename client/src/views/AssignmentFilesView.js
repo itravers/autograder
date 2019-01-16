@@ -7,6 +7,7 @@ import { ContextMenu, MenuItem, ContextMenuTrigger } from "react-contextmenu";
 //views
 import AddFilesView from './AddFilesView.js';
 import SourceView from './SourceView.js';
+import TestCaseView from './TestCasesView.js';
 
 //view models
 import WebRequest from '../view_models/WebRequest.js';
@@ -187,11 +188,9 @@ class AssignmentFilesView extends Component {
                         (props) => {
                            return (
                               <div className="container">
-                                 <AddFilesView
-                                    server_endpoint={this.config.endpoints.assignment.file}
-                                    file_add_callback={this.updateFiles}
-                                    file_remove_callback={this.removeTab}
-                                    files={this.state.files}
+                                 <TestCaseView
+                                    config={this.props.config}
+                                    assignment_id = {this.props.current_assignment.id}
                                  />
                               </div>
                            )
