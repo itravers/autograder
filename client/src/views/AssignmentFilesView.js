@@ -27,8 +27,8 @@ class AssignmentFilesView extends Component {
          },
          {
             id: -1,
-            url: "/test_cases",
-            name: "Test Cases",
+            url: "/run",
+            name: "Run",
             css: "nav-link"
          }
          ];
@@ -169,6 +169,20 @@ class AssignmentFilesView extends Component {
                         }
                      } />
                   <Route path="/add-files"
+                     render={
+                        (props) => {
+                           return (
+                              <div className="container">
+                                 <AddFilesView
+                                    server_endpoint={this.config.endpoints.assignment.file}
+                                    file_add_callback={this.updateFiles}
+                                    file_remove_callback={this.removeTab}
+                                    files={this.state.files}
+                                 />
+                              </div>
+                           )
+                        }} />
+                  <Route path="/run"
                      render={
                         (props) => {
                            return (

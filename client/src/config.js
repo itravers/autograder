@@ -6,12 +6,21 @@ class ServerConstants {
 
 class SharedConfig{
    constructor(){
-      const root_endpoint = "http://localhost:8080";
+      this.root_endpoint = "http://localhost:8080";
 
+      this.buildEndpoints = this.buildEndpoints.bind(this);
+      this.buildEndpoints();
+   }
+
+   buildEndpoints(){
+      const root_endpoint = this.root_endpoint;
       this.endpoints = {
          root: root_endpoint,
          assignment: {
-            file: root_endpoint + "/api/assignment/file"
+            file: root_endpoint + "/api/assignment/file",
+            test_cases: root_endpoint + "/api/assignment/testCases",
+            run: root_endpoint + "api/assignment/run",
+            compile: root_endpoint + "api/assignment/compile"
          },
          course: {
             for_user: root_endpoint + "/api/course/forUser",
