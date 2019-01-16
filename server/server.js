@@ -79,6 +79,17 @@ router.get('/', (req, res) => {
    res.json({ message: 'hooray! welcome to our api!' });
 });
 
+router.get('/assignment/testCases/:assignment_id', (req, res) =>{
+   db.Assignments.TestCases.forAssignment(req.params.assignment_id, (result, err) =>{
+      if(!err){
+         res.json({result: result});
+      }
+      else{
+         res.json({result: err});
+      }
+   });
+});
+
 //runs student's code without compiling first (saves time)
 router.post('/assignment/run/:assignment_id', (req, res) =>{
    let session = req.session;
@@ -108,8 +119,16 @@ router.post('/assignment/run/:assignment_id', (req, res) =>{
          return compiler.canRunFiles()
             .then(() => compiler.runFiles());
       })
-      .then((result) => {res.json({response: result});})
-      .catch((err) => {res.json({response: err});});
+      .then((result) => {
+         db.Assignments.TestCases.log(assignment_id, current_user.id, stdin, result, () =>{
+            res.json({response: result});
+         });
+      })
+      .catch((err) => {
+         db.Assignments.TestCases.log(assignment_id, current_user.id, stdin, err, () =>{
+            res.json({response: err});
+         });
+      });
 });
 
 //compiles & runs student's code
@@ -140,8 +159,16 @@ router.post('/assignment/compile/:assignment_id', (req, res) => {
          );
          return compiler.begin();
       })
-      .then((result) => {res.json({response: result});})
-      .catch((err) => {res.json({response: err});});
+      .then((result) => {
+         db.Assignments.TestCases.log(assignment_id, current_user.id, stdin, result, () =>{
+            res.json({response: result});
+         });
+      })
+      .catch((err) => {
+         db.Assignments.TestCases.log(assignment_id, current_user.id, stdin, err, () =>{
+            res.json({response: err});
+         });
+      });
 });
 
 /**

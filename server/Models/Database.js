@@ -3,6 +3,7 @@ const UsersDb = require('./UsersDb.js');
 const CoursesDb = require('./CourseDb.js');
 const AssignmentsDb = require('./AssignmentsDb.js');
 const AssignmentFilesDb = require('./AssignmentFilesDb.js');
+const TestCasesDb = require('./TestCasesDb.js');
 
 
 class Database{
@@ -20,7 +21,14 @@ class Database{
       this.Users = UsersDb.createUsersDb(this.db, this.crypto_method);
       this.Courses = CoursesDb.createCoursesDb(this.db);
       this.Assignments = AssignmentsDb.createAssignmentsDb(this.db);
-      this.AssignmentFiles = AssignmentFilesDb.createAssignmentFilesDb(this.db);
+      this.Assignments.Files = AssignmentFilesDb.createAssignmentFilesDb(this.db);
+      this.Assignments.TestCases = TestCasesDb.createTestCasesDb(this.db);
+
+      //AC: I like the idea of doing this.Assignments.Files better than having something separate,
+      //so I added AssignmentFiles as a prop.  Leaving this one here for now for compatibility.
+      this.AssignmentFiles = this.Assignments.Files;
+
+      
    }
 
    

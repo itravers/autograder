@@ -25,7 +25,7 @@ class AssignmentFilesDb {
       this.removePrior(assignment_id, file_name, (result) => {
          const sql = "INSERT INTO assignment_files " +
             " (assignment_id, owner_id, file_name, contents) " +
-            " VALUES ($user_id, $assignment_id, $file_name, $contents)";
+            " VALUES ($assignment_id, $user_id, $file_name, $contents)";
          const params = { 
             $user_id: user_id, 
             $assignment_id: assignment_id, 

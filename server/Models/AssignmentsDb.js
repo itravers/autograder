@@ -5,7 +5,7 @@ class AssignmentsDb {
    constructor(db_connection) {
       this.db = db_connection;
 
-      this.has_user = this.has_user.bind(this);
+      this.hasUser = this.hasUser.bind(this);
    }
 
    /**
@@ -13,13 +13,13 @@ class AssignmentsDb {
     * @param {*} assignment_id 
     * @param {*} user_id 
     */
-   has_user(assignment_id, user_id, callback){
+   hasUser(assignment_id, user_id, callback){
       const sql = "SELECT a.id FROM assignments a " +
                   " INNER JOIN course_users cu ON a.course_id = cu.course_id " +
                   " WHERE user_id = $user_id AND a.id = $assignment_id " +
                   " LIMIT 1";
       const params = {$user_id: user_id, $assignment_id: assignment_id};
-      let result = this.db.get(sql, params, (err, row) => {
+      this.db.get(sql, params, (err, row) => {
          if(typeof(callback) !== "function"){
             callback = function(x, y){};
          }

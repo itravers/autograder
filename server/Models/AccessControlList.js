@@ -20,7 +20,7 @@ class AccessControlList{
 
    userHasAssignment(user, assignment_id){
       return new Promise( (resolve, reject) =>{
-         this.db.Assignments.has_user(assignment_id, user.id, (result, err) => {
+         this.db.Assignments.hasUser(assignment_id, user.id, (result, err) => {
             if (result === true) {
                resolve(true);
             }
