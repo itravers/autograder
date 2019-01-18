@@ -59,9 +59,9 @@ class CourseAssignmentSelector extends Component {
 
    render() {
       return (
-         <article>
+         <article className="mb-md-2">
             <div className="row">
-               <div className="col">
+               <div className="col-md-3">
                   Course:
                   <select value={this.state.selected_course.course_id} onChange={this.updateSelectedCourse}>
                      {this.state.courses.map((value, index) =>
@@ -73,7 +73,7 @@ class CourseAssignmentSelector extends Component {
                      )}
                   </select>
                </div>
-               <div className="col">
+               <div className="col-md-3">
                   Assignment:
                   <select value={this.state.selected_assignment.id} onChange={this.updateSelectedAssignment}>
                      {this.state.assignments.map((value, index) =>

@@ -32,12 +32,12 @@ class LoginView extends Component {
    login(evt) {
       evt.preventDefault();
       this.user_manager.logIn(this.state.email, this.state.password)
-      .then((user) =>{
-         this.props.update_user(user);
-      })
-      .catch((err) =>{
-         this.setState({invalid_login: true});
-      });
+         .then((user) => {
+            this.props.update_user(user);
+         })
+         .catch((err) => {
+            this.setState({ invalid_login: true });
+         });
    }
 
    render() {
@@ -45,25 +45,33 @@ class LoginView extends Component {
       const password = this.state.password;
       return (
          <article>
-            <form onSubmit={this.login}>
-               <div className="row">
-                  <div className="col-md-1">
+            <form className="form-inline mt-sm-2 ml-sm-2" onSubmit={this.login}>
+            <span className="mr-sm-2">Login:</span>
+               <div className="form-group">
+                  <label className="sr-only" htmlFor="UserNameTextBox">
                      Email:
-                  </div>
-                  <div className="col-md-3">
-                     <input type="text" id="UserNameTextBox" name="email" value={user_name} onChange={this.handleInputChange} />
-                  </div>
-
-                  <div className="col-md-2">
-                     Password:
-                  </div>
-                  <div className="col-md-3">
-                     <input type="password" id="PasswordTextBox" name="password" value={password} onChange={this.handleInputChange} />
-                  </div>
-                  <div className="col-md-2">
-                     <button id="SubmitButton" type="submit">Log In</button>
-                  </div>
+                  </label>
+                  <input 
+                     type="text" 
+                     className="form-control mb-2 mr-sm-2" 
+                     id="UserNameTextBox" 
+                     name="email" 
+                     value={user_name} 
+                     onChange={this.handleInputChange}
+                     placeholder="Email Address"
+                      />
+                  <label className="sr-only" htmlFor="PasswordTextBox">Password:</label>
+                  <input 
+                     type="password" 
+                     className="form-control mb-2 mr-sm-2" 
+                     id="PasswordTextBox" 
+                     name="password" 
+                     value={password} 
+                     onChange={this.handleInputChange} 
+                     placeholder="password"
+                     />
                </div>
+               <button id="SubmitButton" className="btn btn-outline-primary mb-2 mr-sm-2" type="submit">Log In</button>
             </form>
          </article>
       );
