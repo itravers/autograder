@@ -31,31 +31,20 @@ class Assignment {
       });
    }
 
-   run(assignment_id){
-      return new Promise((resolve, reject) => {
-
-         //never allow caching of run calls
-         let call = WebRequest.makeUrlRequest;
-         const endpoint = this.config.endpoints.assignment.run + "/" + assignment_id;
-         call(endpoint, (result) => {
-            if (result !== null && result !== undefined && Object.keys(result.data.response).length > 0){
-               resolve(result.data.response);
-            }
-            else{
-               reject(result);
-            }
-               
-         });
-      });
+   run(assignment_id, test_case){
+      return this.compile(assignment_id, test_case, true);
    }
 
-   compile(assignment_id){
+   compile(assignment_id, test_case, run_only = false){
       return new Promise((resolve, reject) => {
 
          //never allow caching of compile calls
-         let call = WebRequest.makeUrlRequest;
-         const endpoint = this.config.endpoints.assignment.compile + "/" + assignment_id;
-         call(endpoint, (result) => {
+         let call = WebRequest.makePost;
+         let endpoint = this.config.endpoints.assignment.compile + "/" + assignment_id;
+         if(run_only === true){
+            endpoint = this.config.endpoints.assignment.run + "/" + assignment_id;
+         }
+         call(endpoint, {stdin: test_case}, (result) => {
             if (result !== null && result !== undefined && Object.keys(result.data.response).length > 0){
                resolve(result.data.response);
             }

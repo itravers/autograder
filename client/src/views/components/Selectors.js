@@ -3,9 +3,17 @@ import React, { Component } from 'react';
 class ArrayIndexSelect extends Component{
 
    render(){
-      const {data, selectedValue, onChange, size, name} = this.props;
+      const {data, selectedValue, onChange, size, name, id, className} = this.props;
       return(
-         <select value={selectedValue} onChange={onChange} size={size} name={name}>
+         <select 
+         id={id} 
+         name={name}
+         className={className}
+         value={selectedValue} 
+         onChange={onChange} 
+         size={size} 
+         
+         >
             {data.map( (value, index) =>
                <option key={index} value={index}>{value}</option>
       )}

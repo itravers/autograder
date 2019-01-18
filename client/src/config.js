@@ -19,8 +19,8 @@ class SharedConfig{
          assignment: {
             file: root_endpoint + "/api/assignment/file",
             test_cases: root_endpoint + "/api/assignment/testCases",
-            run: root_endpoint + "api/assignment/run",
-            compile: root_endpoint + "api/assignment/compile"
+            run: root_endpoint + "/api/assignment/run",
+            compile: root_endpoint + "/api/assignment/compile"
          },
          course: {
             for_user: root_endpoint + "/api/course/forUser",
