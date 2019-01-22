@@ -125,8 +125,8 @@ router.post('/assignment/run/:assignment_id', (req, res) =>{
          });
       })
       .catch((err) => {
-         db.Assignments.TestCases.log(assignment_id, current_user.id, stdin, err, () =>{
-            res.json({response: err});
+         db.Assignments.TestCases.log(assignment_id, current_user.id, stdin, err.message, () =>{
+            res.json({response: err.message});
          });
       });
 });
@@ -165,8 +165,8 @@ router.post('/assignment/compile/:assignment_id', (req, res) => {
          });
       })
       .catch((err) => {
-         db.Assignments.TestCases.log(assignment_id, current_user.id, stdin, err, () =>{
-            res.json({response: err});
+         db.Assignments.TestCases.log(assignment_id, current_user.id, stdin, err.message, () =>{
+            res.json({response: err.message});
          });
       });
 });

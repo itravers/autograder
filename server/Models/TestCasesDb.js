@@ -24,6 +24,7 @@ class TestCasesDb {
             callback(rows, null);
          }
          else {
+            console.log(err);
             callback(false, err);
          }
       });
