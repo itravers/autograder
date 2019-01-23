@@ -88,7 +88,7 @@ class Compiler {
          const absolute_path = path.resolve(this.student_workspace);
          const bat_path = absolute_path + "/compile.bat";
          const bat_commands = "@ECHO OFF\r\n" + 
-         "CALL \"" + this.tools_setup_cmd + "\"\r\n" +
+         "CALL " + this.tools_setup_cmd + "\r\n" + //AC Note: had to remove escaped quotes on work PC.  Needed for home PC?
             "CD \"" + absolute_path + "\"\r\n" +
             this.compile_cmd;
          
