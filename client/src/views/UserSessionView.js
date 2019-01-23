@@ -26,6 +26,8 @@ class UserSessionView extends Component{
          if(user.id > 0){
             this.updateUser(user);
          }
+      }).catch(() =>{
+         //pass
       }); 
       
    }
