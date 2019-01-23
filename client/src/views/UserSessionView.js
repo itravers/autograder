@@ -14,7 +14,20 @@ class UserSessionView extends Component{
          assignments: {}
       };
 
+      this.user_model = this.props.user_model;
+
       this.updateUser = this.updateUser.bind(this);
+   }
+
+   componentDidMount(){
+
+      //are we already logged in?  If so, skip login screen.
+      this.user_model.currentUser().then(user => {
+         if(user.id > 0){
+            this.updateUser(user);
+         }
+      }); 
+      
    }
 
    updateUser(user){

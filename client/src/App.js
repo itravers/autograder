@@ -11,10 +11,11 @@ import AssignmentFilesView from './views/AssignmentFilesView.js';
 //view models
 import Session from './view_models/Session.js';
 
+//models
+import User from './models/User.js';
 
 import './App.css';
 import ConfigManager from './config.js';
-import AddFilesViews from './views/AddFilesView.js';
 
 var config = ConfigManager.getConfig();
 
@@ -29,6 +30,8 @@ class App extends Component {
       };
 
       this.session = Session;
+      this.user_model = new User(config, false);
+
       this.assignmentChanged = this.assignmentChanged.bind(this);
       this.userChanged = this.userChanged.bind(this);
       this.renderUserSession = this.renderUserSession.bind(this);
@@ -49,6 +52,7 @@ class App extends Component {
                config={config} 
                onAssignmentChange={this.assignmentChanged} 
                onUserChange={this.userChanged}
+               user_model={this.user_model}
                />
       );
    }
