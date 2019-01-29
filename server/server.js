@@ -79,19 +79,19 @@ router.get('/', (req, res) => {
    res.json({ message: 'hooray! welcome to our api!' });
 });
 
-router.get('/assignment/testCases/:assignment_id', (req, res) =>{
-   db.Assignments.TestCases.forAssignment(req.params.assignment_id, (result, err) =>{
-      if(!err){
-         res.json({response: result});
+router.get('/assignment/testCases/:assignment_id', (req, res) => {
+   db.Assignments.TestCases.forAssignment(req.params.assignment_id, (result, err) => {
+      if (!err) {
+         res.json({ response: result });
       }
-      else{
-         res.json({response: err});
+      else {
+         res.json({ response: err });
       }
    });
 });
 
 //runs student's code without compiling first (saves time)
-router.post('/assignment/run/:assignment_id', (req, res) =>{
+router.post('/assignment/run/:assignment_id', (req, res) => {
    let session = req.session;
    const current_user = session.user;
    const assignment_id = req.params.assignment_id;
@@ -120,13 +120,13 @@ router.post('/assignment/run/:assignment_id', (req, res) =>{
             .then(() => compiler.runFiles());
       })
       .then((result) => {
-         db.Assignments.TestCases.log(assignment_id, current_user.id, stdin, result, () =>{
-            res.json({response: result});
+         db.Assignments.TestCases.log(assignment_id, current_user.id, stdin, result, () => {
+            res.json({ response: result });
          });
       })
       .catch((err) => {
-         db.Assignments.TestCases.log(assignment_id, current_user.id, stdin, err.message, () =>{
-            res.json({response: err.message});
+         db.Assignments.TestCases.log(assignment_id, current_user.id, stdin, err.message, () => {
+            res.json({ response: err.message });
          });
       });
 });
@@ -160,13 +160,13 @@ router.post('/assignment/compile/:assignment_id', (req, res) => {
          return compiler.begin();
       })
       .then((result) => {
-         db.Assignments.TestCases.log(assignment_id, current_user.id, stdin, result, () =>{
-            res.json({response: result});
+         db.Assignments.TestCases.log(assignment_id, current_user.id, stdin, result, () => {
+            res.json({ response: result });
          });
       })
       .catch((err) => {
-         db.Assignments.TestCases.log(assignment_id, current_user.id, stdin, err.message, () =>{
-            res.json({response: err.message});
+         db.Assignments.TestCases.log(assignment_id, current_user.id, stdin, err.message, () => {
+            res.json({ response: err.message });
          });
       });
 });
@@ -262,13 +262,37 @@ router.delete('/assignment/file/:id', (req, res) => {
 
 });
 
+router.get('/course', (req, res) => {
+   let session = req.session;
+   acl.isAdmin(session)
+      .then(() => {
+         db.Courses.all((result) => { res.json({ response: result }); });
+      })
+      .catch(() => res.json({ response: {} }));
+});
+
+//AC note: used to create courses.  Not finished
+router.post('/course', (req, res) => {
+   let session = req.session;
+   const school_id = req.body.school_id;
+   const name = req.body.name;
+   const term = req.body.term;
+   const year = req.body.year;
+   acl.isAdmin(session)
+      .then(() => db.Courses.isUnique(school_id, name, term, year))
+      .then((result) => {
+         return res.json({response: result});
+      })
+      .catch((result) => res.json({ response: {result} }));
+});
+
+
 router.get('/course/assignments/active/:id', (req, res) => {
    const course_id = req.params.id;
    db.Courses.assignments(course_id, (result) => {
       res.json({ response: result });
    });
 });
-
 
 router.get('/course/forUser/:id', (req, res) => {
    const user_id = req.params.id;
@@ -287,7 +311,6 @@ router.get('/course/forUser/:id', (req, res) => {
    else {
       res.json({ response: {} });
    }
-
 });
 
 router.get('/user/login', (req, res) => {
@@ -309,6 +332,28 @@ router.post('/user/login', (req, res) => {
 router.get('/user/logout', (req, res) => {
    req.session.user = null;
    res.json({ response: req.session.user });
+});
+
+/**
+ * Allows bulk user creation.  Not complete. TODO: finish
+ */
+router.post('/user/addRoster', (req, res) => {
+   let session = req.session;
+   let roster = req.body.roster;
+   let course_id = req.body.course_id;
+   acl.canModifyCourse(session, course_id)
+   .then(() => {
+      for(let user of roster){
+         db.Users.exists(user.email)
+         .then()
+         .catch(() => {
+            
+            //user doesn't already exist, create
+            db.Users.create(user.email, user.first_name, user.last_name, user.password);
+         });
+      }
+   })
+   .catch((err) => { res.json({ response: err });});
 });
 
 // REGISTER OUR ROUTES -------------------------------

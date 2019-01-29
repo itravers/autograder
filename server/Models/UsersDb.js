@@ -9,6 +9,7 @@ class UsersDb {
 
       this.authenticate = this.authenticate.bind(this);
       this.create = this.create.bind(this);
+      this.exists = this.exists.bind(this);
       this.hash_password = this.hash_password.bind(this);
    }
 
@@ -21,7 +22,7 @@ class UsersDb {
     * @param {function} callback 
     */
    authenticate(email, password, callback) {
-      const sql = "SELECT id, email, first_name, last_name, is_admin FROM users WHERE email = $email AND password = $password LIMIT 1";
+      const sql = "SELECT * FROM users WHERE email = $email AND password = $password LIMIT 1";
       password = this.hash_password(password, email);
       const params = { $email: email, $password: password };
       let result = this.db.get(sql, params, (err, row) => {
@@ -70,6 +71,25 @@ class UsersDb {
          }
       };
       this.db.run(sql, params, local_callback);
+   }
+
+   /**
+    * Returns true if the user exists in the system
+    * @param {} user_name 
+    */
+   exists(user_name){
+      const sql = "SELECT * FROM users WHERE email = $email LIMIT 1";
+      const params = { $email: user_name};
+      return new Promise((resolve, reject) => {
+         this.db.get(sql, params, (err, row) => {
+            if (err === null && row !== undefined) {
+               resolve(true);
+            }
+            else {
+               reject(false);
+            }
+         });
+      });
    }
 
    /**
