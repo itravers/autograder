@@ -7,6 +7,7 @@ import { ContextMenu, MenuItem, ContextMenuTrigger } from "react-contextmenu";
 //views
 import UserSessionView from './views/UserSessionView.js';
 import AssignmentFilesView from './views/AssignmentFilesView.js';
+import CreateUserView from './views/User/CreateUserView.js';
 
 //view models
 import Session from './view_models/Session.js';
@@ -38,39 +39,39 @@ class App extends Component {
       this.renderAssignmentFiles = this.renderAssignmentFiles.bind(this);
    }
 
-   assignmentChanged(assignment){
-      this.setState({current_assignment: assignment});
+   assignmentChanged(assignment) {
+      this.setState({ current_assignment: assignment });
    }
 
-   userChanged(user){
-      this.setState({current_user: user});
+   userChanged(user) {
+      this.setState({ current_user: user });
    }
 
-   renderUserSession(){
-      return(
-         <UserSessionView 
-               config={config} 
-               onAssignmentChange={this.assignmentChanged} 
-               onUserChange={this.userChanged}
-               user_model={this.user_model}
-               />
+   renderUserSession() {
+      return (
+         <UserSessionView
+            config={config}
+            onAssignmentChange={this.assignmentChanged}
+            onUserChange={this.userChanged}
+            user_model={this.user_model}
+         />
       );
    }
 
-   renderAssignmentFiles(){
-      if(this.state.current_user.id !== undefined && this.state.current_assignment.id !== undefined){
-         return(
-            <AssignmentFilesView 
-                  config={config} 
-                  current_user={this.state.current_user}
-                  current_assignment={this.state.current_assignment}  
-                  />
+   renderAssignmentFiles() {
+      if (this.state.current_user.id !== undefined && this.state.current_assignment.id !== undefined) {
+         return (
+            <AssignmentFilesView
+               config={config}
+               current_user={this.state.current_user}
+               current_assignment={this.state.current_assignment}
+            />
          );
       }
-      else{
-         return(<div></div>);
+      else {
+         return (<div></div>);
       }
-      
+
    }
 
    render() {
@@ -78,7 +79,21 @@ class App extends Component {
          <div className="App">
             {this.renderUserSession()}
             {this.renderAssignmentFiles()}
-            
+            <Router>
+               
+            <Route path="/user/create"
+                  render={
+                     ({ match }, props) => {
+                        return (
+                           <div className="container">
+                              <CreateUserView
+                                 user_model={this.user_model}
+                              />
+                           </div>
+                        )
+                     }
+                  } />
+                  </Router>
          </div>
       );
    }

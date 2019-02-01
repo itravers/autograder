@@ -26,7 +26,7 @@ class DbSeed{
          }
       ];
       for(const user of dummy_users){
-         this.db.createUser(user.email, user.first_name, user.last_name, user.password, user.is_admin);
+         this.db.createUser(user.email, user.first_name, user.last_name, user.password);
       }
    }
 }

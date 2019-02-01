@@ -37,14 +37,6 @@ class User {
 
          });
       });
-      const current_user = this.session.get(this._user_key);
-      if(current_user === null || current_user === undefined || Object.entries(current_user).length === 0 ){
-         return {id: -1};
-      }
-      else{
-         return {id: -1};
-         return current_user;
-      }
    }
 
    logIn(user_name, password) {

@@ -335,7 +335,7 @@ router.get('/user/logout', (req, res) => {
 });
 
 /**
- * Allows bulk user creation.  Not complete. TODO: finish
+ * Allows bulk user creation.  TODO: needs testing
  */
 router.post('/user/addRoster', (req, res) => {
    let session = req.session;
