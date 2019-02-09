@@ -3,11 +3,11 @@ import Login from './Login'
 
 const routes = [
    {
-      path: "/user/create",
+      path: "/account/create",
       component: Create
    },
    {
-      path: "/user/login",
+      path: "/account/login",
       component: Login
    }
 ];

@@ -52,8 +52,8 @@ class LoginView extends Component {
       const password = this.state.password;
       return (
          <article>
-            <form className="form-inline mt-sm-2 ml-sm-2 " onSubmit={this.login}>
-            <span className="mr-sm-2">Login</span>
+            <form className="form mt-sm-2 ml-sm-2 " onSubmit={this.login}>
+            <h1 className="mr-sm-2">Log In</h1>
                <div className="form-group">
                   <label className="sr-only" htmlFor="UserNameTextBox">
                      Email:

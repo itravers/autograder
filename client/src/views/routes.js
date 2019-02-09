@@ -1,5 +1,5 @@
-import {routes as UserRoutes} from './User/routes';
+import {routes as AccountRoutes} from './Account/routes';
 
-const routes = [].concat(UserRoutes);
+const routes = [].concat(AccountRoutes);
 export {routes};
 export default routes;
