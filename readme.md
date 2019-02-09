@@ -1,4 +1,3 @@
-# Adam's Autograding Scripts
-The scripts in this repository are my attempt at lightening the 
-burden of grading student assignments.  Hopefully the code 
-in this repository may be of use to other individuals.
+# Adam's Assisted Grader
+Originally, just a bunch of Python scripts to help me grade assignments more quickly.
+Now, it's slowly becoming an online grading and testing platform for students.
