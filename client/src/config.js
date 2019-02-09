@@ -29,6 +29,7 @@ class SharedConfig{
             deleted_assignments: root_endpoint + "/api/course/assignments/inactive"
          },
          user: {
+            create: root_endpoint + "/api/user/create",
             login: root_endpoint + "/api/user/login",
             logout: root_endpoint + "/api/user/logout"
          }

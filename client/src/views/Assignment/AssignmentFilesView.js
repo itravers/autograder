@@ -10,9 +10,9 @@ import SourceView from './SourceView.js';
 import TestCaseView from './TestCasesView.js';
 
 //view models
-import WebRequest from '../view_models/WebRequest.js';
-import PrivateRoute from '../view_models/PrivateRoute.js';
-import Session from '../view_models/Session.js';
+import WebRequest from '../../view_models/WebRequest.js';
+import PrivateRoute from '../../view_models/PrivateRoute.js';
+import Session from '../../view_models/Session.js';
 
 class AssignmentFilesView extends Component {
 

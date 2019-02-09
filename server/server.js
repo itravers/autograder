@@ -334,6 +334,30 @@ router.get('/user/logout', (req, res) => {
    res.json({ response: req.session.user });
 });
 
+router.post('/user/create', (req, res) => {
+   const user = {first_name: req.body.first_name, last_name: req.body.last_name, email: req.body.email, password: req.body.password};
+   if(user.first_name !== undefined && user.first_name.length > 0){
+      if(user.last_name !== undefined && user.last_name.length > 0){
+         if(user.email !== undefined && user.email.length > 0){
+            if(user.password !== undefined && user.password.length > 0){
+               db.Users.create(user, (result, err) =>{
+                  if(err === null){
+                     user.id = result;
+                     delete user.password;
+                     res.json({ response: user });
+                  }
+                  else{
+                     res.json({ response: err });
+                  }
+               });
+               return;
+            }
+         }
+      }
+   }
+   res.json({ response: "missing required parameters" });
+});
+
 /**
  * Allows bulk user creation.  TODO: needs testing
  */

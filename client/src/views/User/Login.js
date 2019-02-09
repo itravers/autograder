@@ -1,20 +1,27 @@
 import React, { Component } from 'react';
-import Session from '../../view_models/Session.js';
-import User from '../../models/User.js';
+import { connect } from "react-redux";
+import {updateUser} from '../../actions/index';
+
+const mapStateToProps = state => {
+   return { current_user: state.current_user, models: state.models };
+ };
+
+ const mapDispatchToProps = dispatch => {
+   return {
+      updateUser: user => dispatch(updateUser(user))
+    };
+ };
 
 class LoginView extends Component {
 
    constructor(props) {
       super(props);
 
-      this.session = Session;
       this.state = {
          email: "",
          password: "",
          invalid_login: false
       };
-      this.user_manager = new User(this.props.config);
-
       this.login = this.login.bind(this);
       this.handleInputChange = this.handleInputChange.bind(this);
    }
@@ -31,9 +38,9 @@ class LoginView extends Component {
 
    login(evt) {
       evt.preventDefault();
-      this.user_manager.logIn(this.state.email, this.state.password)
+      this.props.models.user.logIn(this.state.email, this.state.password)
          .then((user) => {
-            this.props.update_user(user);
+            this.props.updateUser(user);
          })
          .catch((err) => {
             this.setState({ invalid_login: true });
@@ -45,8 +52,8 @@ class LoginView extends Component {
       const password = this.state.password;
       return (
          <article>
-            <form className="form-inline mt-sm-2 ml-sm-2" onSubmit={this.login}>
-            <span className="mr-sm-2">Login:</span>
+            <form className="form-inline mt-sm-2 ml-sm-2 " onSubmit={this.login}>
+            <span className="mr-sm-2">Login</span>
                <div className="form-group">
                   <label className="sr-only" htmlFor="UserNameTextBox">
                      Email:
@@ -78,5 +85,6 @@ class LoginView extends Component {
    }
 }
 
-export { LoginView };
-export default LoginView;
+const Login = connect(mapStateToProps, mapDispatchToProps)(LoginView);
+export { Login };
+export default Login;

@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import LoginView from './components/LoginView.js';
+import LoginView from './User/Login.js';
 import CourseAssignmentSelector from './components/CourseAssignmentSelector.js';
 
 class UserSessionView extends Component{

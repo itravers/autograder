@@ -40,22 +40,19 @@ class UsersDb {
 
    /**
     * Creates a new user
-    * @param {*} email 
-    * @param {*} first_name 
-    * @param {*} last_name 
-    * @param {*} password 
+    * @param {object} user
     * @param {function} callback 
     */
-   create(email, first_name, last_name, password, callback) {
+   create(user, callback) {
       const sql = "INSERT INTO users " +
          " (email, first_name, last_name, password) " +
          " VALUES ($email, $first_name, $last_name, $password)";
 
       //hash password
-      password = this.hash_password(password, email);
+      const password = this.hash_password(user.password, user.email);
 
       //add base options
-      const params = { $email: email, $first_name: first_name, $last_name: last_name, $password: password };
+      const params = { $email: user.email, $first_name: user.first_name, $last_name: user.last_name, $password: password };
 
       //AC: placing db callback function into its own variable changes 
       //*this* from local AssignmentFilesDb object to result of sqlite3 db call.

@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
-import Assignment from '../models/Assignment.js';
-import { ArrayIndexSelect } from './components/Selectors.js';
+import Assignment from '../../models/Assignment.js';
+import { ArrayIndexSelect } from '../components/Selectors.js';
 
 class TestCasesView extends Component {
    constructor(props) {
