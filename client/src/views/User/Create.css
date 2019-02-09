@@ -1,0 +1,10 @@
+.form-group{
+   text-align: left;
+   max-width: 500px;
+   margin-left: auto;
+   margin-right: auto;
+}
+
+.form-group>label{
+   font-weight: bold;
+}
