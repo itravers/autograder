@@ -262,13 +262,9 @@ router.delete('/assignment/file/:id', (req, res) => {
 
 });
 
+//Returns all available courses
 router.get('/course', (req, res) => {
-   let session = req.session;
-   acl.isAdmin(session)
-      .then(() => {
-         db.Courses.all((result) => { res.json({ response: result }); });
-      })
-      .catch(() => res.json({ response: {} }));
+   db.Courses.all((result) => { res.json({ response: result }); });
 });
 
 //AC note: used to create courses.  Not finished
@@ -281,9 +277,9 @@ router.post('/course', (req, res) => {
    acl.isAdmin(session)
       .then(() => db.Courses.isUnique(school_id, name, term, year))
       .then((result) => {
-         return res.json({response: result});
+         return res.json({ response: result });
       })
-      .catch((result) => res.json({ response: {result} }));
+      .catch((result) => res.json({ response: { result } }));
 });
 
 
@@ -335,18 +331,18 @@ router.get('/user/logout', (req, res) => {
 });
 
 router.post('/user/create', (req, res) => {
-   const user = {first_name: req.body.first_name, last_name: req.body.last_name, email: req.body.email, password: req.body.password};
-   if(user.first_name !== undefined && user.first_name.length > 0){
-      if(user.last_name !== undefined && user.last_name.length > 0){
-         if(user.email !== undefined && user.email.length > 0){
-            if(user.password !== undefined && user.password.length > 0){
-               db.Users.create(user, (result, err) =>{
-                  if(err === null){
+   const user = { first_name: req.body.first_name, last_name: req.body.last_name, email: req.body.email, password: req.body.password };
+   if (user.first_name !== undefined && user.first_name.length > 0) {
+      if (user.last_name !== undefined && user.last_name.length > 0) {
+         if (user.email !== undefined && user.email.length > 0) {
+            if (user.password !== undefined && user.password.length > 0) {
+               db.Users.create(user, (result, err) => {
+                  if (err === null) {
                      user.id = result;
                      delete user.password;
                      res.json({ response: user });
                   }
-                  else{
+                  else {
                      res.json({ response: err });
                   }
                });
@@ -366,18 +362,18 @@ router.post('/user/addRoster', (req, res) => {
    let roster = req.body.roster;
    let course_id = req.body.course_id;
    acl.canModifyCourse(session, course_id)
-   .then(() => {
-      for(let user of roster){
-         db.Users.exists(user.email)
-         .then()
-         .catch(() => {
-            
-            //user doesn't already exist, create
-            db.Users.create(user.email, user.first_name, user.last_name, user.password);
-         });
-      }
-   })
-   .catch((err) => { res.json({ response: err });});
+      .then(() => {
+         for (let user of roster) {
+            db.Users.exists(user.email)
+               .then()
+               .catch(() => {
+
+                  //user doesn't already exist, create
+                  db.Users.create(user.email, user.first_name, user.last_name, user.password);
+               });
+         }
+      })
+      .catch((err) => { res.json({ response: err }); });
 });
 
 // REGISTER OUR ROUTES -------------------------------

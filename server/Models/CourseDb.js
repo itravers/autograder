@@ -10,8 +10,12 @@ class CoursesDb {
       this.forUser = this.forUser.bind(this);
    }
 
-   all(callback) {
-      const sql = "SELECT * FROM courses";
+   all(callback, include_deleted=false) {
+      let sql = "SELECT * FROM courses";
+      if(include_deleted === false){
+         sql += " WHERE is_deleted = 0";
+      } 
+      sql += " ORDER BY year DESC";
       this.db.all(sql, {}, (err, rows) => {
          if (err === null && rows !== undefined) {
             callback(rows);
