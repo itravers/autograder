@@ -15,17 +15,13 @@ class HeaderView extends Component {
    }
 
    AssignmentLink(){
-      if(this.props.current_user.id > 0){
-         return(
-            <Link to="/assignment" className="dropdown-item nav-link">Assignments</Link>
-         );
+      let class_names = "nav-link";
+      if(this.props.current_user.id < 1){
+         class_names += " disabled"
       }
-      else{
-         return(
-            <div>
-         </div>
-         );
-      }
+      return(
+         <Link to="/assignment" className={class_names}>Assignments</Link>
+      );
    }
 
    AccountLinks(){

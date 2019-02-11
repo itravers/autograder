@@ -11,6 +11,25 @@ class Course {
       this.getActiveAssignmentsForCourse = this.getActiveAssignmentsForCourse.bind(this);
    }
 
+   all(){
+      return new Promise((resolve, reject) => {
+         let call = WebRequest.makeUrlRequest;
+         if (this.cache_results === true) {
+            call = WebRequest.makeCacheableUrlRequest;
+         }
+         const endpoint = this.config.endpoints.course.all;
+         call(endpoint, (result) => {
+            if (result !== null && result !== undefined && Object.keys(result.data.response).length > 0){
+               resolve(result.data.response);
+            }
+            else{
+               reject(result);
+            }
+               
+         });
+      });
+   }
+
    getCoursesForUser(user_id) {
       return new Promise((resolve, reject) => {
          let call = WebRequest.makeUrlRequest;

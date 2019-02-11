@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import { connect } from "react-redux";
 import {updateUser} from '../../actions/index';
+import { BrowserRouter as Router, Route, Link, Redirect } from 'react-router-dom';
 
 const mapStateToProps = state => {
    return { current_user: state.current_user, models: state.models };
@@ -40,7 +41,7 @@ class LoginView extends Component {
       evt.preventDefault();
       this.props.models.user.logIn(this.state.email, this.state.password)
          .then((user) => {
-            this.props.updateUser(user);
+            return this.props.updateUser(user);
          })
          .catch((err) => {
             this.setState({ invalid_login: true });
@@ -50,6 +51,10 @@ class LoginView extends Component {
    render() {
       const user_name = this.state.user_name;
       const password = this.state.password;
+      if(this.props.current_user.id !== undefined && this.props.current_user.id > 0)
+      {
+         return(<Redirect to="/assignment" />);
+      }
       return (
          <article>
             <form className="form mt-sm-2 ml-sm-2 " onSubmit={this.login}>

@@ -23,6 +23,7 @@ class SharedConfig{
             compile: root_endpoint + "/api/assignment/compile"
          },
          course: {
+            all: root_endpoint + "/api/course",
             for_user: root_endpoint + "/api/course/forUser",
             active_assignments: root_endpoint + "/api/course/assignments/active",
             all_assignments: root_endpoint + "/api/course/assignments",
