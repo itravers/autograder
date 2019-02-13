@@ -316,6 +316,7 @@ router.get('/user/login', (req, res) => {
 router.post('/user/login', (req, res) => {
    db.Users.authenticate(req.body.email, req.body.password, (result, err) => {
       if (err === null) {
+         delete result.password;
          req.session.user = result;
          res.json({ response: result });
       }

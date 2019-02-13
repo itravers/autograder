@@ -11,23 +11,15 @@ class HeaderView extends Component {
    constructor(props) {
       super(props);
       this.AccountLinks = this.AccountLinks.bind(this);
-      this.AssignmentLink = this.AssignmentLink.bind(this);
-   }
-
-   AssignmentLink(){
-      let class_names = "nav-link";
-      if(this.props.current_user.id < 1){
-         class_names += " disabled"
-      }
-      return(
-         <Link to="/assignment" className={class_names}>Assignments</Link>
-      );
    }
 
    AccountLinks(){
       if(this.props.current_user.id > 0){
          return(
+            <div>
+            <Link to="/assignment" className="dropdown-item">Assignments</Link>
             <Link to="/account/logout" className="dropdown-item">Logout</Link>
+            </div>
          );
       }
       else{
@@ -60,9 +52,6 @@ class HeaderView extends Component {
                   <ul className="navbar-nav ml-auto">
                      <li className="nav-item">
                         <Link to="/" className="nav-link">Home</Link>
-                     </li>
-                     <li className="nav-item">
-                        <this.AssignmentLink />
                      </li>
                      <li className="nav-item dropdown">
                         <a className="nav-link dropdown-toggle"

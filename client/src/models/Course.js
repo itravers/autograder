@@ -1,11 +1,9 @@
-import Session from '../view_models/Session.js';
 import WebRequest from '../view_models/WebRequest.js';
 
 class Course {
    constructor(site_config, cache_results = false) {
       this.config = site_config;
       this.cache_results = cache_results;
-      this.session = Session;
 
       this.getCoursesForUser = this.getCoursesForUser.bind(this);
       this.getActiveAssignmentsForCourse = this.getActiveAssignmentsForCourse.bind(this);
