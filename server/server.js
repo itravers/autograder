@@ -282,6 +282,22 @@ router.post('/course', (req, res) => {
       .catch((result) => res.json({ response: { result } }));
 });
 
+router.get('/course/addUser/:course_id/:user_id', (req, res) => {
+   const course_id = req.params.course_id;
+   const user_id = req.params.user_id;
+   let session = req.session;
+
+   acl.isLoggedIn(session)
+      .then(acl.isSessionUser(session, user_id))
+      .then(db.Courses.addUser(course_id, user_id))
+      .then(
+         result => res.json({ response: result })
+      )
+      .catch(err => {
+         res.json({ response: err });
+      });
+});
+
 
 router.get('/course/assignments/active/:id', (req, res) => {
    const course_id = req.params.id;
@@ -307,6 +323,20 @@ router.get('/course/forUser/:id', (req, res) => {
    else {
       res.json({ response: {} });
    }
+});
+
+router.get('/course/removeUser/:course_id/:user_id', (req, res) => {
+   const course_id = req.params.course_id;
+   const user_id = req.params.user_id;
+   let session = req.session;
+
+   acl.isLoggedIn(session)
+      .then(acl.isSessionUser(session, user_id))
+      .then(db.Courses.removeUser(course_id, user_id))
+      .then(
+         result => res.json({ response: result })
+      )
+      .catch(err => res.json({ response: err }));
 });
 
 router.get('/user/login', (req, res) => {

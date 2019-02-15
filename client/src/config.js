@@ -23,11 +23,13 @@ class SharedConfig{
             compile: root_endpoint + "/api/assignment/compile"
          },
          course: {
+            addUser: root_endpoint + "/api/course/addUser",
             all: root_endpoint + "/api/course",
             for_user: root_endpoint + "/api/course/forUser",
             active_assignments: root_endpoint + "/api/course/assignments/active",
             all_assignments: root_endpoint + "/api/course/assignments",
-            deleted_assignments: root_endpoint + "/api/course/assignments/inactive"
+            deleted_assignments: root_endpoint + "/api/course/assignments/inactive",
+            removeUser: root_endpoint + "/api/course/removeUser"
          },
          user: {
             create: root_endpoint + "/api/user/create",

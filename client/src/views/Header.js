@@ -17,7 +17,7 @@ class HeaderView extends Component {
       if(this.props.current_user.id > 0){
          return(
             <div>
-            <Link to="/assignment" className="dropdown-item">Assignments</Link>
+            <Link to="/course" className="dropdown-item">My Courses</Link>
             <Link to="/account/logout" className="dropdown-item">Logout</Link>
             </div>
          );

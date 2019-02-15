@@ -9,6 +9,22 @@ class Course {
       this.getActiveAssignmentsForCourse = this.getActiveAssignmentsForCourse.bind(this);
    }
 
+   addUser(course_id, user_id){
+      return new Promise((resolve, reject) => {
+         let call = WebRequest.makeUrlRequest;
+         const endpoint = this.config.endpoints.course.addUser + "/" + course_id + "/" + user_id;
+         call(endpoint, (result) => {
+            if (result !== null && result !== undefined){
+               resolve(result.data.response);
+            }
+            else{
+               reject(result);
+            }
+               
+         });
+      });
+   }
+
    all(){
       return new Promise((resolve, reject) => {
          let call = WebRequest.makeUrlRequest;
@@ -17,7 +33,7 @@ class Course {
          }
          const endpoint = this.config.endpoints.course.all;
          call(endpoint, (result) => {
-            if (result !== null && result !== undefined && Object.keys(result.data.response).length > 0){
+            if (result !== null && result !== undefined  && result.data.response !== undefined){
                resolve(result.data.response);
             }
             else{
@@ -36,7 +52,7 @@ class Course {
          }
          const endpoint = this.config.endpoints.course.for_user + "/" + user_id;
          call(endpoint, (result) => {
-            if (result !== null && result !== undefined && Object.keys(result.data.response).length > 0){
+            if (result !== null && result !== undefined){
                resolve(result.data.response);
             }
             else{
@@ -55,7 +71,23 @@ class Course {
          }
          const endpoint = this.config.endpoints.course.active_assignments + "/" + course_id;
          call(endpoint, (result) => {
-            if (result !== null && result !== undefined && Object.keys(result.data.response).length > 0){
+            if (result !== null && result !== undefined){
+               resolve(result.data.response);
+            }
+            else{
+               reject(result);
+            }
+               
+         });
+      });
+   }
+
+   removeUser(course_id, user_id){
+      return new Promise((resolve, reject) => {
+         let call = WebRequest.makeUrlRequest;
+         const endpoint = this.config.endpoints.course.removeUser + "/" + course_id + "/" + user_id;
+         call(endpoint, (result) => {
+            if (result !== null && result !== undefined && result.data.response !== undefined){
                resolve(result.data.response);
             }
             else{
