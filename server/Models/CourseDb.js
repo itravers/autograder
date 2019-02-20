@@ -8,6 +8,7 @@ class CoursesDb {
       this.all = this.all.bind(this);
       this.assignments = this.assignments.bind(this);
       this.forUser = this.forUser.bind(this);
+      this.addUser = this.addUser.bind(this);
    }
 
    addUser(course_id, user_id) {
