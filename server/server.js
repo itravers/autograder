@@ -19,6 +19,7 @@ const FileManager = require('./FileManager.js');
 const Database = require('./Models/Database.js');
 const AccessControlList = require('./Models/AccessControlList.js');
 const Compiler = require('./Models/Compiler.js');
+var FileStore = require('session-file-store')(session);
 
 
 let config = ini.parse(fs.readFileSync('./config.ini', 'utf-8'));
@@ -33,8 +34,9 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 app.use(fileUpload());
 
-let cookie = { secure: false, httpOnly: false, maxAge: 60000 };
+let cookie = { secure: false, httpOnly: false };
 app.use(session({
+   store: new FileStore({path: config.session_path, ttl: 86400}),
    secret: config.database.secret_hash,
    resave: false,
    saveUninitialized: false,
