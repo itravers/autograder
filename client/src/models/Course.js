@@ -10,6 +10,7 @@ class Course {
       this.addUser = this.addUser.bind(this);
       this.all = this.all.bind(this);
       this.removeUser = this.removeUser.bind(this);
+      this.getCoursePrivileges = this.getCoursePrivileges.bind(this);
    }
 
    addUser(course_id, user_id){
@@ -64,6 +65,26 @@ class Course {
                
          });
       });
+   }
+
+   /**
+    * Returns an object of allowable course actions for the present course user's course_role
+    * @param {Number} course_role 
+    */
+   getCoursePrivileges(course_role){
+      let actions = {
+         can_submit_assignment: false,
+         can_modify_course: false
+      }; 
+
+      if((course_role & 0b10) > 0){
+         actions["can_submit_assignment"] = true;
+      }
+      if((course_role & 0b100) > 0){
+         actions["can_modify_course"] = true;
+      }
+
+      return actions;
    }
 
    getCoursesForUser(user_id) {

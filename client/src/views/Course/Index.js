@@ -1,17 +1,10 @@
 import React, { Component } from 'react';
 import { connect } from "react-redux";
-import { updateUser } from '../../actions/index';
-import { BrowserRouter as Router, Route, Link, Redirect } from 'react-router-dom';
 import './index.css';
+import { Link } from 'react-router-dom';
 
 const mapStateToProps = state => {
    return { current_user: state.current_user, models: state.models };
-};
-
-const mapDispatchToProps = dispatch => {
-   return {
-      updateUser: user => dispatch(updateUser(user))
-   };
 };
 
 class IndexView extends Component {
@@ -26,10 +19,15 @@ class IndexView extends Component {
 
       this.getCourses = this.getCourses.bind(this);
       this.courseButtonClick = this.courseButtonClick.bind(this);
+      this.renderModifyLink = this.renderModifyLink.bind(this);
    }
 
    componentDidMount() {
-      this.getCourses();
+      this.getCourses(this.props.current_user.id);
+   }
+
+   componentWillReceiveProps(new_props) {
+      this.getCourses(new_props.current_user.id);
    }
 
    courseButtonClick(evt) {
@@ -38,28 +36,28 @@ class IndexView extends Component {
       if (this.state.enrolled_courses[button_id] === undefined) {
          //add request
          this.props.models.course.addUser(button_id, this.props.current_user.id)
-         .then(() => {
-            let enrolled_courses = {...this.state.enrolled_courses};
-            enrolled_courses[button_id] = {id: button_id};
-            this.setState({enrolled_courses: enrolled_courses});
-         })
-         .catch((err) => {});
+            .then(() => {
+               let enrolled_courses = { ...this.state.enrolled_courses };
+               enrolled_courses[button_id] = { id: button_id };
+               this.setState({ enrolled_courses: enrolled_courses });
+            })
+            .catch((err) => { });
       }
       else {
          //remove request
          this.props.models.course.removeUser(button_id, this.props.current_user.id)
-         .then(() => {
-            let enrolled_courses = {...this.state.enrolled_courses};
-            delete enrolled_courses[button_id];
-            this.setState({enrolled_courses: enrolled_courses});
-         })
-         .catch((err) => {});
+            .then(() => {
+               let enrolled_courses = { ...this.state.enrolled_courses };
+               delete enrolled_courses[button_id];
+               this.setState({ enrolled_courses: enrolled_courses });
+            })
+            .catch((err) => { });
       }
    }
 
    //will load enrolled courses then all courses for the user
-   getCourses() {
-      this.props.models.course.getCoursesForUser(this.props.current_user.id)
+   getCourses(user_id) {
+      this.props.models.course.getCoursesForUser(user_id)
          .then(result => {
             let courses = {};
             for (let course of result) {
@@ -72,57 +70,118 @@ class IndexView extends Component {
          .catch((err) => { });
    }
 
+   renderModifyLink(should_render, course_id) {
+      if (should_render === true) {
+         return (
+            <Link to={"/course/manage/" + course_id} className="btn btn-primary" style={{ color: "#FFFFFF" }}>Manage</Link>
+         );
+      }
+      else {
+         return (<span></span>)
+      }
+   }
+
    render() {
       const all_courses = this.state.all_courses;
       const enrolled_courses = this.state.enrolled_courses;
       const self = this;
       return (
          <article className="container">
-            <h1>Available Courses</h1>
-            <table className="table table-striped">
-               <thead>
-                  <tr>
-                     <th scope="col"></th>
-                     <th scope="col">Course Name</th>
-                     <th scope="col">School</th>
-                     <th scope="col">Year</th>
-                     <th scope="col">Term</th>
-                  </tr>
-               </thead>
-               <tbody>
-                  {all_courses.map((value, index) => {
-                     let button_text = "Add";
-                     if (enrolled_courses[value.id] !== undefined) {
-                        button_text = "Remove";
+            <article>
+               <h1>My Courses</h1>
+               <table className="table table-striped text-left">
+                  <thead>
+                     <tr>
+                        <th scope="col"></th>
+                        <th scope="col">Course Name</th>
+                        <th scope="col">School</th>
+                        <th scope="col">Year</th>
+                        <th scope="col">Term</th>
+                     </tr>
+                  </thead>
+                  <tbody>
+                     {all_courses.reduce((result, course) => {
+                        if (enrolled_courses[course.id] !== undefined) {
+                           result.push(course)
+                        }
+                        return result;
+                     }, []).map((value, index) => {
+                        const course_roles = self.props.models.course.getCoursePrivileges(enrolled_courses[value.id].course_role);
+                        return (
+                           <tr key={value.id}>
+                              <td>
+                                 <button className="btn btn-primary" data-id={value.id} onClick={self.courseButtonClick}>Remove</button>
+                                 &nbsp;
+                                 {this.renderModifyLink(true, value.id)}
+                              </td>
+                              <td>
+                                 {value.name}
+                              </td>
+                              <td>
+                                 {value.acronym}
+                              </td>
+                              <td>
+                                 {value.year}
+                              </td>
+                              <td>
+                                 {value.term}
+                              </td>
+                           </tr>
+                        )
                      }
-                     return (
-                        <tr key={value.id}>
-                           <td>
-                              <button data-id={value.id} onClick={self.courseButtonClick}>{button_text}</button>
-                           </td>
-                           <td>
-                              {value.name}
-                           </td>
-                           <td>
-                              {value.acronym}
-                           </td>
-                           <td>
-                              {value.year}
-                           </td>
-                           <td>
-                              {value.term}
-                           </td>
-                        </tr>
-                     )
-                  }
-                  )}
-               </tbody>
-            </table>
+                     )}
+                  </tbody>
+               </table>
+            </article>
+            <article>
+               <h1>Available Courses</h1>
+               <table className="table table-striped">
+                  <thead>
+                     <tr>
+                        <th scope="col"></th>
+                        <th scope="col">Course Name</th>
+                        <th scope="col">School</th>
+                        <th scope="col">Year</th>
+                        <th scope="col">Term</th>
+                     </tr>
+                  </thead>
+                  <tbody>
+                     {all_courses.reduce((result, course) => {
+                        if (enrolled_courses[course.id] === undefined) {
+                           result.push(course)
+                        }
+                        return result;
+                     }, []).map((value, index) => {
+                        let button_text = "Add";
+                        return (
+                           <tr key={value.id}>
+                              <td>
+                                 <button className="btn btn-primary" data-id={value.id} onClick={self.courseButtonClick}>Add</button>
+                              </td>
+                              <td>
+                                 {value.name}
+                              </td>
+                              <td>
+                                 {value.acronym}
+                              </td>
+                              <td>
+                                 {value.year}
+                              </td>
+                              <td>
+                                 {value.term}
+                              </td>
+                           </tr>
+                        )
+                     }
+                     )}
+                  </tbody>
+               </table>
+            </article>
          </article>
       );
    }
 }
 
-const Index = connect(mapStateToProps, mapDispatchToProps)(IndexView);
+const Index = connect(mapStateToProps)(IndexView);
 export { Index };
 export default Index;

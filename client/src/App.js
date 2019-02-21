@@ -11,20 +11,10 @@ import Session from './view_models/Session.js';
 import Header from './views/Header'
 
 import './App.css';
-import routes from './views/routes';
+import {Routes, RouteWithSubRoutes} from './views/routes';
 
 import { connect } from "react-redux";
 import { updateUser } from './actions/index';
-
-const RouteWithSubRoutes = route => (
-   <Route
-      exact path={route.path}
-      render={props => (
-         // pass the sub-routes down to keep nesting
-         <route.component {...props} routes={route.routes} />
-      )}
-   />
-);
 
 const mapStateToProps = state => {
    return { current_user: state.current_user, models: state.models };
@@ -70,7 +60,7 @@ class AppView extends Component {
                <div>
                   <Header />
                   <div id="PageContents">
-                     {routes.map((route, i) => <RouteWithSubRoutes key={i} {...route} />)}
+                     {Routes.map((route, i) => <RouteWithSubRoutes key={i} route={route} {...route} />)}
                   </div>
                </div>
             </Router>
