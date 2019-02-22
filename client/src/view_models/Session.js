@@ -12,27 +12,27 @@ class Session {
       if (this.persist === true) {
          return JSON.parse(localStorage.getItem(key));
       }
-      else { 
+      else {
          return JSON.parse(sessionStorage.getItem(key));
       }
    }
 
-   set(key, value){
-      if(this.persist === true){
+   set(key, value) {
+      if (this.persist === true) {
          localStorage.setItem(key, JSON.stringify(value));
       }
-      else{
+      else {
          sessionStorage.setItem(key, JSON.stringify(value));
       }
    }
 
-   isPersistent(val = null){
-      if(val === null){
+   isPersistent(val = null) {
+      if (val === null) {
          return this.persist;
       }
-      else{
+      else {
          this.persist = val;
-         if(this.persist === true){
+         if (this.persist === true) {
             localStorage.setItem("persist", "true");
          }
       }

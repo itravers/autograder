@@ -1,11 +1,9 @@
-import Session from '../view_models/Session.js';
 import WebRequest from '../view_models/WebRequest.js';
 
 class Assignment {
    constructor(site_config, cache_results = false) {
       this.config = site_config;
       this.cache_results = cache_results;
-      this.session = Session;
 
       this.getTestCases = this.getTestCases.bind(this);
       this.run = this.run.bind(this);

@@ -19,6 +19,7 @@ const FileManager = require('./FileManager.js');
 const Database = require('./Models/Database.js');
 const AccessControlList = require('./Models/AccessControlList.js');
 const Compiler = require('./Models/Compiler.js');
+var FileStore = require('session-file-store')(session);
 
 
 let config = ini.parse(fs.readFileSync('./config.ini', 'utf-8'));
@@ -33,8 +34,9 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 app.use(fileUpload());
 
-let cookie = { secure: false, httpOnly: false, maxAge: 60000 };
+let cookie = { secure: false, httpOnly: false };
 app.use(session({
+   store: new FileStore({path: config.session_path, ttl: 86400}),
    secret: config.database.secret_hash,
    resave: false,
    saveUninitialized: false,
@@ -262,13 +264,9 @@ router.delete('/assignment/file/:id', (req, res) => {
 
 });
 
+//Returns all available courses
 router.get('/course', (req, res) => {
-   let session = req.session;
-   acl.isAdmin(session)
-      .then(() => {
-         db.Courses.all((result) => { res.json({ response: result }); });
-      })
-      .catch(() => res.json({ response: {} }));
+   db.Courses.all((result) => { res.json({ response: result }); });
 });
 
 //AC note: used to create courses.  Not finished
@@ -281,11 +279,10 @@ router.post('/course', (req, res) => {
    acl.isAdmin(session)
       .then(() => db.Courses.isUnique(school_id, name, term, year))
       .then((result) => {
-         return res.json({response: result});
+         return res.json({ response: result });
       })
-      .catch((result) => res.json({ response: {result} }));
+      .catch((result) => res.json({ response: { result } }));
 });
-
 
 router.get('/course/assignments/active/:id', (req, res) => {
    const course_id = req.params.id;
@@ -294,23 +291,72 @@ router.get('/course/assignments/active/:id', (req, res) => {
    });
 });
 
-router.get('/course/forUser/:id', (req, res) => {
-   const user_id = req.params.id;
+/**
+ * Returns all courses that the currently logged in user is taking
+ */
+router.get('/course/user', (req, res) => {
    const current_user = req.session.user;
    if (current_user !== undefined) {
-      if (current_user.id === user_id || current_user.is_admin === 1) {
-         db.Courses.forUser(user_id, (result) => {
+         db.Courses.forUser(current_user.id, (result) => {
             res.json({ response: result });
          });
-      }
-      else {
-         console.log("User: " + current_user.id + " tried to access " + user_id);
-         res.json({ response: {} });
-      }
    }
    else {
       res.json({ response: {} });
    }
+});
+
+/**
+ * Returns a detailed roster for all courses where the user has 
+ * instructor rights
+ */
+router.get('/course/user/:course_id', (req, res) => {
+   const course_id = req.params.course_id;
+   let session = req.session;
+   acl.isLoggedIn(session)
+
+   .then(() => db.Courses.isInstructor(course_id, session.user.id)) 
+   .then(() => db.Courses.courseUsers(course_id))
+   .then(result => {
+      res.json({ response: result });
+   })
+   .catch(err => res.json({ response: err }));
+});
+
+/**
+ * Removes the user specified in req.body from the selected course
+ */
+router.delete('/course/user/:course_id', (req, res) => {
+   const course_id = req.params.course_id;
+   const user_id = req.body.user_id;
+   let session = req.session;
+
+   acl.isLoggedIn(session)
+      .then(acl.isSessionUser(session, user_id))
+      .then(db.Courses.removeUser(course_id, user_id))
+      .then(
+         result => res.json({ response: result })
+      )
+      .catch(err => res.json({ response: err }));
+});
+
+/**
+ * Adds the user to the specified course
+ */
+router.post('/course/user/:course_id', (req, res) => {
+   const course_id = req.params.course_id;
+   const user_id = req.body.user_id;
+   let session = req.session;
+
+   acl.isLoggedIn(session)
+      .then(acl.isSessionUser(session, user_id))
+      .then(db.Courses.addUser(course_id, user_id))
+      .then(
+         result => res.json({ response: result })
+      )
+      .catch(err => {
+         res.json({ response: err });
+      });
 });
 
 router.get('/user/login', (req, res) => {
@@ -320,6 +366,7 @@ router.get('/user/login', (req, res) => {
 router.post('/user/login', (req, res) => {
    db.Users.authenticate(req.body.email, req.body.password, (result, err) => {
       if (err === null) {
+         delete result.password;
          req.session.user = result;
          res.json({ response: result });
       }
@@ -335,18 +382,18 @@ router.get('/user/logout', (req, res) => {
 });
 
 router.post('/user/create', (req, res) => {
-   const user = {first_name: req.body.first_name, last_name: req.body.last_name, email: req.body.email, password: req.body.password};
-   if(user.first_name !== undefined && user.first_name.length > 0){
-      if(user.last_name !== undefined && user.last_name.length > 0){
-         if(user.email !== undefined && user.email.length > 0){
-            if(user.password !== undefined && user.password.length > 0){
-               db.Users.create(user, (result, err) =>{
-                  if(err === null){
+   const user = { first_name: req.body.first_name, last_name: req.body.last_name, email: req.body.email, password: req.body.password };
+   if (user.first_name !== undefined && user.first_name.length > 0) {
+      if (user.last_name !== undefined && user.last_name.length > 0) {
+         if (user.email !== undefined && user.email.length > 0) {
+            if (user.password !== undefined && user.password.length > 0) {
+               db.Users.create(user, (result, err) => {
+                  if (err === null) {
                      user.id = result;
                      delete user.password;
                      res.json({ response: user });
                   }
-                  else{
+                  else {
                      res.json({ response: err });
                   }
                });
@@ -366,18 +413,18 @@ router.post('/user/addRoster', (req, res) => {
    let roster = req.body.roster;
    let course_id = req.body.course_id;
    acl.canModifyCourse(session, course_id)
-   .then(() => {
-      for(let user of roster){
-         db.Users.exists(user.email)
-         .then()
-         .catch(() => {
-            
-            //user doesn't already exist, create
-            db.Users.create(user.email, user.first_name, user.last_name, user.password);
-         });
-      }
-   })
-   .catch((err) => { res.json({ response: err });});
+      .then(() => {
+         for (let user of roster) {
+            db.Users.exists(user.email)
+               .then()
+               .catch(() => {
+
+                  //user doesn't already exist, create
+                  db.Users.create(user.email, user.first_name, user.last_name, user.password);
+               });
+         }
+      })
+      .catch((err) => { res.json({ response: err }); });
 });
 
 // REGISTER OUR ROUTES -------------------------------

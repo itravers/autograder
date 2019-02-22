@@ -1,5 +1,5 @@
-class AccessControlList{
-   constructor(db){
+class AccessControlList {
+   constructor(db) {
       this.db = db;
 
       this.canCreateCourses = this.canCreateCourses.bind(this);
@@ -10,60 +10,72 @@ class AccessControlList{
       this.userOwnsFile = this.userOwnsFile.bind(this);
    }
 
-   canModifyCourse(session, course_id){
+   canModifyCourse(session, course_id) {
       return isAdmin(session);
    }
 
    //no "teacher" level so same as admin for now
-   canCreateCourses(session){
+   canCreateCourses(session) {
       return isAdmin(session);
    }
 
-   isAdmin(session){
-      return new Promise( (resolve, reject) =>{
-         if(session.user !== undefined 
+   isAdmin(session) {
+      return new Promise((resolve, reject) => {
+         if (session.user !== undefined
             && session.user !== null
             && session.user.is_admin === 1
-            ){
+         ) {
             resolve(true);
          }
-         else{
+         else {
             reject(false);
          }
       });
    }
 
-   isLoggedIn(session){
-      return new Promise( (resolve, reject) =>{
-         if(session.user !== undefined && session.user !== null){
+   isLoggedIn(session) {
+      return new Promise((resolve, reject) => {
+         if (session.user !== undefined && session.user !== null) {
             resolve(true);
          }
-         else{
+         else {
             reject(false);
          }
       });
    }
 
-   userHasAssignment(user, assignment_id){
-      return new Promise( (resolve, reject) =>{
+   isSessionUser(session, user_id) {
+      user_id = Number(user_id);
+      return new Promise((resolve, reject) => {
+         if (session.user.id === user_id) {
+            resolve(true);
+         }
+         else {
+            reject(false);
+         }
+      });
+   }
+
+   userHasAssignment(user, assignment_id) {
+      return new Promise((resolve, reject) => {
          this.db.Assignments.hasUser(assignment_id, user.id, (result, err) => {
             if (result === true) {
                resolve(true);
             }
-            else{
+            else {
                reject(false);
             }
          });
       });
    }
 
-   userOwnsFile(user, file_id){
-      return new Promise( (resolve, reject) =>{
+   userOwnsFile(user, file_id) {
+      return new Promise((resolve, reject) => {
          this.db.AssignmentFiles.get(file_id, (result, err) => {
             if (result !== null && result.owner_id === user.id) {
                resolve(true);
             }
-            else{
+            else {
                reject(false);
             }
          });
