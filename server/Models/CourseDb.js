@@ -16,7 +16,7 @@ class CoursesDb {
       const params = { $course_id: course_id, $user_id: user_id }
 
       return new Promise((resolve, reject) => {
-         
+
          //AC: placing db callback function into its own variable changes 
          //*this* from local AssignmentFilesDb object to result of sqlite3 db call.
          var local_callback = function (err) {
@@ -64,6 +64,49 @@ class CoursesDb {
       });
    }
 
+   isInstructor(course_id, user_id) {
+      return new Promise((resolve, reject) => {
+         const sql = "SELECT * FROM course_users "
+            + "WHERE course_id = $course_id AND user_id = $user_id AND course_role & 6 > 0";
+         const params = { $course_id: course_id, $user_id: user_id }
+         this.db.get(sql, params, (err, row) => {
+            if (err === null && row !== undefined) {
+               resolve(true);
+            }
+            else if (err !== null) {
+               console.log(err);
+               reject(err);
+            }
+            else
+            {
+               reject(false);
+            }
+         });
+      });
+   }
+
+   courseUsers(course_id) {
+      return new Promise((resolve, reject) => {
+         let sql = "SELECT u.first_name, u.last_name, u.email, cu.* "
+            + " FROM course_users cu "
+            + " INNER JOIN users u ON cu.user_id = u.id "
+            + " WHERE course_id = $course_id "
+            + " ORDER BY u.last_name, u.first_name";
+         this.db.all(sql, { $course_id: course_id }, (err, rows) => {
+            if (err === null && rows !== undefined) {
+               resolve(rows);
+            }
+            else if (err !== null) {
+               console.log(err);
+               reject(err);
+            }
+            else{
+               reject(false);
+            }
+         });
+      });
+   }
+
    forUser(user_id, callback) {
       const sql = "SELECT * FROM courses c " +
          " INNER JOIN course_users cu ON c.id = cu.course_id " +
@@ -107,7 +150,7 @@ class CoursesDb {
       const params = { $course_id: course_id, $user_id: user_id }
 
       return new Promise((resolve, reject) => {
-         
+
          //AC: placing db callback function into its own variable changes 
          //*this* from local AssignmentFilesDb object to result of sqlite3 db call.
          var local_callback = function (err) {
