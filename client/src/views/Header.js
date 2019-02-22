@@ -13,23 +13,27 @@ class HeaderView extends Component {
       this.AccountLinks = this.AccountLinks.bind(this);
    }
 
-   AccountLinks(){
-      if(this.props.current_user.id > 0){
-         return(
-            <div>
-            <Link to="/course" className="dropdown-item">My Courses</Link>
-            <Link to="/account/logout" className="dropdown-item">Logout</Link>
-            </div>
-         );
+   AccountLinks() {
+
+      let links = [];
+      if (this.props.current_user.is_admin === 1) {
+         links.push(<Link to="/admin" className="dropdown-item">Admin</Link>);
       }
-      else{
-         return(
-            <div>
-            <Link to="/account/login" className="dropdown-item">Login</Link>
-            <Link to="/account/create" className="dropdown-item">Create</Link>
+      if (this.props.current_user.id > 0) {
+         links.push(<Link to="/course" className="dropdown-item">My Courses</Link>);
+         links.push(<Link to="/account/logout" className="dropdown-item">Logout</Link>);
+      }
+      else {
+         links.push(<Link to="/account/login" className="dropdown-item">Login</Link>);
+         links.push(<Link to="/account/create" className="dropdown-item">Create</Link>);
+      }
+      return (
+         <div>
+            {links.map(link => (
+               link
+            ))}
          </div>
-         );
-      }
+      );
    }
 
    render() {
