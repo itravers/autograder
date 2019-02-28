@@ -10,8 +10,12 @@ class AccessControlList {
       this.userOwnsFile = this.userOwnsFile.bind(this);
    }
 
-   canModifyCourse(session, course_id) {
-      return isAdmin(session);
+   canModifyCourse(user, course_id) {
+      return new Promise((resolve, reject) => {
+         this.db.Courses.isInstructor(course_id, user.id)
+         .then(result => resolve(result))
+         .catch(err => reject(err));
+      });
    }
 
    //no "teacher" level so same as admin for now

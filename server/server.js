@@ -28,6 +28,13 @@ let file_manager = FileManager.FileManager(config.temp_path, config.uploads_path
 let db = Database.createDatabase(config.database.connection_string, config.database.secret_hash, config.database.crypto_method);
 let acl = AccessControlList.createACL(db);
 
+/* 
+process.on('unhandledRejection', (reason, p) => {
+   console.log('Unhandled Rejection at: Promise', p, 'reason:', reason);
+   // application specific logging, throwing an error, or other logic here
+ });
+ */
+
 // configure app to use bodyParser()
 // this will let us get the data from a POST
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -315,7 +322,7 @@ router.get('/course/user/:course_id', (req, res) => {
    let session = req.session;
    acl.isLoggedIn(session)
 
-   .then(() => db.Courses.isInstructor(course_id, session.user.id)) 
+   .then(() => acl.canModifyCourse(session.user, course_id)) 
    .then(() => db.Courses.courseUsers(course_id))
    .then(result => {
       res.json({ response: result });
@@ -357,6 +364,27 @@ router.post('/course/user/:course_id', (req, res) => {
       .catch(err => {
          res.json({ response: err });
       });
+});
+
+/**
+ * Alters user's course role
+ */
+router.put('/course/user/:course_id', (req, res) => {
+   const course_id = req.params.course_id;
+   const user_id = req.body.user_id;
+   const role = req.body.role;
+   let session = req.session;
+
+   acl.isLoggedIn(session)
+      .then(() => acl.isSessionUser(session, user_id))
+      .then(() => acl.canModifyCourse(session.user, course_id))
+      .then(() => db.Courses.setCourseRole(course_id, user_id, role))
+      .then(
+         result => res.json({ response: result })
+      )
+      .catch(err => 
+         res.json({ response: err })
+      );
 });
 
 router.get('/user/login', (req, res) => {

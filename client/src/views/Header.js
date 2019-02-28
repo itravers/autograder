@@ -29,8 +29,8 @@ class HeaderView extends Component {
       }
       return (
          <div>
-            {links.map(link => (
-               link
+            {links.map((link, index) => (
+               <span key={index}>{link}</span>
             ))}
          </div>
       );

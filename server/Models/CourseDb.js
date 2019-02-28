@@ -8,6 +8,7 @@ class CoursesDb {
       this.all = this.all.bind(this);
       this.assignments = this.assignments.bind(this);
       this.forUser = this.forUser.bind(this);
+      this.isInstructor = this.isInstructor.bind(this);
       this.addUser = this.addUser.bind(this);
    }
 
@@ -18,7 +19,7 @@ class CoursesDb {
       return new Promise((resolve, reject) => {
 
          //AC: placing db callback function into its own variable changes 
-         //*this* from local AssignmentFilesDb object to result of sqlite3 db call.
+         //*this* from local object to result of sqlite3 db call.
          var local_callback = function (err) {
             if (err === null) {
                resolve(this.lastID);
@@ -152,7 +153,7 @@ class CoursesDb {
       return new Promise((resolve, reject) => {
 
          //AC: placing db callback function into its own variable changes 
-         //*this* from local AssignmentFilesDb object to result of sqlite3 db call.
+         //*this* from local object to result of sqlite3 db call.
          var local_callback = function (err) {
             if (err === null) {
                resolve(this.changes);
@@ -160,6 +161,29 @@ class CoursesDb {
             else {
                console.log(err);
                reject(err);
+            }
+         };
+         this.db.run(sql, params, local_callback);
+      });
+   }
+
+   setCourseRole(course_id, user_id, role){
+      const sql = "UPDATE course_users SET course_role = $role WHERE course_id = $course_id AND user_id = $user_id";
+      const params = { $course_id: course_id, $user_id: user_id, $role: role }
+
+      return new Promise((resolve, reject) => {
+
+         //AC: placing db callback function into its own variable changes 
+         //*this* from local class object to result of sqlite3 db call.
+         var local_callback = function (err) {
+            if (err === null) {
+               resolve(this.changes);
+               return;
+            }
+            else {
+               console.log(err);
+               reject(err);
+               return;
             }
          };
          this.db.run(sql, params, local_callback);

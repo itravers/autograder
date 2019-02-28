@@ -47,6 +47,15 @@ class WebRequest {
       })
          .then(callback);
    }
+
+   static makePut(url, data, callback){
+      axios(url, {
+         method: "put",
+         data: data,
+         withCredentials: true
+      })
+         .then(callback);
+   }
 }
 
 export { WebRequest };
