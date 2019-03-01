@@ -22,13 +22,13 @@ class AssignmentFilesView extends Component {
       this.base_links =
          [{
             id: -1,
-            url: "/add-files",
+            url: "/assignment/add-files",
             name: "Add File(s)",
             css: "nav-link"
          },
          {
             id: -1,
-            url: "/run",
+            url: "/assignment/run",
             name: "Run",
             css: "nav-link"
          }
@@ -37,7 +37,7 @@ class AssignmentFilesView extends Component {
          links: this.base_links,
          files: [],
          file_data: {},
-         active_tab: "/add-files"
+         active_tab: "/assignment/add-files"
       };
 
       this.config = this.props.config;
@@ -91,7 +91,7 @@ class AssignmentFilesView extends Component {
       let links_by_name = {};
       for (let key of Object.keys(files)) {
          const file = files[key];
-         const url = "/files/" + file.name.toLowerCase();
+         const url = "/assignment/files/" + file.name.toLowerCase();
          const tab = { id: file.id, url: url, name: file.name, css: "nav-link" };
          links_by_name[tab.url] = tab;
       }
@@ -155,7 +155,7 @@ class AssignmentFilesView extends Component {
                         })}
                      </ul>
                   </nav>
-                  <Route path="/files/:name"
+                  <Route path="/assignment/files/:name"
                      render={
                         ({ match }, props) => {
                            const file_name = match.params.name;
@@ -169,7 +169,7 @@ class AssignmentFilesView extends Component {
                            )
                         }
                      } />
-                  <Route path="/add-files"
+                  <Route path="/assignment/add-files"
                      render={
                         (props) => {
                            return (
@@ -183,7 +183,7 @@ class AssignmentFilesView extends Component {
                               </div>
                            )
                         }} />
-                  <Route path="/run"
+                  <Route path="/assignment/run"
                      render={
                         (props) => {
                            return (
