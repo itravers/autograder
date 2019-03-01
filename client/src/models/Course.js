@@ -5,6 +5,7 @@ class Course {
       this.config = site_config;
       this.cache_results = cache_results;
       this.PRIVILEGES = {
+         is_pending: "is_pending",
          can_submit_assignment: "can_submit_assignment",
          can_modify_course: "can_modify_course",
          can_grade_assignment: "can_grade_assignment"
@@ -78,11 +79,15 @@ class Course {
     */
    getCoursePrivileges(course_role) {
       let actions = {
+         is_pending: false,
          can_submit_assignment: false,
          can_modify_course: false,
          can_grade_assignment: false
       };
 
+      if ((course_role & 0b1) > 0) {
+         actions[this.PRIVILEGES.is_pending] = true;
+      }
       if ((course_role & 0b10) > 0) {
          actions[this.PRIVILEGES.can_submit_assignment] = true;
       }
@@ -102,6 +107,10 @@ class Course {
     */
    getCoursePrivilegeNumber(actions){
       let privilege = 0;
+   
+      if(actions[this.PRIVILEGES.is_pending] === true){
+         privilege = privilege | 1;
+      }
       if(actions[this.PRIVILEGES.can_submit_assignment] === true){
          privilege = privilege | 2;
       }

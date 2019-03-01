@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import { connect } from "react-redux";
-import { BrowserRouter as Router, Route, Link, Redirect } from 'react-router-dom';
+import { sortBy } from 'lodash';
 import UserList from './../components/UserList'
 
 
@@ -72,7 +72,7 @@ class ManageView extends Component {
                else if (privilege.can_submit_assignment === true) {
                   active_users.push(user);
                }
-               else {
+               else if(privilege.is_pending === true){
                   pending_users.push(user);
                }
             }
@@ -102,8 +102,9 @@ class ManageView extends Component {
       .then( () => {
          let ta_list = [...this.state.course_tas];
          let active_users = [...this.state.users_active];
-         active_users = active_users.slice(index, 1);
+         active_users.splice(index, 1);
          ta_list.push(student);
+         ta_list = sortBy(ta_list, ['last_name', 'first_name']);
          this.setState({course_tas: ta_list, users_active: active_users});
       } )
       .catch( () => {});
@@ -120,7 +121,8 @@ class ManageView extends Component {
          let ta_list = [...this.state.course_tas];
          let active_users = [...this.state.users_active];
          active_users.push(ta);
-         ta_list = ta_list.splice(index, 1);
+         ta_list.splice(index, 1);
+         active_users = sortBy(active_users, ['last_name', 'first_name']);
          this.setState({course_tas: ta_list, users_active: active_users});
       } )
       .catch( () => {});
@@ -138,7 +140,8 @@ class ManageView extends Component {
          let users_active = [...this.state.users_active];
          let pending_users = [...this.state.users_pending];
          pending_users.push(student);
-         users_active =users_active.slice(index, 1);
+         users_active.splice(index, 1);
+         pending_users = sortBy(pending_users, ['last_name', 'first_name']);
          this.setState({users_active: users_active, users_pending: pending_users});
       } )
       .catch( () => {});
@@ -155,8 +158,9 @@ class ManageView extends Component {
       .then( () => {
          let users_active = [...this.state.users_active];
          let pending_students = [...this.state.users_pending];
-         pending_students = pending_students.slice(index, 1);
+         pending_students.splice(index, 1);
          users_active.push(student);
+         users_active = sortBy(users_active, ['last_name', 'first_name']);
          this.setState({users_active: users_active, users_pending: pending_students});
       } )
       .catch( () => {});

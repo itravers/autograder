@@ -21,14 +21,14 @@ class UserList extends Component {
             <tbody>
 
                {raw_data.map((item, index) =>
-                  <tr>
+                  <tr key={index}>
                      <td>
                      {buttons.map((button_item, button_index) =>
                         <span key={button_index}><ManageButton user_id={index} click_event={button_item.click} button_text={button_item.text} />&nbsp;</span>
                      )}
                      </td>
-                     {data_cols.map(col =>
-                        <td key={index}>{item[col]}</td>
+                     {data_cols.map((col, col_key) =>
+                        <td key={col_key}>{item[col]}</td>
                      )}
                   </tr>
                )}
