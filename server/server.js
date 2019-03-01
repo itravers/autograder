@@ -376,7 +376,6 @@ router.put('/course/user/:course_id', (req, res) => {
    let session = req.session;
 
    acl.isLoggedIn(session)
-      .then(() => acl.isSessionUser(session, user_id))
       .then(() => acl.canModifyCourse(session.user, course_id))
       .then(() => db.Courses.setCourseRole(course_id, user_id, role))
       .then(
