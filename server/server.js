@@ -107,6 +107,7 @@ router.post('/assignment/run/:assignment_id', (req, res) => {
    const tools_command = config.compiler.tools_path + "\\" + config.compiler.tools_batch;
    const compile_cmd = config.compiler.compile_command;
    const stdin = req.body.stdin;
+   const test_name = req.body.test_name;
 
    //do we have an active user?
    acl.isLoggedIn(session)
@@ -129,12 +130,12 @@ router.post('/assignment/run/:assignment_id', (req, res) => {
             .then(() => compiler.runFiles());
       })
       .then((result) => {
-         db.Assignments.TestCases.log(assignment_id, current_user.id, stdin, result, () => {
+         db.Assignments.TestCases.log(assignment_id, current_user.id, test_name, stdin, result, () => {
             res.json({ response: result });
          });
       })
       .catch((err) => {
-         db.Assignments.TestCases.log(assignment_id, current_user.id, stdin, err.message, () => {
+         db.Assignments.TestCases.log(assignment_id, current_user.id, test_name, stdin, err.message, () => {
             res.json({ response: err.message });
          });
       });
@@ -148,6 +149,7 @@ router.post('/assignment/compile/:assignment_id', (req, res) => {
    const tools_command = config.compiler.tools_path + "\\" + config.compiler.tools_batch;
    const compile_cmd = config.compiler.compile_command;
    const stdin = req.body.stdin;
+   const test_name = req.body.test_name;
 
    //do we have an active user?
    acl.isLoggedIn(session)
@@ -169,12 +171,12 @@ router.post('/assignment/compile/:assignment_id', (req, res) => {
          return compiler.begin();
       })
       .then((result) => {
-         db.Assignments.TestCases.log(assignment_id, current_user.id, stdin, result, () => {
+         db.Assignments.TestCases.log(assignment_id, current_user.id, test_name, stdin, result, () => {
             res.json({ response: result });
          });
       })
       .catch((err) => {
-         db.Assignments.TestCases.log(assignment_id, current_user.id, stdin, err.message, () => {
+         db.Assignments.TestCases.log(assignment_id, current_user.id, test_name, stdin, err.message, () => {
             res.json({ response: err.message });
          });
       });

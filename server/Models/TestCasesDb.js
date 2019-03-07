@@ -30,14 +30,15 @@ class TestCasesDb {
       });
    }
 
-   log(assignment_id, user_id, test_input, test_result, callback) {
+   log(assignment_id, user_id, test_name, test_input, test_result, callback) {
 
       const sql = "INSERT INTO test_results " +
-         " (assignment_id, user_id, test_input, test_result) " +
-         " VALUES ($assignment_id, $user_id, $test_input, $test_result)";
+         " (assignment_id, user_id, test_name, test_input, test_result) " +
+         " VALUES ($assignment_id, $user_id, $test_name, $test_input, $test_result)";
       const params = {
          $user_id: user_id,
          $assignment_id: assignment_id,
+         $test_name: test_name,
          $test_input: test_input,
          $test_result: test_result
       };
