@@ -6,6 +6,7 @@ class TestCasesDb {
       this.db = db_connection;
 
       this.forAssignment = this.forAssignment.bind(this);
+      this.log = this.log.bind(this);
    }
 
    /**
@@ -58,6 +59,22 @@ class TestCasesDb {
          }
       };
       this.db.run(sql, params, local_callback);
+   }
+
+   testResults(assignment_id, user_id) {
+      return new Promise((resolve, reject) => {
+         const sql = "SELECT * FROM test_results WHERE assignment_id = $assignment_id AND user_id = $user_id";
+         const params = { $assignment_id: assignment_id, $user_id: user_id };
+         this.db.all(sql, params, (err, rows) => {
+            if (err === null && rows !== undefined) {
+               resolve(rows);
+            }
+            else {
+               console.log(err);
+               reject(err);
+            }
+         });
+      });
    }
 }
 

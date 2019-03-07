@@ -43,7 +43,7 @@ app.use(fileUpload());
 
 let cookie = { secure: false, httpOnly: false };
 app.use(session({
-   store: new FileStore({path: config.session_path, ttl: 86400}),
+   store: new FileStore({ path: config.session_path, ttl: 86400 }),
    secret: config.database.secret_hash,
    resave: false,
    saveUninitialized: false,
@@ -97,6 +97,18 @@ router.get('/assignment/testCases/:assignment_id', (req, res) => {
          res.json({ response: err });
       }
    });
+});
+
+router.get('/assignment/testResults/:assignment_id', (req, res) => {
+   let session = req.session;
+   acl.isLoggedIn(session)
+      .then(() => db.Assignments.TestCases.testResults(req.params.assignment_id, session.current_user.id))
+      .then(results => { 
+         res.json({ response: results }); 
+      })
+      .catch(err => { 
+         res.json({ response: err }); 
+      });
 });
 
 //runs student's code without compiling first (saves time)
@@ -306,9 +318,9 @@ router.get('/course/assignments/active/:id', (req, res) => {
 router.get('/course/user', (req, res) => {
    const current_user = req.session.user;
    if (current_user !== undefined) {
-         db.Courses.forUser(current_user.id, (result) => {
-            res.json({ response: result });
-         });
+      db.Courses.forUser(current_user.id, (result) => {
+         res.json({ response: result });
+      });
    }
    else {
       res.json({ response: {} });
@@ -324,12 +336,12 @@ router.get('/course/user/:course_id', (req, res) => {
    let session = req.session;
    acl.isLoggedIn(session)
 
-   .then(() => acl.canModifyCourse(session.user, course_id)) 
-   .then(() => db.Courses.courseUsers(course_id))
-   .then(result => {
-      res.json({ response: result });
-   })
-   .catch(err => res.json({ response: err }));
+      .then(() => acl.canModifyCourse(session.user, course_id))
+      .then(() => db.Courses.courseUsers(course_id))
+      .then(result => {
+         res.json({ response: result });
+      })
+      .catch(err => res.json({ response: err }));
 });
 
 /**
@@ -383,7 +395,7 @@ router.put('/course/user/:course_id', (req, res) => {
       .then(
          result => res.json({ response: result })
       )
-      .catch(err => 
+      .catch(err =>
          res.json({ response: err })
       );
 });
