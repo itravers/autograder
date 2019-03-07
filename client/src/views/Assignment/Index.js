@@ -1,20 +1,18 @@
 import React, { Component } from 'react';
-import { BrowserRouter as Router, Route, Link, Redirect } from 'react-router-dom';
+import { connect } from "react-redux";
+import { BrowserRouter as Router, Route, NavLink, Redirect, withRouter } from 'react-router-dom';
+import CourseAssignmentSelector from '../components/CourseAssignmentSelector'
 
-//right click context menu
-import { ContextMenu, MenuItem, ContextMenuTrigger } from "react-contextmenu";
+//components
+import AddFiles from './components/AddFilesComponent';
+import Source from './components/SourceViewComponent';
+import TestCases from './components/TestCasesComponent';
 
-//views
-import AddFilesView from './AddFilesView.js';
-import SourceView from './SourceView.js';
-import TestCaseView from './TestCasesView.js';
+const mapStateToProps = state => {
+   return { current_user: state.current_user, models: state.models };
+};
 
-//view models
-import WebRequest from '../../view_models/WebRequest.js';
-import PrivateRoute from '../../view_models/PrivateRoute.js';
-import Session from '../../view_models/Session.js';
-
-class AssignmentFilesView extends Component {
+class IndexView extends Component {
 
    constructor(props) {
       super(props);
@@ -37,52 +35,32 @@ class AssignmentFilesView extends Component {
          links: this.base_links,
          files: [],
          file_data: {},
-         active_tab: "/assignment/add-files"
+         current_assignment: {id: -1}
       };
 
-      this.config = this.props.config;
-
-      this.session = Session;
-
-      this.setActiveLink = this.setActiveLink.bind(this);
+      this.onAssignmentChange = this.onAssignmentChange.bind(this);
       this.updateFiles = this.updateFiles.bind(this);
       this.getAssignmentFiles = this.getAssignmentFiles.bind(this);
       this.removeTab = this.removeTab.bind(this);
       this.render = this.render.bind(this);
    }
 
-   componentDidMount(){
-      this.getAssignmentFiles();
-   }
-
-   componentWillReceiveProps(){
-      this.getAssignmentFiles();
+   onAssignmentChange(assignment){
+      this.setState({current_assignment: assignment}, () => {
+         this.getAssignmentFiles();
+      });
    }
 
    getAssignmentFiles() {
-      if(this.props.current_user.id !== undefined && this.props.current_assignment.id !== undefined){
-         const url = this.config.endpoints.assignment.file + "/" + this.props.current_assignment.id;
-         WebRequest.makeUrlRequest(url, (result) => {
-            const data = result.data.response;
-            let file_data = {};
-            let file_links = [];
-            for (const item of data) {
-               item.type = "text/plain";
-               item.lastModified = 0;
-               item.name = item.file_name;
-               file_data[item.file_name] = item;
-               file_links.push(item);
-            }
-            this.setState({ file_data: file_data, files: file_links }, () =>{
+      if(this.props.current_user.id > 0 && this.state.current_assignment.id > 0){
+         this.props.models.assignment.getFiles(this.state.current_assignment.id)
+         .then( (result) => {
+            this.setState({ file_data: result.data, files: result.links }, () =>{
                this.updateTabs();
             });
-         });
+         })
+         .catch(() => {});
       }
-   }
-
-   setActiveLink(evt) {
-      const url = evt.target.pathname;
-      this.setState({ active_tab: url });
    }
 
    updateTabs() {
@@ -123,9 +101,16 @@ class AssignmentFilesView extends Component {
    render() {
       const links = this.state.links;
       const state = this.state;
+
+      //always start out at the file upload component
+      if(this.props.location.pathname.toLowerCase() == '/assignment/' || this.props.location.pathname.toLowerCase() == '/assignment')
+      {
+         return(<Redirect to="/assignment/add-files" />)
+      }
       return (
          <div>
-            <Router>
+            <CourseAssignmentSelector
+               onAssignmentChange={this.onAssignmentChange} />
                <div>
                   <nav>
                      <ul className="nav nav-tabs">
@@ -133,23 +118,13 @@ class AssignmentFilesView extends Component {
                            const item = links[key];
                            const active_tab = this.state.active_tab;
                            let style = "nav-link";
-                           if (active_tab === item.url) {
-                              style += " active";
-                           }
                            return (
                               <li key={item.url} className="nav-item">
-                                 <ContextMenuTrigger
-                                    id="FileTabs"
-                                    name={item.id}
-                                    holdToDisplay={1000}
-                                    className="well"
-                                 >
-                                    <Link
+                                    <NavLink
                                        to={item.url}
                                        className={style}
-                                       onClick={this.setActiveLink}
-                                    >{item.name}</Link>
-                                 </ContextMenuTrigger>
+                                       activeClassName="active"
+                                    >{item.name}</NavLink>
                               </li>
                            );
                         })}
@@ -162,7 +137,7 @@ class AssignmentFilesView extends Component {
                            const file_data = state.file_data[file_name];
                            return (
                               <div className="container">
-                                 <SourceView
+                                 <Source
                                     source={file_data}
                                  />
                               </div>
@@ -174,8 +149,8 @@ class AssignmentFilesView extends Component {
                         (props) => {
                            return (
                               <div className="container">
-                                 <AddFilesView
-                                    server_endpoint={this.config.endpoints.assignment.file}
+                                 <AddFiles
+                                    assignment={this.state.current_assignment}
                                     file_add_callback={this.updateFiles}
                                     file_remove_callback={this.removeTab}
                                     files={this.state.files}
@@ -188,23 +163,16 @@ class AssignmentFilesView extends Component {
                         (props) => {
                            return (
                               <div className="container">
-                                 <TestCaseView
-                                    config={this.props.config}
-                                    assignment_id = {this.props.current_assignment.id}
-                                 />
+                                 <TestCases assignment={this.state.current_assignment} />
                               </div>
                            )
                         }} />
-
                </div>
-            </Router>
-            <ContextMenu id="FileTabs">
-               <MenuItem>Remove File</MenuItem>
-            </ContextMenu>
          </div>
       );
    }
 }
 
-export { AssignmentFilesView };
-export default AssignmentFilesView;
+const Index = connect(mapStateToProps)(IndexView);
+export { Index };
+export default withRouter(Index);

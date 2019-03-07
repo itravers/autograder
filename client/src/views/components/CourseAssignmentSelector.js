@@ -1,7 +1,18 @@
 import React, { Component } from 'react';
-import Course from '../../models/Course.js';
+import { connect } from "react-redux";
+import { updateCourseUser } from '../../actions/index';
 
-class CourseAssignmentSelector extends Component {
+const mapStateToProps = state => {
+   return { current_user: state.current_user, models: state.models };
+};
+
+const mapDispatchToProps = dispatch => {
+   return {
+      updateCourseUser: user => dispatch(updateCourseUser(user))
+   };
+};
+
+class CourseAssignmentSelectorView extends Component {
 
    constructor(props) {
       super(props);
@@ -11,9 +22,6 @@ class CourseAssignmentSelector extends Component {
          selected_course: {},
          selected_assignment: {}
       };
-      this.config = this.props.config;
-      this.user = this.props.user;
-      this.course_manager = new Course(this.config, true);
 
       this.getAssignmentsForCourse = this.getAssignmentsForCourse.bind(this);
       this.updateSelectedAssignment = this.updateSelectedAssignment.bind(this);
@@ -22,9 +30,10 @@ class CourseAssignmentSelector extends Component {
    }
 
    componentDidMount() {
-      this.course_manager.getCoursesForUser(this.user.id)
+      this.props.models.course.getCoursesForUser(this.props.current_user.id)
          .then((courses) => {
             this.setState({ courses: courses, selected_course: courses[0] }, () => {
+               this.props.updateCourseUser(this.state.selected_course);
                this.getAssignmentsForCourse();
             });
          })
@@ -32,17 +41,18 @@ class CourseAssignmentSelector extends Component {
    }
 
    getAssignmentsForCourse() {
-      this.course_manager.getActiveAssignmentsForCourse(this.state.selected_course.course_id)
+      this.props.models.course.getActiveAssignmentsForCourse(this.state.selected_course.course_id)
          .then((assignments) => {
             this.setState({ assignments: assignments, selected_assignment: assignments[0] }, () => {
                this.props.onAssignmentChange(this.state.selected_assignment);
             });
          })
-         .catch((err) => { });;
+         .catch((err) => { });
    }
 
    updateSelectedCourse(evt) {
       this.setState({ selected_course: this.state.courses[evt.target.value] }, () => {
+         this.props.updateCourseUser(this.state.selected_course);
          this.getAssignmentsForCourse();
       });
    }
@@ -91,5 +101,6 @@ class CourseAssignmentSelector extends Component {
    }
 }
 
+const CourseAssignmentSelector = connect(mapStateToProps, mapDispatchToProps)(CourseAssignmentSelectorView);
 export { CourseAssignmentSelector };
 export default CourseAssignmentSelector;

@@ -1,8 +1,13 @@
 import React, { Component } from 'react';
+import { connect } from "react-redux";
 import SyntaxHighlighter from 'react-syntax-highlighter';
 import { vs } from 'react-syntax-highlighter/dist/styles/hljs';
 
-class SourceView extends Component {
+const mapStateToProps = state => {
+   return { current_user: state.current_user, models: state.models };
+};
+
+class SourceViewComponent extends Component {
 
    render() {
       let source_file = this.props.source;
@@ -22,5 +27,6 @@ class SourceView extends Component {
    }
 }
 
+const SourceView = connect(mapStateToProps)(SourceViewComponent);
 export { SourceView };
 export default SourceView;

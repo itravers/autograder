@@ -1,8 +1,12 @@
 import React, { Component } from 'react';
-import Assignment from '../../models/Assignment.js';
-import { ArrayIndexSelect } from '../components/Selectors.js';
+import { connect } from "react-redux";
+import { ArrayIndexSelect } from '../../components/Selectors.js';
 
-class TestCasesView extends Component {
+const mapStateToProps = state => {
+   return { current_user: state.current_user, models: state.models };
+};
+
+class TestCasesComponent extends Component {
    constructor(props) {
       super(props);
 
@@ -15,9 +19,6 @@ class TestCasesView extends Component {
          is_running_test: false
       };
 
-      this.config = this.props.config;
-      this.assignment_id = this.props.assignment_id;
-      this.assignment_manager = new Assignment(this.config, true);
       this.getTestCases = this.getTestCases.bind(this);
       this.testCaseSelected = this.testCaseSelected.bind(this);
       this.testInputChanged = this.testInputChanged.bind(this);
@@ -27,7 +28,7 @@ class TestCasesView extends Component {
    handleFormSubmit(evt) {
       evt.preventDefault();
       this.setState({ is_running_test: true }, () => {
-         this.assignment_manager.compile(this.assignment_id, this.state.selected_test.test_input)
+         this.props.models.assignment.compile(this.props.assignment.id, this.state.selected_test.test_input)
             .then(result => {
                this.setState({ test_result: result, is_running_test: false });
             })
@@ -40,6 +41,12 @@ class TestCasesView extends Component {
 
    componentDidMount() {
       this.getTestCases();
+   }
+
+   componentWillReceiveProps(new_props) {
+      if(new_props.assignment !== null && new_props.assignment !== undefined){
+         this.getTestCases(new_props.assignment.id);
+      }
    }
 
    testCaseSelected(evt) {
@@ -57,8 +64,11 @@ class TestCasesView extends Component {
       });
    }
 
-   getTestCases() {
-      this.assignment_manager.getTestCases(this.assignment_id)
+   getTestCases(assignment_id = null) {
+      if(assignment_id === null){
+         assignment_id = this.props.assignment.id;
+      }
+      this.props.models.assignment.getTestCases(assignment_id)
          .then(result => {
             //add option for custom test
             result.push({
@@ -114,10 +124,10 @@ class TestCasesView extends Component {
                      value={this.state.selected_test.test_input}
                      onChange={this.testInputChanged} />
                </div>
-               <button 
-               type="Submit" 
-               disabled={this.state.is_running_test} 
-               className="btn btn-outline-primary">Run Test</button> <br />
+               <button
+                  type="Submit"
+                  disabled={this.state.is_running_test}
+                  className="btn btn-outline-primary">Run Test</button> <br />
                <span>{running_text}</span>
             </form>
             <div className={test_result_classes}>
@@ -131,5 +141,6 @@ class TestCasesView extends Component {
    }
 }
 
-export { TestCasesView };
-export default TestCasesView;
+const TestCases = connect(mapStateToProps)(TestCasesComponent);
+export { TestCases };
+export default TestCases;

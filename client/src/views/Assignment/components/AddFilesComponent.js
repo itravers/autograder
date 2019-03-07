@@ -1,12 +1,18 @@
 import React, { Component } from 'react';
+import { connect } from "react-redux";
 import { FilePond, File, registerPlugin } from 'react-filepond';
 import 'filepond/dist/filepond.min.css';
 import FilePondPluginFileValidateSize from 'filepond-plugin-file-validate-size';
 import FilePondPluginFileValidateType from 'filepond-plugin-file-validate-type';
-import WebRequest from '../../view_models/WebRequest.js';
+
 registerPlugin(FilePondPluginFileValidateType, FilePondPluginFileValidateSize);
 
-class AddFilesViews extends Component{
+
+const mapStateToProps = state => {
+   return { current_user: state.current_user, models: state.models, config: state.config };
+};
+
+class AddFilesComponent extends Component{
 
    constructor(props){
       super(props);
@@ -30,8 +36,7 @@ class AddFilesViews extends Component{
    }
 
    serverEndpoint(){
-      const assignment_id = 1; //this will get changed to a dynamic prop
-      const serverEndpoint = this.props.server_endpoint + "/" + assignment_id;
+      const serverEndpoint = this.props.config.endpoints.assignment.file + "/" + this.props.assignment.id;
       return serverEndpoint;
    }
 
@@ -39,11 +44,11 @@ class AddFilesViews extends Component{
 
       //file pond isn't sending delete messages to server correctly.  Manual hack
       //until I figure it out.
-      const endpoint = this.serverEndpoint();
-      const callback = this.props.file_remove_callback;
-      WebRequest.makeDelete(endpoint, {id: raw_file.serverId}, function(){
-         callback(raw_file.file.name);
-      });
+      this.props.models.assignment.removeFile(raw_file)
+      .then((file) => {
+         this.props.file_remove_callback(file);
+      })
+      .catch((file) => {});
    }
 
    render(){
@@ -56,7 +61,6 @@ class AddFilesViews extends Component{
                Navigate away when you're done.                
             </p>
             <FilePond 
-               ref={ref => this.pond = ref}
                allowMultiple={true} 
                server={{
                   url: serverEndpoint,
@@ -75,5 +79,7 @@ class AddFilesViews extends Component{
    }
 }
 
-export {AddFilesViews};
-export default AddFilesViews;
+const AddFiles = connect(mapStateToProps)(AddFilesComponent);
+
+export {AddFiles};
+export default AddFiles;
