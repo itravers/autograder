@@ -12,6 +12,8 @@ const mapStateToProps = state => {
    return { current_user: state.current_user, models: state.models };
 };
 
+//AC Idea: have a separate dropdown for graders / instructors that allows them to toggle between students
+
 class IndexView extends Component {
 
    constructor(props) {
@@ -28,6 +30,12 @@ class IndexView extends Component {
             id: -1,
             url: "/assignment/run",
             name: "Run",
+            css: "nav-link"
+         },
+         {
+            id: -1,
+            url: "/assignment/results",
+            name: "Results",
             css: "nav-link"
          }
          ];

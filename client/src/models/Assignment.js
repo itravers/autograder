@@ -72,7 +72,7 @@ class Assignment {
       return this.compile(assignment_id, test_case, true);
    }
 
-   compile(assignment_id, test_case, run_only = false) {
+   compile(assignment_id, test_case, test_name, run_only = false) {
       return new Promise((resolve, reject) => {
 
          //never allow caching of compile calls
@@ -81,7 +81,7 @@ class Assignment {
          if (run_only === true) {
             endpoint = this.config.endpoints.assignment.run + "/" + assignment_id;
          }
-         call(endpoint, { stdin: test_case }, (result) => {
+         call(endpoint, { stdin: test_case, test_name: test_name }, (result) => {
             if (result !== null && result !== undefined && Object.keys(result.data.response).length > 0) {
                resolve(result.data.response);
             }
