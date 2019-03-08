@@ -99,10 +99,18 @@ router.get('/assignment/testCases/:assignment_id', (req, res) => {
    });
 });
 
-router.get('/assignment/testResults/:assignment_id', (req, res) => {
+router.get('/assignment/testResults/:assignment_id/:user_id', (req, res) => {
    let session = req.session;
+   let user_id = req.params.user_id;
+   const assignment_id = req.params.assignment_id;
    acl.isLoggedIn(session)
-      .then(() => db.Assignments.TestCases.testResults(req.params.assignment_id, session.current_user.id))
+      .then( () => {
+         //admins and instructors are allowed to look at others' stuff.  Students not.
+         if(session.user.is_instructor !== 1 && session.user.is_admin !== 1){
+            user_id = session.user.id;
+         }
+      })
+      .then(() => db.Assignments.TestCases.testResults(assignment_id, user_id))
       .then(results => { 
          res.json({ response: results }); 
       })

@@ -63,7 +63,7 @@ class TestCasesDb {
 
    testResults(assignment_id, user_id) {
       return new Promise((resolve, reject) => {
-         const sql = "SELECT * FROM test_results WHERE assignment_id = $assignment_id AND user_id = $user_id";
+         const sql = "SELECT * FROM test_results WHERE assignment_id = $assignment_id AND user_id = $user_id ORDER BY date_run DESC, test_name";
          const params = { $assignment_id: assignment_id, $user_id: user_id };
          this.db.all(sql, params, (err, rows) => {
             if (err === null && rows !== undefined) {
