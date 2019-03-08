@@ -7,6 +7,7 @@ import CourseAssignmentSelector from '../components/CourseAssignmentSelector'
 import AddFiles from './components/AddFilesComponent';
 import Source from './components/SourceViewComponent';
 import TestCases from './components/TestCasesComponent';
+import Results from './components/ResultsComponent';
 
 const mapStateToProps = state => {
    return { current_user: state.current_user, models: state.models };
@@ -43,7 +44,8 @@ class IndexView extends Component {
          links: this.base_links,
          files: [],
          file_data: {},
-         current_assignment: {id: -1}
+         current_assignment: { id: -1 },
+         selected_user: this.props.current_user
       };
 
       this.onAssignmentChange = this.onAssignmentChange.bind(this);
@@ -51,23 +53,31 @@ class IndexView extends Component {
       this.getAssignmentFiles = this.getAssignmentFiles.bind(this);
       this.removeTab = this.removeTab.bind(this);
       this.render = this.render.bind(this);
+      this.selectedUser = this.selectedUser.bind(this);
    }
 
-   onAssignmentChange(assignment){
-      this.setState({current_assignment: assignment}, () => {
+   selectedUser(){
+      if(this.state.selected_user.id === -1){
+         return this.props.current_user;
+      }
+      return this.state.selected_user;
+   }
+
+   onAssignmentChange(assignment) {
+      this.setState({ current_assignment: assignment }, () => {
          this.getAssignmentFiles();
       });
    }
 
    getAssignmentFiles() {
-      if(this.props.current_user.id > 0 && this.state.current_assignment.id > 0){
+      if (this.props.current_user.id > 0 && this.state.current_assignment.id > 0) {
          this.props.models.assignment.getFiles(this.state.current_assignment.id)
-         .then( (result) => {
-            this.setState({ file_data: result.data, files: result.links }, () =>{
-               this.updateTabs();
-            });
-         })
-         .catch(() => {});
+            .then((result) => {
+               this.setState({ file_data: result.data, files: result.links }, () => {
+                  this.updateTabs();
+               });
+            })
+            .catch(() => { });
       }
    }
 
@@ -111,71 +121,82 @@ class IndexView extends Component {
       const state = this.state;
 
       //always start out at the file upload component
-      if(this.props.location.pathname.toLowerCase() == '/assignment/' || this.props.location.pathname.toLowerCase() == '/assignment')
-      {
-         return(<Redirect to="/assignment/add-files" />)
+      if (this.props.location.pathname.toLowerCase() == '/assignment/' || this.props.location.pathname.toLowerCase() == '/assignment') {
+         return (<Redirect to="/assignment/add-files" />)
       }
       return (
          <div>
             <CourseAssignmentSelector
                onAssignmentChange={this.onAssignmentChange} />
-               <div>
-                  <nav>
-                     <ul className="nav nav-tabs">
-                        {Object.keys(links).map((key) => {
-                           const item = links[key];
-                           const active_tab = this.state.active_tab;
-                           let style = "nav-link";
-                           return (
-                              <li key={item.url} className="nav-item">
-                                    <NavLink
-                                       to={item.url}
-                                       className={style}
-                                       activeClassName="active"
-                                    >{item.name}</NavLink>
-                              </li>
-                           );
-                        })}
-                     </ul>
-                  </nav>
-                  <Route path="/assignment/files/:name"
-                     render={
-                        ({ match }, props) => {
-                           const file_name = match.params.name;
-                           const file_data = state.file_data[file_name];
-                           return (
-                              <div className="container">
-                                 <Source
-                                    source={file_data}
-                                 />
-                              </div>
-                           )
-                        }
-                     } />
-                  <Route path="/assignment/add-files"
-                     render={
-                        (props) => {
-                           return (
-                              <div className="container">
-                                 <AddFiles
-                                    assignment={this.state.current_assignment}
-                                    file_add_callback={this.updateFiles}
-                                    file_remove_callback={this.removeTab}
-                                    files={this.state.files}
-                                 />
-                              </div>
-                           )
-                        }} />
-                  <Route path="/assignment/run"
-                     render={
-                        (props) => {
-                           return (
-                              <div className="container">
-                                 <TestCases assignment={this.state.current_assignment} />
-                              </div>
-                           )
-                        }} />
-               </div>
+            <div>
+               <nav>
+                  <ul className="nav nav-tabs">
+                     {Object.keys(links).map((key) => {
+                        const item = links[key];
+                        const active_tab = this.state.active_tab;
+                        let style = "nav-link";
+                        return (
+                           <li key={item.url} className="nav-item">
+                              <NavLink
+                                 to={item.url}
+                                 className={style}
+                                 activeClassName="active"
+                              >{item.name}</NavLink>
+                           </li>
+                        );
+                     })}
+                  </ul>
+               </nav>
+               <Route path="/assignment/files/:name"
+                  render={
+                     ({ match }, props) => {
+                        const file_name = match.params.name;
+                        const file_data = state.file_data[file_name];
+                        return (
+                           <div className="container">
+                              <Source
+                                 source={file_data}
+                              />
+                           </div>
+                        )
+                     }
+                  } />
+               <Route path="/assignment/add-files"
+                  render={
+                     (props) => {
+                        return (
+                           <div className="container">
+                              <AddFiles
+                                 assignment={this.state.current_assignment}
+                                 file_add_callback={this.updateFiles}
+                                 file_remove_callback={this.removeTab}
+                                 files={this.state.files}
+                              />
+                           </div>
+                        )
+                     }} />
+               <Route path="/assignment/run"
+                  render={
+                     (props) => {
+                        return (
+                           <div className="container">
+                              <TestCases assignment={this.state.current_assignment} />
+                           </div>
+                        )
+                     }} />
+               <Route path="/assignment/results"
+                  render={
+                     (props) => {
+                        return (
+                           <div className="container">
+                              <Results
+                                 assignment={this.state.current_assignment}
+                                 user={this.selectedUser()}
+                              />
+                           </div>
+                        )
+                     }} />
+            </div>
          </div>
       );
    }

@@ -7,6 +7,34 @@ const mapStateToProps = state => {
 
 class ResultsComponent extends Component {
 
+   constructor(props){
+      super(props);
+
+      this.state = {
+         result: {}
+      };
+
+      this.getTestResults = this.getTestResults.bind(this);
+   }
+
+   componentDidMount(){
+      this.getTestResults(this.props.user.id);
+   }
+
+   componentWillReceiveProps(new_props){
+      if(new_props.user !== null && new_props.user !== undefined && new_props.user.id > 0){
+         this.getTestResults(new_props.user.id);
+      }
+   }
+
+   getTestResults(user_id){
+      this.props.models.assignment.getTestResults(this.props.assignment.id, user_id)
+      .then((result) => {
+         this.setState({results: result});
+      })
+      .catch((err) => console.log(err));
+   }
+
    render() {
       return (
          <div>
