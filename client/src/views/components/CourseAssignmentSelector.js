@@ -68,10 +68,10 @@ class CourseAssignmentSelectorView extends Component {
    }
 
    render() {
+      const class_name = this.props.class_name;
       return (
-         <article className="mb-md-2">
-            <div className="row">
-               <div className="col-md-3">
+         <React.Fragment>
+               <div className={class_name}>
                   Course:
                   <select value={this.state.selected_course.course_id} onChange={this.updateSelectedCourse}>
                      {this.state.courses.map((value, index) =>
@@ -83,7 +83,7 @@ class CourseAssignmentSelectorView extends Component {
                      )}
                   </select>
                </div>
-               <div className="col-md-3">
+               <div className={class_name}>
                   Assignment:
                   <select value={this.state.selected_assignment.id} onChange={this.updateSelectedAssignment}>
                      {this.state.assignments.map((value, index) =>
@@ -95,8 +95,7 @@ class CourseAssignmentSelectorView extends Component {
                      )}
                   </select>
                </div>
-            </div>
-         </article>
+        </React.Fragment>
       );
    }
 }

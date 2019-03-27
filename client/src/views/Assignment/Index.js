@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import { connect } from "react-redux";
 import { BrowserRouter as Router, Route, NavLink, Redirect, withRouter } from 'react-router-dom';
-import CourseAssignmentSelector from '../components/CourseAssignmentSelector'
+import CourseAssignmentSelector from '../components/CourseAssignmentSelector';
 
 //components
 import AddFiles from './components/AddFilesComponent';
@@ -45,19 +45,22 @@ class IndexView extends Component {
          files: [],
          file_data: {},
          current_assignment: { id: -1 },
-         selected_user: this.props.current_user
+         selected_user: this.props.current_user,
+         student_roster: []
       };
 
       this.onAssignmentChange = this.onAssignmentChange.bind(this);
       this.updateFiles = this.updateFiles.bind(this);
       this.getAssignmentFiles = this.getAssignmentFiles.bind(this);
+      this.getCourseUsers = this.getCourseUsers.bind(this);
       this.removeTab = this.removeTab.bind(this);
       this.render = this.render.bind(this);
+      this.renderStudentSelector = this.renderStudentSelector.bind(this);
       this.selectedUser = this.selectedUser.bind(this);
    }
 
-   selectedUser(){
-      if(this.state.selected_user.id === -1){
+   selectedUser() {
+      if (this.state.selected_user.id === -1) {
          return this.props.current_user;
       }
       return this.state.selected_user;
@@ -66,7 +69,26 @@ class IndexView extends Component {
    onAssignmentChange(assignment) {
       this.setState({ current_assignment: assignment }, () => {
          this.getAssignmentFiles();
+         this.getCourseUsers();
       });
+   }
+
+   getCourseUsers() {
+      let self = this;
+      this.props.models.course.getCourseUsers(this.state.current_assignment.course_id)
+         .then((result) => {
+            let active_users = [];
+
+            //filter course users based on access rights
+            for (let user of result) {
+               const privilege = this.props.models.course.getCoursePrivileges(user.course_role);
+               if (privilege.can_submit_assignment === true) {
+                  active_users.push(user);
+               }
+            }
+            self.setState({ student_roster: active_users });
+         })
+         .catch(err => { console.log(err); });
    }
 
    getAssignmentFiles() {
@@ -116,6 +138,20 @@ class IndexView extends Component {
       });
    }
 
+   renderStudentSelector(){
+      if(this.state.student_roster.length > 0){
+         return(
+            <React.Fragment>
+               Student: <select>
+                {this.state.student_roster.map( (value, index) =>
+                  <option key={index} value={index}>{value.last_name + ", " + value.first_name}</option>
+         )}
+            </select>
+            </React.Fragment>
+         );
+      }
+   }
+
    render() {
       const links = this.state.links;
       const state = this.state;
@@ -126,8 +162,14 @@ class IndexView extends Component {
       }
       return (
          <div>
+            <article className="row">
+            
             <CourseAssignmentSelector
-               onAssignmentChange={this.onAssignmentChange} />
+               onAssignmentChange={this.onAssignmentChange} class_name="col-md-3" />
+            <div className="col-md-3">
+               {this.renderStudentSelector()}
+            </div>
+            </article>
             <div>
                <nav>
                   <ul className="nav nav-tabs">

@@ -8,7 +8,8 @@ class CoursesDb {
       this.all = this.all.bind(this);
       this.assignments = this.assignments.bind(this);
       this.forUser = this.forUser.bind(this);
-      this.isInstructor = this.isInstructor.bind(this);
+      this.canGrade = this.canGrade.bind(this);
+      this.canModify = this.canModify.bind(this);
       this.addUser = this.addUser.bind(this);
    }
 
@@ -65,10 +66,31 @@ class CoursesDb {
       });
    }
 
-   isInstructor(course_id, user_id) {
+   canGrade(course_id, user_id) {
       return new Promise((resolve, reject) => {
          const sql = "SELECT * FROM course_users "
-            + "WHERE course_id = $course_id AND user_id = $user_id AND course_role & 6 > 0";
+            + "WHERE course_id = $course_id AND user_id = $user_id AND course_role & 8 > 0";
+         const params = { $course_id: course_id, $user_id: user_id }
+         this.db.get(sql, params, (err, row) => {
+            if (err === null && row !== undefined) {
+               resolve(true);
+            }
+            else if (err !== null) {
+               console.log(err);
+               reject(err);
+            }
+            else
+            {
+               reject(false);
+            }
+         });
+      });
+   }
+
+   canModify(course_id, user_id) {
+      return new Promise((resolve, reject) => {
+         const sql = "SELECT * FROM course_users "
+            + "WHERE course_id = $course_id AND user_id = $user_id AND course_role & 4 > 0";
          const params = { $course_id: course_id, $user_id: user_id }
          this.db.get(sql, params, (err, row) => {
             if (err === null && row !== undefined) {

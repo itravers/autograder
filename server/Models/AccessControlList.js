@@ -10,9 +10,17 @@ class AccessControlList {
       this.userOwnsFile = this.userOwnsFile.bind(this);
    }
 
+   canGradeAssignment(user, course_id){
+      return new Promise((resolve, reject) => {
+         this.db.Courses.canGrade(course_id, user.id)
+         .then(result => resolve(result))
+         .catch(err => reject(err));
+      });
+   }
+
    canModifyCourse(user, course_id) {
       return new Promise((resolve, reject) => {
-         this.db.Courses.isInstructor(course_id, user.id)
+         this.db.Courses.canModify(course_id, user.id)
          .then(result => resolve(result))
          .catch(err => reject(err));
       });
