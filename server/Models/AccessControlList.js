@@ -71,11 +71,11 @@ class AccessControlList {
    userHasAssignment(user, assignment_id) {
       return new Promise((resolve, reject) => {
          this.db.Assignments.hasUser(assignment_id, user.id, (result, err) => {
-            if (result === true) {
-               resolve(true);
+            if (result === false) {
+               reject(false);
             }
             else {
-               reject(false);
+               resolve(result);
             }
          });
       });

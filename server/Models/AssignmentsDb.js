@@ -14,7 +14,7 @@ class AssignmentsDb {
     * @param {*} user_id 
     */
    hasUser(assignment_id, user_id, callback){
-      const sql = "SELECT a.id FROM assignments a " +
+      const sql = "SELECT a.id, a.course_id FROM assignments a " +
                   " INNER JOIN course_users cu ON a.course_id = cu.course_id " +
                   " WHERE user_id = $user_id AND a.id = $assignment_id " +
                   " LIMIT 1";
@@ -24,7 +24,7 @@ class AssignmentsDb {
             callback = function(x, y){};
          }
          if (err === null && row !== undefined) {
-            callback(true, null);
+            callback(row, null);
          }
          else{
             callback(false, err);

@@ -104,18 +104,18 @@ router.get('/assignment/testResults/:assignment_id/:user_id', (req, res) => {
    let user_id = req.params.user_id;
    const assignment_id = req.params.assignment_id;
    acl.isLoggedIn(session)
-      .then( () => {
+      .then(() => {
          //admins and instructors are allowed to look at others' stuff.  Students not.
-         if(session.user.is_instructor !== 1 && session.user.is_admin !== 1){
+         if (session.user.is_instructor !== 1 && session.user.is_admin !== 1) {
             user_id = session.user.id;
          }
       })
       .then(() => db.Assignments.TestCases.testResults(assignment_id, user_id))
-      .then(results => { 
-         res.json({ response: results }); 
+      .then(results => {
+         res.json({ response: results });
       })
-      .catch(err => { 
-         res.json({ response: err }); 
+      .catch(err => {
+         res.json({ response: err });
       });
 });
 
@@ -203,12 +203,14 @@ router.post('/assignment/compile/:assignment_id', (req, res) => {
 });
 
 /**
- * Retrieves all files for the specified assignment
+ * Retrieves all files for the specified assignment and user (if allowed to grade)
  */
-router.get('/assignment/file/:id', (req, res) => {
+router.get('/assignment/file/:aid/:uid', (req, res) => {
    let session = req.session;
    const current_user = session.user;
-   const assignment_id = req.params.id;
+   const assignment_id = req.params.aid;
+   const user_id = req.params.uid;
+   let has_error = false;
 
    //do we have an active user?
    acl.isLoggedIn(session)
@@ -216,14 +218,30 @@ router.get('/assignment/file/:id', (req, res) => {
       //and this user can access the current assignment
       .then(() => acl.userHasAssignment(current_user, assignment_id))
 
-      //then make the call
-      .then(() => {
-         db.AssignmentFiles.all(assignment_id, current_user.id, (data) => {
-            res.json({ response: data });
-         });
+      .catch(() => {
+         has_error = true;
+         return has_error;
       })
-      .catch((error) => {
-         return res.status(500).send("Error");
+
+      //if this succeeds, allow caller to use the specified user ID.  Otherwise, just
+      //use the caller's ID instead
+      .then((result) => acl.canGradeAssignment(current_user, result.course_id))
+      .then(() => {
+         db.AssignmentFiles.all(assignment_id, user_id, (data) => {
+            return res.json({ response: data });
+         })
+      })
+      .catch(() => {
+
+         //only run if first catch was not triggered
+         if (has_error === false) {
+            db.AssignmentFiles.all(assignment_id, current_user.id, (data) => {
+               return res.json({ response: data });
+            });
+         }
+         else {
+            return res.status(500).send("Error");
+         }
       });
 });
 
