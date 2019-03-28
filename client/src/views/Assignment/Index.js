@@ -82,7 +82,7 @@ class IndexView extends Component {
             //filter course users based on access rights
             for (let user of result) {
                const privilege = this.props.models.course.getCoursePrivileges(user.course_role);
-               if (privilege.can_submit_assignment === true) {
+               if (privilege.can_submit_assignment === true && privilege.can_grade_assignment === false) {
                   active_users.push(user);
                }
             }
