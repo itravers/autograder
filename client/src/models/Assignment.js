@@ -24,9 +24,9 @@ class Assignment {
       });
    }
 
-   getFiles(assignment_id) {
+   getFiles(assignment_id, user_id) {
       return new Promise((resolve, reject) => {
-         const url = this.config.endpoints.assignment.file + "/" + assignment_id;
+         const url = this.config.endpoints.assignment.file + "/" + assignment_id + "/" + user_id;
          WebRequest.makeUrlRequest(url, (result) => {
             if (result !== null && result !== undefined) {
                const data = result.data.response;

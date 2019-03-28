@@ -46,6 +46,7 @@ class IndexView extends Component {
          file_data: {},
          current_assignment: { id: -1 },
          selected_user: this.props.current_user,
+         selected_user_index: 0,
          student_roster: []
       };
 
@@ -57,6 +58,7 @@ class IndexView extends Component {
       this.render = this.render.bind(this);
       this.renderStudentSelector = this.renderStudentSelector.bind(this);
       this.selectedUser = this.selectedUser.bind(this);
+      this.updateSelectedStudent = this.updateSelectedStudent.bind(this);
    }
 
    selectedUser() {
@@ -79,6 +81,9 @@ class IndexView extends Component {
          .then((result) => {
             let active_users = [];
 
+            //add current user
+            active_users.push(this.props.current_user);
+
             //filter course users based on access rights
             for (let user of result) {
                const privilege = this.props.models.course.getCoursePrivileges(user.course_role);
@@ -92,8 +97,8 @@ class IndexView extends Component {
    }
 
    getAssignmentFiles() {
-      if (this.props.current_user.id > 0 && this.state.current_assignment.id > 0) {
-         this.props.models.assignment.getFiles(this.state.current_assignment.id)
+      if (this.selectedUser().id > 0 && this.state.current_assignment.id > 0) {
+         this.props.models.assignment.getFiles(this.state.current_assignment.id, this.selectedUser().id)
             .then((result) => {
                this.setState({ file_data: result.data, files: result.links }, () => {
                   this.updateTabs();
@@ -138,11 +143,17 @@ class IndexView extends Component {
       });
    }
 
+   updateSelectedStudent(evt){
+      this.setState({ selected_user: this.state.student_roster[evt.target.value] }, () => {
+         this.props.getAssignmentFiles();
+      });
+   }
+
    renderStudentSelector(){
       if(this.state.student_roster.length > 0){
          return(
             <React.Fragment>
-               Student: <select>
+               Student: <select value={this.state.selected_user_index} onChange={this.updateSelectedStudent}>
                 {this.state.student_roster.map( (value, index) =>
                   <option key={index} value={index}>{value.last_name + ", " + value.first_name}</option>
          )}
