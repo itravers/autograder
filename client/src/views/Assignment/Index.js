@@ -143,21 +143,23 @@ class IndexView extends Component {
       });
    }
 
-   updateSelectedStudent(evt){
-      this.setState({ selected_user: this.state.student_roster[evt.target.value] }, () => {
-         this.props.getAssignmentFiles();
+   updateSelectedStudent(evt) {
+      const selected_index = Number(evt.target.value);
+      this.setState({ selected_user_index: selected_index, 
+         selected_user: this.state.student_roster[selected_index] }, () => {
+         this.getAssignmentFiles();
       });
    }
 
-   renderStudentSelector(){
-      if(this.state.student_roster.length > 0){
-         return(
+   renderStudentSelector() {
+      if (this.state.student_roster.length > 0) {
+         return (
             <React.Fragment>
                Student: <select value={this.state.selected_user_index} onChange={this.updateSelectedStudent}>
-                {this.state.student_roster.map( (value, index) =>
-                  <option key={index} value={index}>{value.last_name + ", " + value.first_name}</option>
-         )}
-            </select>
+                  {this.state.student_roster.map((value, index) =>
+                     <option key={index} value={index}>{value.last_name + ", " + value.first_name}</option>
+                  )}
+               </select>
             </React.Fragment>
          );
       }
@@ -166,6 +168,7 @@ class IndexView extends Component {
    render() {
       const links = this.state.links;
       const state = this.state;
+      const self = this;
 
       //always start out at the file upload component
       if (this.props.location.pathname.toLowerCase() == '/assignment/' || this.props.location.pathname.toLowerCase() == '/assignment') {
@@ -174,12 +177,12 @@ class IndexView extends Component {
       return (
          <div>
             <article className="row">
-            
-            <CourseAssignmentSelector
-               onAssignmentChange={this.onAssignmentChange} class_name="col-md-3" />
-            <div className="col-md-3">
-               {this.renderStudentSelector()}
-            </div>
+
+               <CourseAssignmentSelector
+                  onAssignmentChange={this.onAssignmentChange} class_name="col-md-3" />
+               <div className="col-md-3">
+                  {this.renderStudentSelector()}
+               </div>
             </article>
             <div>
                <nav>
@@ -217,16 +220,25 @@ class IndexView extends Component {
                <Route path="/assignment/add-files"
                   render={
                      (props) => {
-                        return (
-                           <div className="container">
-                              <AddFiles
-                                 assignment={this.state.current_assignment}
-                                 file_add_callback={this.updateFiles}
-                                 file_remove_callback={this.removeTab}
-                                 files={this.state.files}
-                              />
-                           </div>
-                        )
+                        //if an alternate user is selected (e.g. for grading), then 
+                        //the user shouldn't be allowed to add files.  Redirect to the run screen,
+                        //which is likely where they want to be anyway.
+                        if (self.selectedUser().id === self.props.current_user.id) {
+                           return (
+                              <div className="container">
+                                 <AddFiles
+                                    assignment={this.state.current_assignment}
+                                    file_add_callback={this.updateFiles}
+                                    file_remove_callback={this.removeTab}
+                                    files={this.state.files}
+                                 />
+                              </div>
+                           )
+                        }
+                        else {
+                           return (<Redirect to="/assignment/run" />)
+                        }
+
                      }} />
                <Route path="/assignment/run"
                   render={
