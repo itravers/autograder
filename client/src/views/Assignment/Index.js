@@ -88,6 +88,12 @@ class IndexView extends Component {
             for (let user of result) {
                const privilege = this.props.models.course.getCoursePrivileges(user.course_role);
                if (privilege.can_submit_assignment === true && privilege.can_grade_assignment === false) {
+
+                  //request returns course users, which are different than vanilla users.  Coruse users have
+                  //user_id whereas vanilla has just id.  So we need to make a copy to make everything work out 
+                  //okay.
+                  user.id = user.user_id;
+
                   active_users.push(user);
                }
             }
@@ -97,8 +103,9 @@ class IndexView extends Component {
    }
 
    getAssignmentFiles() {
-      if (this.selectedUser().id > 0 && this.state.current_assignment.id > 0) {
-         this.props.models.assignment.getFiles(this.state.current_assignment.id, this.selectedUser().id)
+      const selected_user = this.selectedUser();
+      if (selected_user.id > 0 && this.state.current_assignment.id > 0) {
+         this.props.models.assignment.getFiles(this.state.current_assignment.id, selected_user.id)
             .then((result) => {
                this.setState({ file_data: result.data, files: result.links }, () => {
                   this.updateTabs();
@@ -145,8 +152,10 @@ class IndexView extends Component {
 
    updateSelectedStudent(evt) {
       const selected_index = Number(evt.target.value);
-      this.setState({ selected_user_index: selected_index, 
-         selected_user: this.state.student_roster[selected_index] }, () => {
+      this.setState({
+         selected_user_index: selected_index,
+         selected_user: this.state.student_roster[selected_index]
+      }, () => {
          this.getAssignmentFiles();
       });
    }
@@ -221,7 +230,7 @@ class IndexView extends Component {
                   render={
                      (props) => {
                         //if an alternate user is selected (e.g. for grading), then 
-                        //the user shouldn't be allowed to add files.  Redirect to the run screen,
+                        //the user shouldn't be allowed to add files.  Redirect to the results screen,
                         //which is likely where they want to be anyway.
                         if (self.selectedUser().id === self.props.current_user.id) {
                            return (
@@ -236,7 +245,7 @@ class IndexView extends Component {
                            )
                         }
                         else {
-                           return (<Redirect to="/assignment/run" />)
+                           return (<Redirect to="/assignment/results" />)
                         }
 
                      }} />
