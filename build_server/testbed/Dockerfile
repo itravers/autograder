@@ -10,4 +10,4 @@ WORKDIR /TEMP
 
 COPY . /TEMP
 
-CMD ["main.exe < stdin.txt"]
+CMD ["run.bat"]
