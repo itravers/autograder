@@ -49,7 +49,7 @@ class Compiler {
             }
 
             //add stdin as a file
-            files.push({file_name: "stdin.txt", contents: this.stdin});
+            files.push({ file_name: "stdin.txt", contents: this.stdin });
 
             //and throw them into a temp workspace
             let write_counter = 0;
@@ -87,11 +87,11 @@ class Compiler {
          //create BATCH file
          const absolute_path = path.resolve(this.student_workspace);
          const bat_path = absolute_path + "/compile.bat";
-         const bat_commands = "@ECHO OFF\r\n" + 
-         "CALL " + this.tools_setup_cmd + "\r\n" + //AC Note: had to remove escaped quotes on work PC.  Needed for home PC?
+         const bat_commands = "@ECHO OFF\r\n" +
+            "CALL " + this.tools_setup_cmd + "\r\n" + //AC Note: had to remove escaped quotes on work PC.  Needed for home PC?
             "CD \"" + absolute_path + "\"\r\n" +
             this.compile_cmd;
-         
+
          fs.writeFile(bat_path, bat_commands, { encoding: "utf8" }, (err) => {
             if (!err) {
                exec(bat_path, (err, stdout, stderr) => {
@@ -115,7 +115,17 @@ class Compiler {
     */
    runFiles() {
       return new Promise((resolve, reject) => {
-         const exe_path = this.student_workspace + "/main.exe";         
+         const exe_path = this.student_workspace + "/main.exe";
+
+         const docker_file_contents = "FROM microsoft/nanoserver\r\n" +
+            'SHELL ["cmd", "/S", "/C"]\r\n' +
+            "WORKDIR /TEMP\r\n" +
+            "COPY . /TEMP\r\n" +
+            'CMD ["run.bat"]';
+         const docker_file_path = absolute_path + '/Dockerfile';
+         fs.writeFile(docker_file_path, docker_file_contents, {encoding: "utf8"}, (err) =>{
+
+         });
 
          //create BATCH file
          const absolute_path = path.resolve(this.student_workspace);
@@ -123,10 +133,10 @@ class Compiler {
          const bat_commands = "@ECHO OFF\r\n" +
             "CD \"" + absolute_path + "\"\r\n" +
             "main.exe < stdin.txt";
-         
+
          fs.writeFile(bat_path, bat_commands, { encoding: "utf8" }, (err) => {
             if (!err) {
-               exec(bat_path, {timeout: 15000}, (err, stdout, stderr) => {
+               exec(bat_path, { timeout: 15000 }, (err, stdout, stderr) => {
                   if (!err) {
                      resolve(stdout);
                   }
@@ -144,23 +154,23 @@ class Compiler {
     * compile.  This function tells us if we can run an existing program without a compile
     * by checking to see if the necessasry files already exist (i.e. main.exe)
     */
-   canRunFiles(){
+   canRunFiles() {
       return new Promise((resolve, reject) => {
-         const exe_path = this.student_workspace + "/main.exe";  
-         fs.access(exe_path, fs.constants.F_OK, (err) =>{
-            if(!err){
+         const exe_path = this.student_workspace + "/main.exe";
+         fs.access(exe_path, fs.constants.F_OK, (err) => {
+            if (!err) {
                //create new testing file
                const file_path = this.student_workspace + "/stdin.txt";
                fs.writeFile(file_path, this.stdin, { encoding: "utf8" }, (err) => {
-                  if(!err){
+                  if (!err) {
                      resolve(true);
                   }
-                  else{
+                  else {
                      reject(err);
                   }
                });
             }
-            else{
+            else {
                reject("main.exe does not exist");
             }
          });
