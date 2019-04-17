@@ -10,7 +10,6 @@
   "license": "ISC",
   "dependencies": {
     "body-parser": "^1.18.3",
-    "dockerode": "^2.5.8",
     "express": "^4.16.4",
     "express-fileupload": "^1.1.4",
     "express-session": "^1.15.6",
