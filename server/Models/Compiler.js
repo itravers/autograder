@@ -1,7 +1,6 @@
 const fs = require('fs');
 const { exec, execFile, spawn, onExit } = require('child_process');
 const path = require("path");
-var Docker = require('dockerode');
 
 class Compiler {
    constructor(db, workspace_path, assignment_id, student_id, tools_setup_cmd, compile_cmd, stdin, timeout = 15000) {
