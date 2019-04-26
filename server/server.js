@@ -18,7 +18,7 @@ const session = require('express-session');
 const FileManager = require('./FileManager.js');
 const Database = require('./Models/Database.js');
 const AccessControlList = require('./Models/AccessControlList.js');
-const Compiler = require('./Models/Compiler.js');
+const Compiler = require('./Models/Windows_Metal_MSVC_Compiler.js');
 var FileStore = require('session-file-store')(session);
 
 
@@ -166,7 +166,7 @@ router.post('/assignment/compile/:assignment_id', (req, res) => {
    let session = req.session;
    const current_user = session.user;
    const assignment_id = req.params.assignment_id;
-   const tools_command = config.compiler.tools_path + "\\" + config.compiler.tools_batch;
+   const tools_command = '"' + config.compiler.tools_path + "\\" + config.compiler.tools_batch + '"';
    const compile_cmd = config.compiler.compile_command;
    const stdin = req.body.stdin;
    const test_name = req.body.test_name;
