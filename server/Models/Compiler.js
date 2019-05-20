@@ -10,7 +10,7 @@ class Compiler {
       this.student_id = student_id;
       this.tools_setup_cmd = tools_setup_cmd;
       this.compile_cmd = compile_cmd;
-      this.assignment_workspace = this.workspace_path + "/" + assignment_id;
+      this.assignment_workspace = this.workspace_path + "/" + assignment_id
       this.student_workspace = this.assignment_workspace + "/" + student_id;
       this.stdin = stdin;
       this.timeout = timeout;

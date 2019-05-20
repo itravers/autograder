@@ -88,6 +88,7 @@ router.get('/', (req, res) => {
    res.json({ message: 'hooray! welcome to our api!' });
 });
 
+// get test cases for the given assignment 
 router.get('/assignment/testCases/:assignment_id', (req, res) => {
    db.Assignments.TestCases.forAssignment(req.params.assignment_id, (result, err) => {
       if (!err) {
@@ -99,6 +100,8 @@ router.get('/assignment/testCases/:assignment_id', (req, res) => {
    });
 });
 
+// gets user's test results for this assignment, if the user has permission
+// to view them 
 router.get('/assignment/testResults/:assignment_id/:user_id', (req, res) => {
    let session = req.session;
    let user_id = req.params.user_id;
@@ -149,6 +152,8 @@ router.post('/assignment/run/:assignment_id', (req, res) => {
          return compiler.canRunFiles()
             .then(() => compiler.runFiles());
       })
+      
+      // log test results in database 
       .then((result) => {
          db.Assignments.TestCases.log(assignment_id, current_user.id, test_name, stdin, result, () => {
             res.json({ response: result });
@@ -190,6 +195,8 @@ router.post('/assignment/compile/:assignment_id', (req, res) => {
          );
          return compiler.begin();
       })
+
+      // log test results in database 
       .then((result) => {
          db.Assignments.TestCases.log(assignment_id, current_user.id, test_name, stdin, result, () => {
             res.json({ response: result });
