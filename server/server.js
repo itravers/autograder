@@ -338,12 +338,21 @@ router.post('/course', (req, res) => {
       .catch((result) => res.json({ response: { result } }));
 });
 
-router.get('/course/assignments/active/:id', (req, res) => {
+// returns all assignments from the given course 
+router.get('/course/assignments/:id', (req, res) => {
    const course_id = req.params.id;
    db.Courses.assignments(course_id, (result) => {
       res.json({ response: result });
    });
 });
+
+// returns all active assignments from the given course 
+router.get('/course/assignments/active/:id', (req, res) => {
+   const course_id = req.params.id; 
+   db.Courses.active_assignments(course_id, (result) => {
+      res.json({response: result}); 
+   })
+})
 
 /**
  * Returns all courses that the currently logged in user is taking
@@ -433,10 +442,12 @@ router.put('/course/user/:course_id', (req, res) => {
       );
 });
 
+// returns information on currently logged in user
 router.get('/user/login', (req, res) => {
    res.json({ response: req.session.user });
 });
 
+// logs in a user with given credentials 
 router.post('/user/login', (req, res) => {
    db.Users.authenticate(req.body.email, req.body.password, (result, err) => {
       if (err === null) {
@@ -450,11 +461,13 @@ router.post('/user/login', (req, res) => {
    });
 });
 
+// logs out user 
 router.get('/user/logout', (req, res) => {
    req.session.user = null;
    res.json({ response: req.session.user });
 });
 
+// creates new user
 router.post('/user/create', (req, res) => {
    const user = { first_name: req.body.first_name, last_name: req.body.last_name, email: req.body.email, password: req.body.password };
    if (user.first_name !== undefined && user.first_name.length > 0) {

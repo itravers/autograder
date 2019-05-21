@@ -13,6 +13,20 @@ class CoursesDb {
       this.addUser = this.addUser.bind(this);
    }
 
+   active_assignments(course_id, callback) {
+      const sql = "SELECT * FROM assignments WHERE course_id = $course_id AND is_deleted = 0";
+      this.db.all(sql, { $course_id: course_id }, (err, rows) => {
+         if (err === null && rows !== undefined) {
+            callback(rows);
+            return;
+         }
+         else if (err !== null) {
+            console.log(err);
+         }
+         callback({});
+      });
+   }
+
    addUser(course_id, user_id) {
       const sql = "INSERT INTO course_users (course_id, user_id) VALUES($course_id, $user_id)";
       const params = { $course_id: course_id, $user_id: user_id }
