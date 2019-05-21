@@ -378,7 +378,7 @@ router.get('/course/user', (req, res) => {
 });
 
 /**
- * Returns a detailed roster for all courses where the user has 
+ * Returns a detailed roster for this course if the user has 
  * instructor rights
  */
 router.get('/course/user/:course_id', (req, res) => {
@@ -393,6 +393,12 @@ router.get('/course/user/:course_id', (req, res) => {
       })
       .catch(err => res.json({ response: err }));
 });
+
+// TO DO: the above function was supposed to be this; replace it
+/**
+ * Returns a detailed roster for all courses where the user has 
+ * instructor rights
+ */
 
 /**
  * Removes the user specified in req.body from the selected course
