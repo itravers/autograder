@@ -349,7 +349,7 @@ router.get('/course/assignments/:id', (req, res) => {
 // returns all active assignments from the given course 
 router.get('/course/assignments/active/:id', (req, res) => {
    const course_id = req.params.id; 
-   db.Courses.activeAssignments(course_id, (result) => {
+   db.Courses.assignments(course_id, true, false, (result) => {
       res.json({response: result}); 
    })
 })
@@ -357,7 +357,7 @@ router.get('/course/assignments/active/:id', (req, res) => {
 // returns all inactive assignments from the given course 
 router.get('/course/assignments/inactive/:id', (req, res) => {
    const course_id = req.params.id; 
-   db.Courses.inactiveAssignments(course_id, (result) => {
+   db.Courses.assignments(course_id, false, true, (result) => {
       res.json({response: result}); 
    })
 })

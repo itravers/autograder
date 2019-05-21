@@ -13,20 +13,6 @@ class CoursesDb {
       this.addUser = this.addUser.bind(this);
    }
 
-   activeAssignments(course_id, callback) {
-      const sql = "SELECT * FROM assignments WHERE course_id = $course_id AND is_deleted = 0";
-      this.db.all(sql, { $course_id: course_id }, (err, rows) => {
-         if (err === null && rows !== undefined) {
-            callback(rows);
-            return;
-         }
-         else if (err !== null) {
-            console.log(err);
-         }
-         callback({});
-      });
-   }
-
    addUser(course_id, user_id) {
       const sql = "INSERT INTO course_users (course_id, user_id) VALUES($course_id, $user_id)";
       const params = { $course_id: course_id, $user_id: user_id }
@@ -66,8 +52,16 @@ class CoursesDb {
       });
    }
 
-   assignments(course_id, callback) {
-      const sql = "SELECT * FROM assignments WHERE course_id = $course_id";
+   assignments(course_id, include_active = true, include_deleted = true,  callback) {
+      let sql = "SELECT * FROM assignments WHERE course_id = $course_id";
+      if(include_active === true && include_deleted === false)
+      {
+         sql += "AND is_deleted = 0"; 
+      }
+      else if(include_active === false && include_deleted === true)
+      {
+         sql += "AND is_deleted = 1"; 
+      }
       this.db.all(sql, { $course_id: course_id }, (err, rows) => {
          if (err === null && rows !== undefined) {
             callback(rows);
@@ -149,20 +143,6 @@ class CoursesDb {
          " INNER JOIN course_users cu ON c.id = cu.course_id " +
          " WHERE cu.user_id = $user_id";
       this.db.all(sql, { $user_id: user_id }, (err, rows) => {
-         if (err === null && rows !== undefined) {
-            callback(rows);
-            return;
-         }
-         else if (err !== null) {
-            console.log(err);
-         }
-         callback({});
-      });
-   }
-
-   inactiveAssignments(course_id, callback) {
-      const sql = "SELECT * FROM assignments WHERE course_id = $course_id AND is_deleted = 1";
-      this.db.all(sql, { $course_id: course_id }, (err, rows) => {
          if (err === null && rows !== undefined) {
             callback(rows);
             return;
