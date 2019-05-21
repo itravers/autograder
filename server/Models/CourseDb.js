@@ -5,12 +5,34 @@ class CoursesDb {
    constructor(db_connection) {
       this.db = db_connection;
 
+      this.addCourse = this.addCourse.bind(this);
+      this.addUser = this.addUser.bind(this); 
       this.all = this.all.bind(this);
       this.assignments = this.assignments.bind(this);
       this.forUser = this.forUser.bind(this);
       this.canGrade = this.canGrade.bind(this);
       this.canModify = this.canModify.bind(this);
-      this.addUser = this.addUser.bind(this);
+   }
+
+   addCourse(school_id, name, term, year) {
+      const sql = "INSERT INTO courses(school_id, name, term, year) VALUES($school_id, $name, $term, $year)";
+      const params = { $school_id: school_id, $name: name, $term: term, $year: year }
+
+      return new Promise((resolve, reject) => {
+
+         //AC: placing db callback function into its own variable changes 
+         //*this* from local object to result of sqlite3 db call.
+         var local_callback = function (err) {
+            if (err === null) {
+               resolve(this.lastID);
+            }
+            else {
+               console.log(err);
+               reject(err);
+            }
+         };
+         this.db.run(sql, params, local_callback);
+      });
    }
 
    addUser(course_id, user_id) {

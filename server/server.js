@@ -323,19 +323,29 @@ router.get('/course', (req, res) => {
    db.Courses.all((result) => { res.json({ response: result }); });
 });
 
-//AC note: used to create courses.  Not finished
+// Creates a course. TODO: needs testing, determine what return
+// type should be 
 router.post('/course', (req, res) => {
    let session = req.session;
    const school_id = req.body.school_id;
    const name = req.body.name;
    const term = req.body.term;
    const year = req.body.year;
+
+   // does the current user have permission to create courses? 
    acl.isAdmin(session)
+   
+      // is the course that this user wants to add unique? 
       .then(() => db.Courses.isUnique(school_id, name, term, year))
-      .then((result) => {
-         return res.json({ response: result });
-      })
-      .catch((result) => res.json({ response: { result } }));
+      
+      // if so, call course creation 
+      .then(() => db.Courses.addCourse(school_id, name, term, year))
+      .then(
+         result => res.json({ response: result })
+      )
+      .catch(err =>
+         res.json({ response: err })
+      );
 });
 
 // returns all assignments from the given course 
@@ -393,12 +403,6 @@ router.get('/course/user/:course_id', (req, res) => {
       })
       .catch(err => res.json({ response: err }));
 });
-
-// TO DO: the above function was supposed to be this; replace it
-/**
- * Returns a detailed roster for all courses where the user has 
- * instructor rights
- */
 
 /**
  * Removes the user specified in req.body from the selected course
