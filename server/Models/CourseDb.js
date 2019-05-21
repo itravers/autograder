@@ -13,7 +13,7 @@ class CoursesDb {
       this.addUser = this.addUser.bind(this);
    }
 
-   active_assignments(course_id, callback) {
+   activeAssignments(course_id, callback) {
       const sql = "SELECT * FROM assignments WHERE course_id = $course_id AND is_deleted = 0";
       this.db.all(sql, { $course_id: course_id }, (err, rows) => {
          if (err === null && rows !== undefined) {
@@ -149,6 +149,20 @@ class CoursesDb {
          " INNER JOIN course_users cu ON c.id = cu.course_id " +
          " WHERE cu.user_id = $user_id";
       this.db.all(sql, { $user_id: user_id }, (err, rows) => {
+         if (err === null && rows !== undefined) {
+            callback(rows);
+            return;
+         }
+         else if (err !== null) {
+            console.log(err);
+         }
+         callback({});
+      });
+   }
+
+   inactiveAssignments(course_id, callback) {
+      const sql = "SELECT * FROM assignments WHERE course_id = $course_id AND is_deleted = 1";
+      this.db.all(sql, { $course_id: course_id }, (err, rows) => {
          if (err === null && rows !== undefined) {
             callback(rows);
             return;
