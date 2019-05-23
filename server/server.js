@@ -21,6 +21,8 @@ const AccessControlList = require('./Models/AccessControlList.js');
 const Compiler = require('./Models/Compiler.js');
 var FileStore = require('session-file-store')(session);
 
+// require modules for API routes 
+const userRoute = require('./Routes/user.js'); 
 
 let config = ini.parse(fs.readFileSync('./config.ini', 'utf-8'));
 config.database.connection_string = config.database.db_path + config.database.db_name;;
@@ -461,9 +463,10 @@ router.put('/course/user/:course_id', (req, res) => {
 });
 
 // returns information on currently logged in user
-router.get('/user/login', (req, res) => {
-   res.json({ response: req.session.user });
-});
+router.get('/user/login', (req, res) => userRoute.info(req, res)); 
+//{
+ //  res.json({ response: req.session.user });
+//});
 
 // logs in a user with given credentials 
 router.post('/user/login', (req, res) => {
