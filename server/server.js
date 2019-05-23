@@ -345,8 +345,8 @@ router.post('/course', (req, res) => {
       .then(
          result => res.json({ response: result })
       )
-      .catch(result =>
-         res.json({ response: result })
+      .catch(err =>
+         res.json({ response: err })
       );
 });
 
