@@ -1,6 +1,123 @@
 // include needed classes 
 const Compiler = require('../Models/Compiler.js');
 
+// Retrieves all files for the specified assignment and user (if allowed to grade)
+exports.assignmentFiles = function(req, res, db, acl) {
+   let session = req.session;
+   const current_user = session.user;
+   const assignment_id = req.params.aid;
+   const user_id = req.params.uid;
+   let has_error = false;
+
+   //do we have an active user?
+   acl.isLoggedIn(session)
+
+      //and this user can access the current assignment
+      .then(() => acl.userHasAssignment(current_user, assignment_id))
+
+      .catch(() => {
+         has_error = true;
+         return has_error;
+      })
+
+      //if this succeeds, allow caller to use the specified user ID.  Otherwise, just
+      //use the caller's ID instead
+      .then((result) => acl.canGradeAssignment(current_user, result.course_id))
+      .then(() => {
+         db.AssignmentFiles.all(assignment_id, user_id, (data) => {
+            return res.json({ response: data });
+         })
+      })
+      .catch(() => {
+
+         //only run if first catch was not triggered
+         if (has_error === false) {
+            db.AssignmentFiles.all(assignment_id, current_user.id, (data) => {
+               return res.json({ response: data });
+            });
+         }
+         else {
+            return res.status(500).send("Error");
+         }
+      });
+}
+
+//compiles & runs student's code
+exports.compileAndRun = function(req, res, db, config, acl) {
+   let session = req.session;
+   const current_user = session.user;
+   const assignment_id = req.params.assignment_id;
+   const tools_command = config.compiler.tools_path + "\\" + config.compiler.tools_batch;
+   const compile_cmd = config.compiler.compile_command;
+   const stdin = req.body.stdin;
+   const test_name = req.body.test_name;
+
+   //do we have an active user?
+   acl.isLoggedIn(session)
+
+      //and this user can access the current assignment
+      .then(() => acl.userHasAssignment(current_user, assignment_id))
+
+      //then, try to compile and build the assignment
+      .then(() => {
+         let compiler = Compiler.createCompiler(
+            db,
+            config.temp_path,
+            req.params.assignment_id,
+            current_user.id,
+            tools_command,
+            compile_cmd,
+            stdin
+         );
+         return compiler.begin();
+      })
+
+      // log test results in database 
+      .then((result) => {
+         db.Assignments.TestCases.log(assignment_id, current_user.id, test_name, stdin, result, () => {
+            res.json({ response: result });
+         });
+      })
+      .catch((err) => {
+         db.Assignments.TestCases.log(assignment_id, current_user.id, test_name, stdin, err.message, () => {
+            res.json({ response: err.message });
+         });
+      });
+}
+
+ /**
+  * :id is the assignment ID that this file will belong to.   The file ID to delete 
+  * should be in req.body.id.
+  */
+ exports.deleteFile = function(req, res, db, acl) {
+   let session = req.session;
+   const current_user = session.user;
+   const file_id = req.body.id;
+
+   //do we have an active user?
+   acl.isLoggedIn(session)
+
+      //and this user can access the current assignment
+      .then(() => acl.userOwnsFile(current_user, file_id))
+
+      //then make the call
+      .then(() => {
+         db.AssignmentFiles.remove(file_id, (changes, err) => {
+            if (err === null) {
+               return res.json({ response: file_id });
+            }
+            else {
+               console.log(err);
+               return res.status(500).send("Error");
+            }
+         });
+      })
+      .catch((error) => {
+         return res.status(500).send("Error");
+      });
+
+}
+
 // get test cases for the given assignment 
 exports.getTestCases = function(req, res, db) {
     db.Assignments.TestCases.forAssignment(req.params.assignment_id, (result, err) => {
@@ -79,90 +196,6 @@ exports.getTestCases = function(req, res, db) {
        });
  }
  
- //compiles & runs student's code
- exports.compileAndRun = function(req, res, db, config, acl) {
-    let session = req.session;
-    const current_user = session.user;
-    const assignment_id = req.params.assignment_id;
-    const tools_command = config.compiler.tools_path + "\\" + config.compiler.tools_batch;
-    const compile_cmd = config.compiler.compile_command;
-    const stdin = req.body.stdin;
-    const test_name = req.body.test_name;
- 
-    //do we have an active user?
-    acl.isLoggedIn(session)
- 
-       //and this user can access the current assignment
-       .then(() => acl.userHasAssignment(current_user, assignment_id))
- 
-       //then, try to compile and build the assignment
-       .then(() => {
-          let compiler = Compiler.createCompiler(
-             db,
-             config.temp_path,
-             req.params.assignment_id,
-             current_user.id,
-             tools_command,
-             compile_cmd,
-             stdin
-          );
-          return compiler.begin();
-       })
- 
-       // log test results in database 
-       .then((result) => {
-          db.Assignments.TestCases.log(assignment_id, current_user.id, test_name, stdin, result, () => {
-             res.json({ response: result });
-          });
-       })
-       .catch((err) => {
-          db.Assignments.TestCases.log(assignment_id, current_user.id, test_name, stdin, err.message, () => {
-             res.json({ response: err.message });
-          });
-       });
- }
- 
-// Retrieves all files for the specified assignment and user (if allowed to grade)
-exports.assignmentFiles = function(req, res, db, acl) {
-    let session = req.session;
-    const current_user = session.user;
-    const assignment_id = req.params.aid;
-    const user_id = req.params.uid;
-    let has_error = false;
- 
-    //do we have an active user?
-    acl.isLoggedIn(session)
- 
-       //and this user can access the current assignment
-       .then(() => acl.userHasAssignment(current_user, assignment_id))
- 
-       .catch(() => {
-          has_error = true;
-          return has_error;
-       })
- 
-       //if this succeeds, allow caller to use the specified user ID.  Otherwise, just
-       //use the caller's ID instead
-       .then((result) => acl.canGradeAssignment(current_user, result.course_id))
-       .then(() => {
-          db.AssignmentFiles.all(assignment_id, user_id, (data) => {
-             return res.json({ response: data });
-          })
-       })
-       .catch(() => {
- 
-          //only run if first catch was not triggered
-          if (has_error === false) {
-             db.AssignmentFiles.all(assignment_id, current_user.id, (data) => {
-                return res.json({ response: data });
-             });
-          }
-          else {
-             return res.status(500).send("Error");
-          }
-       });
- }
- 
 // Uploads a file. :id is the assignment ID that this file will belong to.
 exports.uploadFile = function(req, res, db, acl) {
     const current_user = req.session.user;
@@ -192,37 +225,4 @@ exports.uploadFile = function(req, res, db, acl) {
        .catch(() => {
           return res.status(500).send("Invalid user");
        });
- }
- 
- /**
-  * :id is the assignment ID that this file will belong to.   The file ID to delete 
-  * should be in req.body.id.
-  */
- exports.deleteFile = function(req, res, db, acl) {
-    let session = req.session;
-    const current_user = session.user;
-    const file_id = req.body.id;
- 
-    //do we have an active user?
-    acl.isLoggedIn(session)
- 
-       //and this user can access the current assignment
-       .then(() => acl.userOwnsFile(current_user, file_id))
- 
-       //then make the call
-       .then(() => {
-          db.AssignmentFiles.remove(file_id, (changes, err) => {
-             if (err === null) {
-                return res.json({ response: file_id });
-             }
-             else {
-                console.log(err);
-                return res.status(500).send("Error");
-             }
-          });
-       })
-       .catch((error) => {
-          return res.status(500).send("Error");
-       });
- 
  }

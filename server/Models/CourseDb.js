@@ -78,11 +78,11 @@ class CoursesDb {
       let sql = "SELECT * FROM assignments WHERE course_id = $course_id";
       if(include_active === true && include_deleted === false)
       {
-         sql += "AND is_deleted = 0"; 
+         sql += " AND is_deleted = 0"; 
       }
       else if(include_active === false && include_deleted === true)
       {
-         sql += "AND is_deleted = 1"; 
+         sql += " AND is_deleted = 1"; 
       }
       this.db.all(sql, { $course_id: course_id }, (err, rows) => {
          if (err === null && rows !== undefined) {

@@ -18,12 +18,13 @@ const session = require('express-session');
 const FileManager = require('./FileManager.js');
 const Database = require('./Models/Database.js');
 const AccessControlList = require('./Models/AccessControlList.js');
-//const Compiler = require('./Models/Compiler.js');
+const Compiler = require('./Models/Compiler.js');
 var FileStore = require('session-file-store')(session);
 
 // require modules for API routes 
 const userRoute = require('./Routes/user.js'); 
 const assignmentRoute = require('./Routes/assignment.js'); 
+const courseRoute = require('./Routes/course.js'); 
 
 let config = ini.parse(fs.readFileSync('./config.ini', 'utf-8'));
 config.database.connection_string = config.database.db_path + config.database.db_name;;
@@ -117,146 +118,39 @@ router.post('/assignment/file/:id', (req, res) => assignmentRoute.uploadFile(req
 router.delete('/assignment/file/:id', (req, res) => assignmentRoute.deleteFile(req, res, db, acl)); 
 
 //Returns all available courses
-router.get('/course', (req, res) => {
-   db.Courses.all((result) => { res.json({ response: result }); });
-});
+router.get('/course', (req, res) => courseRoute.courses(req, res, db)); 
 
-// Creates a course. TODO: needs testing, determine what return
-// type should be 
-router.post('/course', (req, res) => {
-   let session = req.session;
-   const school_id = req.body.school_id;
-   const name = req.body.name;
-   const term = req.body.term;
-   const year = req.body.year;
-
-   // does the current user have permission to create courses? 
-   acl.isAdmin(session)
-   
-      // is the course that this user wants to add unique? 
-      .then(() => db.Courses.isUnique(school_id, name, term, year))
-      
-      // if so, call course creation 
-      .then(() => db.Courses.addCourse(school_id, name, term, year))
-      .then(
-         result => res.json({ response: result })
-      )
-      .catch(err =>
-         res.json({ response: err })
-      );
-});
+// Creates a course. 
+router.post('/course', (req, res) => courseRoute.createCourse(req, res, db, acl)); 
 
 // returns all assignments from the given course 
-router.get('/course/assignments/:id', (req, res) => {
-   const course_id = req.params.id;
-   db.Courses.assignments(course_id, (result) => {
-      res.json({ response: result });
-   });
-});
+router.get('/course/assignments/:id', (req, res) => courseRoute.assignments(req, res, db)); 
 
 // returns all active assignments from the given course 
-router.get('/course/assignments/active/:id', (req, res) => {
-   const course_id = req.params.id; 
-   db.Courses.assignments(course_id, true, false, (result) => {
-      res.json({response: result}); 
-   })
-})
+router.get('/course/assignments/active/:id', (req, res) => courseRoute.activeAssignments(req, res, db));
 
 // returns all inactive assignments from the given course 
-router.get('/course/assignments/inactive/:id', (req, res) => {
-   const course_id = req.params.id; 
-   db.Courses.assignments(course_id, false, true, (result) => {
-      res.json({response: result}); 
-   })
-})
+router.get('/course/assignments/inactive/:id', (req, res) => courseRoute.inactiveAssignments(req, res, db)); 
 
-/**
- * Returns all courses that the currently logged in user is taking
- */
-router.get('/course/user', (req, res) => {
-   const current_user = req.session.user;
-   if (current_user !== undefined) {
-      db.Courses.forUser(current_user.id, (result) => {
-         res.json({ response: result });
-      });
-   }
-   else {
-      res.json({ response: {} });
-   }
-});
+// Returns all courses that the currently logged in user is taking
+router.get('/course/user', (req, res) => courseRoute.enrollments(req, res, db));
 
 /**
  * Returns a detailed roster for this course if the user has 
  * instructor rights
  */
-router.get('/course/user/:course_id', (req, res) => {
-   const course_id = req.params.course_id;
-   let session = req.session;
-   acl.isLoggedIn(session)
+router.get('/course/user/:course_id', (req, res) => courseRoute.roster(req, res, db, acl)); 
 
-      .then(() => acl.canModifyCourse(session.user, course_id))
-      .then(() => db.Courses.courseUsers(course_id))
-      .then(result => {
-         res.json({ response: result });
-      })
-      .catch(err => res.json({ response: err }));
-});
+// Removes the user specified in req.body from the selected course
+// TODO: revise so that students can't remove/add each other from 
+// courses-- only instructors should be able to do that, right?
+router.delete('/course/user/:course_id', (req, res) => courseRoute.removeUser(req, res, db, acl)); 
 
-/**
- * Removes the user specified in req.body from the selected course
- */
-router.delete('/course/user/:course_id', (req, res) => {
-   const course_id = req.params.course_id;
-   const user_id = req.body.user_id;
-   let session = req.session;
+// Adds the user to the specified course
+router.post('/course/user/:course_id', (req, res) => courseRoute.addUser(req, res, db, acl)); 
 
-   acl.isLoggedIn(session)
-      .then(acl.isSessionUser(session, user_id))
-      .then(db.Courses.removeUser(course_id, user_id))
-      .then(
-         result => res.json({ response: result })
-      )
-      .catch(err => res.json({ response: err }));
-});
-
-/**
- * Adds the user to the specified course
- */
-router.post('/course/user/:course_id', (req, res) => {
-   const course_id = req.params.course_id;
-   const user_id = req.body.user_id;
-   let session = req.session;
-
-   acl.isLoggedIn(session)
-      .then(acl.isSessionUser(session, user_id))
-      .then(db.Courses.addUser(course_id, user_id))
-      .then(
-         result => res.json({ response: result })
-      )
-      .catch(err => {
-         res.json({ response: err });
-      });
-});
-
-/**
- * Alters user's course role
- */
-router.put('/course/user/:course_id', (req, res) => {
-   const course_id = req.params.course_id;
-   const user_id = req.body.user_id;
-   const role = req.body.role;
-   let session = req.session;
-
-   acl.isLoggedIn(session)
-      .then(() => acl.canModifyCourse(session.user, course_id))
-      .then(() => db.Courses.setCourseRole(course_id, user_id, role))
-      .then(
-         result => res.json({ response: result })
-      )
-      .catch(err =>
-         res.json({ response: err })
-      );
-});
+// Alters user's course role
+router.put('/course/user/:course_id', (req, res) => courseRoute.editRole(req, res, db, acl)); 
 
 // returns information on currently logged in user
 router.get('/user/login', (req, res) => userRoute.info(req, res)); 
