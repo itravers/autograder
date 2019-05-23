@@ -1,3 +1,23 @@
+// Allows bulk user creation.  
+exports.addRoster = function(req, res, db){
+    let session = req.session;
+    let roster = req.body.roster;
+    let course_id = req.body.course_id;
+    acl.canModifyCourse(session, course_id)
+       .then(() => {
+          for (let user of roster) {
+             db.Users.exists(user.email)
+                .then()
+                .catch(() => {
+ 
+                   //user doesn't already exist, create
+                   db.Users.create(user.email, user.first_name, user.last_name, user.password);
+                });
+          }
+       })
+       .catch((err) => { res.json({ response: err }); });
+ }
+
 // creates new user
 exports.createUser = function(req, res, db) {
     const user = { first_name: req.body.first_name, last_name: req.body.last_name, email: req.body.email, password: req.body.password };
@@ -46,24 +66,4 @@ exports.login = function(req, res, db) {
  exports.logout = function(req, res) {
     req.session.user = null;
     res.json({ response: req.session.user });
- }
- 
-// Allows bulk user creation.  
- exports.addRoster = function(req, res, db){
-    let session = req.session;
-    let roster = req.body.roster;
-    let course_id = req.body.course_id;
-    acl.canModifyCourse(session, course_id)
-       .then(() => {
-          for (let user of roster) {
-             db.Users.exists(user.email)
-                .then()
-                .catch(() => {
- 
-                   //user doesn't already exist, create
-                   db.Users.create(user.email, user.first_name, user.last_name, user.password);
-                });
-          }
-       })
-       .catch((err) => { res.json({ response: err }); });
  }
