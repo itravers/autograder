@@ -59,7 +59,7 @@ class AccessControlList {
    isSessionUser(session, user_id) {
       user_id = Number(user_id);
       return new Promise((resolve, reject) => {
-         if (session.user.id === user_id) {
+         if (session.user_id === user_id) {
             resolve(true);
          }
          else {
