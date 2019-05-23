@@ -21,8 +21,6 @@ const AccessControlList = require('./Models/AccessControlList.js');
 const Compiler = require('./Models/Compiler.js');
 var FileStore = require('session-file-store')(session);
 
-// require modules for API routes 
-const user = require('./Routes/user.js'); 
 
 let config = ini.parse(fs.readFileSync('./config.ini', 'utf-8'));
 config.database.connection_string = config.database.db_path + config.database.db_name;;
