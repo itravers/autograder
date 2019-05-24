@@ -1,9 +1,9 @@
  // Allows bulk user creation.  
-exports.addRoster = function(req, res, db) {
+exports.addRoster = function(req, res, db, acl) {
     let session = req.session;
     let roster = req.body.roster;
     let course_id = req.body.course_id;
-    acl.canModifyCourse(session, course_id)
+    acl.canModifyCourse(req.session.user, course_id)
        .then(() => {
           for (let user of roster) {
              db.Users.exists(user.email)

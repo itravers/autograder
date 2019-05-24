@@ -165,7 +165,7 @@ router.get('/user/logout', (req, res) => userRoute.logout(req, res));
 router.post('/user/create', (req, res) => userRoute.createUser(req, res, db)); 
 
 // Allows bulk user creation.  TODO: needs testing
-router.post('/user/addRoster', (req, res) => userRoute.addRoster(req, res, db)); 
+router.post('/user/addRoster', (req, res) => userRoute.addRoster(req, res, db, acl)); 
 
 // REGISTER OUR ROUTES -------------------------------
 // all of our routes will be prefixed with /api
