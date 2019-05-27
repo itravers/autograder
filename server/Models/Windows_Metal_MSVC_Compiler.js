@@ -84,12 +84,24 @@ class Compiler {
     */
    compileFiles() {
       return new Promise((resolve, reject) => {
-
-         const sh_commands = "clang++ -std=c++14 ../data/temp/1/1/*.cpp -o main";
-
-         exec(sh_commands, (err, stdout, stderr) => {
+         //create BATCH file
+         const absolute_path = path.resolve(this.student_workspace);
+         const bat_path = absolute_path + "/compile.bat";
+         const bat_commands = "@ECHO OFF\r\n" + 
+         "CALL " + this.tools_setup_cmd + "\r\n" + //AC Note: had to remove escaped quotes on work PC.  Needed for home PC?
+            "CD \"" + absolute_path + "\"\r\n" +
+            this.compile_cmd;
+         
+         fs.writeFile(bat_path, bat_commands, { encoding: "utf8" }, (err) => {
             if (!err) {
-               resolve(stdout);
+               exec(bat_path, (err, stdout, stderr) => {
+                  if (!err) {
+                     resolve(stdout);
+                  }
+                  else {
+                     reject(err);
+                  }
+               });
             }
             else {
                reject(err);
@@ -103,17 +115,27 @@ class Compiler {
     */
    runFiles() {
       return new Promise((resolve, reject) => {
-         const exe_path = this.student_workspace + "/main";         
-         const sh_commands = "./main < ../data/temp/1/1/stdin.txt";
+         const exe_path = this.student_workspace + "/main.exe";         
 
-         exec(sh_commands, {timeout: 15000}, (err, stdout, stderr) => {
+         //create BATCH file
+         const absolute_path = path.resolve(this.student_workspace);
+         const bat_path = absolute_path + "/run.bat";
+         const bat_commands = "@ECHO OFF\r\n" +
+            "CD \"" + absolute_path + "\"\r\n" +
+            "main.exe < stdin.txt";
+         
+         fs.writeFile(bat_path, bat_commands, { encoding: "utf8" }, (err) => {
             if (!err) {
-               resolve(stdout);
+               exec(bat_path, {timeout: 15000}, (err, stdout, stderr) => {
+                  if (!err) {
+                     resolve(stdout);
+                  }
+                  else {
+                     reject(err);
+                  }
+               })
             }
-            else {
-               reject(err);
-            }
-         })
+         });
       });
    }
 
@@ -124,7 +146,7 @@ class Compiler {
     */
    canRunFiles(){
       return new Promise((resolve, reject) => {
-         const exe_path = this.student_workspace + "/main";  
+         const exe_path = this.student_workspace + "/main.exe";  
          fs.access(exe_path, fs.constants.F_OK, (err) =>{
             if(!err){
                //create new testing file
