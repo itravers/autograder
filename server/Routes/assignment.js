@@ -1,6 +1,3 @@
-// include needed classes 
-const Compiler = require('../Models/Compiler.js');
-
 // Retrieves all files for the specified assignment and user (if allowed to grade)
 exports.assignmentFiles = function(req, res, db, acl) {
    let session = req.session;
@@ -43,7 +40,7 @@ exports.assignmentFiles = function(req, res, db, acl) {
 }
 
 //compiles & runs student's code
-exports.compileAndRun = function(req, res, db, config, acl) {
+exports.compileAndRun = function(req, res, db, config, acl, Compiler) {
    let session = req.session;
    const current_user = session.user;
    const assignment_id = req.params.assignment_id;
@@ -153,7 +150,7 @@ exports.getTestCases = function(req, res, db) {
  }
  
  //runs student's code without compiling first (saves time)
- exports.run = function(req, res, db, config, acl)  {
+ exports.run = function(req, res, db, config, acl, Compiler)  {
     let session = req.session;
     const current_user = session.user;
     const assignment_id = req.params.assignment_id;

@@ -111,10 +111,10 @@ router.get('/assignment/testCases/:assignment_id', (req, res) => assignmentRoute
 router.get('/assignment/testResults/:assignment_id/:user_id', (req, res) => assignmentRoute.getTestResults(req, res, db, acl)); 
 
 //runs student's code without compiling first (saves time)
-router.post('/assignment/run/:assignment_id', (req, res) => assignmentRoute.run(req, res, db, config, acl)); 
+router.post('/assignment/run/:assignment_id', (req, res) => assignmentRoute.run(req, res, db, config, acl, Compiler)); 
 
 //compiles & runs student's code
-router.post('/assignment/compile/:assignment_id', (req, res) => assignmentRoute.compileAndRun(req, res, db, config, acl)); 
+router.post('/assignment/compile/:assignment_id', (req, res) => assignmentRoute.compileAndRun(req, res, db, config, acl, Compiler)); 
 
 // Retrieves all files for the specified assignment and user (if allowed to grade)
 router.get('/assignment/file/:aid/:uid', (req, res) => assignmentRoute.assignmentFiles(req, res, db, acl)); 

@@ -6,14 +6,13 @@
     })
  }
 
- // Adds the user to the specified course
+ // Adds the logged-in user to the specified course
 exports.addUser = function(req, res, db, acl) {
     const course_id = req.params.course_id;
-    const user_id = req.body.user_id;
     let session = req.session;
+    const user_id = session.user.id; 
  
     acl.isLoggedIn(session)
-       .then(() => acl.isSessionUser(session, user_id))
        .then(() => db.Courses.addUser(course_id, user_id))
        .then(
           result => res.json({ response: result })
@@ -99,19 +98,20 @@ exports.inactiveAssignments = function(req, res, db) {
     })
  }
  
-// Removes the user specified in req.body from the selected course
+// Removes the logged-in user from the selected course
  exports.removeUser = function(req, res, db, acl) {
     const course_id = req.params.course_id;
-    const user_id = req.body.user_id;
     let session = req.session;
+    const user_id = session.user.id; 
  
     acl.isLoggedIn(session)
-       .then(() => acl.isSessionUser(session, user_id))
        .then(() => db.Courses.removeUser(course_id, user_id))
-       .then(
-          result => res.json({ response: result })
-       )
-       .catch(err => res.json({ response: err }));
+       .then(result => 
+         res.json({ response: result })
+      )
+       .catch(err => 
+         res.json({ response: err })
+      );
  }
 
   /**

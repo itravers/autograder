@@ -1,4 +1,4 @@
- // Allows bulk user creation.  
+ // Allows bulk user creation and addition to a course.
 exports.addRoster = function(req, res, db, acl) {
     let session = req.session;
     let roster = req.body.roster;
@@ -13,6 +13,7 @@ exports.addRoster = function(req, res, db, acl) {
                    //user doesn't already exist, create
                    db.Users.create(user.email, user.first_name, user.last_name, user.password);
                 });
+            
           }
        })
        .catch((err) => { res.json({ response: err }); });
