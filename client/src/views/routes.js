@@ -3,8 +3,9 @@ import React, { Component } from 'react';
 import { routes as AccountRoutes } from './Account/routes';
 import { routes as CourseRoutes } from './Course/routes';
 import {routes as AssignmentRoutes } from './Assignment/routes';
+import {routes as HomeRoutes } from './Home/routes'
 
-const routes = [].concat(AccountRoutes, CourseRoutes, AssignmentRoutes);
+const routes = [].concat(AccountRoutes, CourseRoutes, AssignmentRoutes, HomeRoutes);
 
 class RouteWithSubRoutes extends Component {
 

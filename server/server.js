@@ -18,7 +18,8 @@ const session = require('express-session');
 const FileManager = require('./FileManager.js');
 const Database = require('./Models/Database.js');
 const AccessControlList = require('./Models/AccessControlList.js');
-const Compiler = require('./Models/Compiler.js');
+var Compiler = require('./Models/Windows_Metal_MSVC_Compiler.js');
+
 var FileStore = require('session-file-store')(session);
 
 // require modules for API routes 
@@ -31,6 +32,9 @@ config.database.connection_string = config.database.db_path + config.database.db
 let file_manager = FileManager.FileManager(config.temp_path, config.uploads_path);
 let db = Database.createDatabase(config.database.connection_string, config.database.secret_hash, config.database.crypto_method);
 let acl = AccessControlList.createACL(db);
+
+//let mail_config = ini.parse(fs.readFileSync('./config.mail.ini', 'utf-8'));
+//let mail_api_key = mail_config.api_key;
 
 /* 
 process.on('unhandledRejection', (reason, p) => {
@@ -58,6 +62,13 @@ var port = process.env.PORT || 8080;        // set our port
 
 if (config.mode === "debug") {
    console.log("running in debug mode.");
+}
+
+if (config.compile_platform === "unix") {
+   Compiler = require('./Models/Mac_Metal_Clang_Compiler.js');
+}
+else if (config.compile_platform === "windows") {
+   Compiler = require('./Models/Windows_Metal_MSVC_Compiler.js');
 }
 
 app.use((req, res, next) => {

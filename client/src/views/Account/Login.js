@@ -84,6 +84,7 @@ class LoginView extends Component {
                      />
                </div>
                <button id="SubmitButton" className="btn btn-outline-primary mb-2 mr-sm-2" type="submit">Log In</button>
+               <button id="ForgotPasswordButton" className="btn btn-outline-primary mb-2 mr-sm-2" type="submit">Forgot Password?</button>
             </form>
          </article>
       );
