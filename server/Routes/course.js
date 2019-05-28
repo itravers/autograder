@@ -13,8 +13,8 @@ exports.addUser = function(req, res, db, acl) {
     let session = req.session;
  
     acl.isLoggedIn(session)
-       .then(acl.isSessionUser(session, user_id))
-       .then(db.Courses.addUser(course_id, user_id))
+       .then(() => acl.isSessionUser(session, user_id))
+       .then(() => db.Courses.addUser(course_id, user_id))
        .then(
           result => res.json({ response: result })
        )
@@ -106,8 +106,8 @@ exports.inactiveAssignments = function(req, res, db) {
     let session = req.session;
  
     acl.isLoggedIn(session)
-       .then(acl.isSessionUser(session, user_id))
-       .then(db.Courses.removeUser(course_id, user_id))
+       .then(() => acl.isSessionUser(session, user_id))
+       .then(() => db.Courses.removeUser(course_id, user_id))
        .then(
           result => res.json({ response: result })
        )
