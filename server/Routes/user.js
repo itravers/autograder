@@ -3,20 +3,37 @@ exports.addRoster = function(req, res, db, acl) {
     let session = req.session;
     let roster = req.body.roster;
     let course_id = req.body.course_id;
+    let created_roster = []; 
+
     acl.canModifyCourse(req.session.user, course_id)
        .then(() => {
           for (let user of roster) {
              db.Users.exists(user.email)
-                .then()
-                .catch(() => {
- 
-                   //user doesn't already exist, create
-                   db.Users.create(user.email, user.first_name, user.last_name, user.password);
-                });
-            
-          }
-       })
-       .catch((err) => { res.json({ response: err }); });
+               .then(() => {
+                  // select this user's ID 
+                  db.Users.userRow(user.email, (result, err) =>{
+                     // assuming err is null (LATER FIX: HANDLE ERRORS)
+                     user.id = result.id; 
+                     delete user.password; 
+                  })
+               })
+               // if user doesn't exist, create them
+               .catch(() => {
+                  db.Users.create(user, (result, err) => {
+                  
+                  // assuming err is null and result has contents 
+                  // (LATER FIX: HANDLE ERRORS)
+                  user.id = result; 
+                  delete user.password; 
+                  })
+               })
+               .then(() => db.Courses.addUser(course_id, user.id))
+               .then(
+                  result => res.json({ response: result })
+               )
+               .catch(err => {
+                  res.json({ response: err });
+               });
  }
  
  // creates new user
