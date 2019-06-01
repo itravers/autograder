@@ -56,7 +56,7 @@ exports.addRoster = function(req, res, db, acl) {
          }
          else
          {
-            //WTF HOW TO DEAL WITH THIS 
+            //HOW TO PASS ERRORS DOWN THE CHAIN?
             throw err; 
          }
          user.id = result; 
