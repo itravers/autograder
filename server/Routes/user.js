@@ -1,71 +1,86 @@
- // Allows bulk user creation and addition to a course.
-exports.addRoster = function(req, res, db, acl) {
-    let session = req.session;
-    let roster = req.body.roster;
-    let course_id = req.body.course_id;
-    let created_roster = []; 
-
-    acl.canModifyCourse(req.session.user, course_id)
-       .then(() => {
-         for (let user of roster) {
-            convertUser(user)
-            // db.Users.exists(user.email)
-               .then(() => convertUser(user))
-               .then(() => db.Courses.addUser(course_id, user.id))
-               .then(
-                  result => res.json({ response: result })
-               )
-               .catch(err => {
-                  // throws error here-- what is causing the 
-                  // error and how can we handle it? 
-                  res.json({ response: err });
-               });
-         }
-      })
-      .catch(err => {
-         res.json({ response: err }); 
-      })
- }
-
- // adds a user to the database if they don't already exist; 
- // deletes password from user object and adds their ID from DB
- exports.convertUser = function(user, db)
+/* *
+  * helper function for addRoster()
+  * adds a user to the database if they don't already exist; 
+  * deletes password from user object and adds their ID from DB
+  */
+convertUser = function(user, db)
  {
-    // does this user already exist in the database?
-    db.Users.exists(user.email)
-    .then(() =>{
-       // user exists; select their id 
-       db.Users.userRow(user.email, (result, err) => {
-          if(err === null)
-          {
-             user.id = result.id; 
-          }
-          else
-          {
-             // THERE'S GOTTA BE A BETTER WAY TO DO THIS 
-            throw err; 
-          }
-       })
-    })
-    .catch(() => {
-      // user doesn't exist yet, add to database 
-      db.Users.create(user, (result, err) => {
-         if (err === null && result !== null)
-         {
-            user.id = result; 
-         }
-         else
-         {
-            //HOW TO PASS ERRORS DOWN THE CHAIN?
-            throw err; 
-         }
-         user.id = result; 
+   return new Promise((resolve, reject) => {
+      db.Users.exists(user.email)
+      .then(() => {
+         // select existing user's ID 
+         db.Users.userRow(user.email)
+         .then((result) => {
+            user.id = result.id;
+            delete user.password; 
+            resolve(user);  
+         })
+         .catch((err) => {
+            reject(err); 
+         });
       })
-   }); 
+      .catch(() => {
+         // create user in DB 
+         // TESTING: previously !== undefined 
+         if ((user.first_name !== undefined) && (user.first_name.length > 0)) {
+            if ((user.last_name !== undefined) && (user.last_name.length > 0)) {
+               if ((user.email !== undefined) && (user.email.length > 0)) {
+                  if (("password" in user) && (user.password.length > 0)) {
+                     db.Users.create(user, (result, err) => {
+                        if (err === null) {
+                           user.id = result;
+                           delete user.password;
+                           resolve(user);
+                        }
+                        else {
+                           reject(err); 
+                        }
+                     });
+                  }
+               }
+            }
+         }
+         else {
+            reject("missing required parameters"); 
+         }
+         /*
+         db.Users.create(user, (result, err) => {
+            if (err === null) {
+               user.id = result;
+               delete password; 
+               resolve(user); 
+            }
+            else {
+               reject(err); 
+            }
+         });*/
+      });
+   });
+}
 
-    // delete password and return the resulting user 
-    delete user.password;
-    return user; 
+ // Allows bulk user creation and addition to a course.
+ exports.addRoster = function(req, res, db, acl) {
+   let session = req.session;
+   let roster = req.body.roster;
+   let course_id = req.body.course_id;
+   let created_roster = []; 
+
+   acl.canModifyCourse(req.session.user, course_id)
+      .then(() => {
+        for (let user of roster) {
+           convertUser(user, db)
+              .then(() => db.Courses.addUser(course_id, user.id))
+              .then(result => {
+                  res.json({ response: result })
+              })
+              .catch((err) => {
+                 res.json({ response: err });
+               });
+        }
+     })
+     .catch(err => {
+        res.json({ response: err }); 
+     })
 }
  
  // creates new user

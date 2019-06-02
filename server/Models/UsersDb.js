@@ -38,27 +38,6 @@ class UsersDb {
       });
    }
 
-   /** 
-    * Selects information from users table for requested user 
-    * @param {*} email
-    * @param {function} callback
-    */
-   userRow(email, callback) {
-      const sql = "SELECT * FROM users WHERE email = $email LIMIT 1"; 
-      const params = {$email: email}; 
-      this.db.get(sql, params, (err, row) => {
-         if (typeof (callback) !== "function") {
-            callback = function (x, y) { };
-         }
-         if (err === null && row !== undefined) {
-            callback(row, null);
-         }
-         else {
-            callback(-1, err);
-         }
-      })
-   }
-
    /**
     * Creates a new user
     * @param {object} user
@@ -106,6 +85,26 @@ class UsersDb {
             }
             else {
                reject(false);
+            }
+         });
+      });
+   }
+
+   /** 
+    * Selects information from users table for requested user 
+    * @param {*} email
+    * @param {function} callback
+    */
+   userRow(email) {
+      const sql = "SELECT * FROM users WHERE email = $email LIMIT 1"; 
+      const params = {$email: email};
+      return new Promise((resolve, reject) => {
+         this.db.get(sql, params, (err, row) => {
+            if(err === null && row !== undefined) {
+               resolve(row); 
+            }
+            else {
+               reject(err); 
             }
          });
       });

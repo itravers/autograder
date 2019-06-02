@@ -104,10 +104,12 @@ router.get('/', (req, res) => {
 });
 
 // get test cases for the given assignment 
+// SHOULD BE/assignment/:id/testCases 
 router.get('/assignment/testCases/:assignment_id', (req, res) => assignmentRoute.getTestCases(req, res, db)); 
 
 // gets user's test results for this assignment, if the user has permission
 // to view them 
+// assignment/:a_id/:u_id/:testResults 
 router.get('/assignment/testResults/:assignment_id/:user_id', (req, res) => assignmentRoute.getTestResults(req, res, db, acl)); 
 
 //runs student's code without compiling first (saves time)
