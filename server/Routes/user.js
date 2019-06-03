@@ -22,23 +22,21 @@ convertUser = function(user, db)
       .catch(() => {
          // create user in DB 
          // TESTING: previously !== undefined 
-         if ((user.first_name !== undefined) && (user.first_name.length > 0)) {
-            if ((user.last_name !== undefined) && (user.last_name.length > 0)) {
-               if ((user.email !== undefined) && (user.email.length > 0)) {
-                  if (("password" in user) && (user.password.length > 0)) {
-                     db.Users.create(user, (result, err) => {
-                        if (err === null) {
-                           user.id = result;
-                           delete user.password;
-                           resolve(user);
-                        }
-                        else {
-                           reject(err); 
-                        }
-                     });
-                  }
+         // or "password" in user
+         if ((user.first_name !== undefined) && (user.first_name.length > 0)
+          && (user.last_name !== undefined) && (user.last_name.length > 0)
+          && (user.email !== undefined) && (user.email.length > 0)
+          && (user.password !== undefined) && (user.password.length > 0)) {
+            db.Users.create(user, (result, err) => {
+               if (err === null) {
+                  user.id = result;
+                  delete user.password;
+                  resolve(user);
                }
-            }
+               else {
+                  reject(err); 
+               }
+            });
          }
          else {
             reject("missing required parameters"); 
@@ -63,20 +61,23 @@ convertUser = function(user, db)
    let session = req.session;
    let roster = req.body.roster;
    let course_id = req.body.course_id;
-   let created_roster = []; 
+   let output_roster = []; 
 
-   acl.canModifyCourse(req.session.user, course_id)
+   acl.canModifyCourse(session.user, course_id)
       .then(() => {
         for (let user of roster) {
            convertUser(user, db)
               .then(() => db.Courses.addUser(course_id, user.id))
-              .then(result => {
-                  res.json({ response: result })
+              .then(() => {
+                  output_roster.push(user); 
+                  //res.json({ response: result })
               })
-              .catch((err) => {
-                 res.json({ response: err });
+              .catch(err => {
+                 output_roster.push(err); 
+                 //res.json({ response: err });
                });
         }
+        res.json({response: output_roster});
      })
      .catch(err => {
         res.json({ response: err }); 
