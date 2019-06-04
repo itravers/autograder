@@ -14,7 +14,6 @@ class SharedConfig{
 
    constructRoute(path, params)
    {
-      const root_endpoint = this.root_endpoint; 
       let next_arg = 0; 
 
       // while there is still an unreplaced {parameter} in path  
@@ -24,7 +23,6 @@ class SharedConfig{
          path.replace(/{([^}]*)}/, params[next_arg]);
          next_arg++; 
       }
-
       return this.root_endpoint + path; 
    }
 
