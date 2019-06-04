@@ -12,6 +12,22 @@ class SharedConfig{
       this.buildEndpoints();
    }
 
+   constructRoute(path, params)
+   {
+      const root_endpoint = this.root_endpoint; 
+      let next_arg = 0; 
+
+      // while there is still an unreplaced {parameter} in path  
+      while(path.search(/{([^}]*)}/) > -1)
+      {
+         // replace whatever's in {} with the next passed argument
+         path.replace(/{([^}]*)}/, params[next_arg]);
+         next_arg++; 
+      }
+
+      return this.root_endpoint + path; 
+   }
+
    buildEndpoints(){
       const root_endpoint = this.root_endpoint;
       this.endpoints = {
