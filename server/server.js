@@ -104,31 +104,29 @@ router.get('/', (req, res) => {
 });
 
 // get test cases for the given assignment 
-// SHOULD BE/assignment/:id/testCases 
-router.get('/assignment/testCases/:assignment_id', (req, res) => assignmentRoute.getTestCases(req, res, db)); 
+router.get('/assignment/:assignment_id/testCases', (req, res) => assignmentRoute.getTestCases(req, res, db)); 
 
 // gets user's test results for this assignment, if the user has permission
 // to view them 
-// assignment/:a_id/:u_id/:testResults 
-router.get('/assignment/testResults/:assignment_id/:user_id', (req, res) => assignmentRoute.getTestResults(req, res, db, acl)); 
+router.get('/assignment/:assignment_id/:user_id/testResults', (req, res) => assignmentRoute.getTestResults(req, res, db, acl)); 
 
 //runs student's code without compiling first (saves time)
-router.post('/assignment/run/:assignment_id', (req, res) => assignmentRoute.run(req, res, db, config, acl, Compiler)); 
+router.post('/assignment/:assignment_id/run', (req, res) => assignmentRoute.run(req, res, db, config, acl, Compiler)); 
 
 //compiles & runs student's code
-router.post('/assignment/compile/:assignment_id', (req, res) => assignmentRoute.compileAndRun(req, res, db, config, acl, Compiler)); 
+router.post('/assignment/:assignment_id/compile', (req, res) => assignmentRoute.compileAndRun(req, res, db, config, acl, Compiler)); 
 
 // Retrieves all files for the specified assignment and user (if allowed to grade)
-router.get('/assignment/file/:aid/:uid', (req, res) => assignmentRoute.assignmentFiles(req, res, db, acl)); 
+router.get('/assignment/:aid/:uid/file', (req, res) => assignmentRoute.assignmentFiles(req, res, db, acl)); 
 
 // Uploads a file. :id is the assignment ID that this file will belong to.
-router.post('/assignment/file/:id', (req, res) => assignmentRoute.uploadFile(req, res, db, acl)); 
+router.post('/assignment/:id/file', (req, res) => assignmentRoute.uploadFile(req, res, db, acl)); 
 
 /**
  * :id is the assignment ID that this file will belong to.   The file ID to delete 
  * should be in req.body.id.
  */
-router.delete('/assignment/file/:id', (req, res) => assignmentRoute.deleteFile(req, res, db, acl)); 
+router.delete('/assignment/:id/file', (req, res) => assignmentRoute.deleteFile(req, res, db, acl)); 
 
 //Returns all available courses
 router.get('/course', (req, res) => courseRoute.courses(req, res, db)); 
@@ -137,33 +135,36 @@ router.get('/course', (req, res) => courseRoute.courses(req, res, db));
 router.post('/course', (req, res) => courseRoute.createCourse(req, res, db, acl)); 
 
 // returns all assignments from the given course 
-router.get('/course/assignments/:id', (req, res) => courseRoute.assignments(req, res, db)); 
+router.get('/course/:id/assignments', (req, res) => courseRoute.assignments(req, res, db)); 
 
 // returns all active assignments from the given course 
-router.get('/course/assignments/active/:id', (req, res) => courseRoute.activeAssignments(req, res, db));
+router.get('/course/:id/assignments/active', (req, res) => courseRoute.activeAssignments(req, res, db));
 
 // returns all inactive assignments from the given course 
-router.get('/course/assignments/inactive/:id', (req, res) => courseRoute.inactiveAssignments(req, res, db)); 
+router.get('/course/:id/assignments/inactive', (req, res) => courseRoute.inactiveAssignments(req, res, db)); 
 
 // Returns all courses that the currently logged in user is taking
-router.get('/course/user', (req, res) => courseRoute.enrollments(req, res, db));
+router.get('/course/enrolled', (req, res) => courseRoute.enrollments(req, res, db));
 
 /**
  * Returns a detailed roster for this course if the user has 
  * instructor rights
  */
-router.get('/course/user/:course_id', (req, res) => courseRoute.roster(req, res, db, acl)); 
+router.get('/course/:course_id/user', (req, res) => courseRoute.roster(req, res, db, acl)); 
 
 // Removes the user specified in req.body from the selected course
 // TODO: revise so that students can't remove/add each other from 
 // courses-- only instructors should be able to do that, right?
-router.delete('/course/user/:course_id', (req, res) => courseRoute.removeUser(req, res, db, acl)); 
+router.delete('/course/:course_id/user', (req, res) => courseRoute.removeUser(req, res, db, acl)); 
 
 // Adds the user to the specified course
-router.post('/course/user/:course_id', (req, res) => courseRoute.addUser(req, res, db, acl)); 
+router.post('/course/:course_id/user', (req, res) => courseRoute.addUser(req, res, db, acl)); 
 
 // Alters user's course role
-router.put('/course/user/:course_id', (req, res) => courseRoute.editRole(req, res, db, acl)); 
+router.put('/course/:course_id/user', (req, res) => courseRoute.editRole(req, res, db, acl)); 
+
+// Allows bulk user creation and addition to course.  TODO: needs testing
+router.post('/course/:course_id/addRoster', (req, res) => courseRoute.addRoster(req, res, db, acl)); 
 
 // returns information on currently logged in user
 router.get('/user/login', (req, res) => userRoute.info(req, res)); 
@@ -176,9 +177,6 @@ router.get('/user/logout', (req, res) => userRoute.logout(req, res));
 
 // creates new user
 router.post('/user/create', (req, res) => userRoute.createUser(req, res, db)); 
-
-// Allows bulk user creation.  TODO: needs testing
-router.post('/user/addRoster', (req, res) => userRoute.addRoster(req, res, db, acl)); 
 
 // REGISTER OUR ROUTES -------------------------------
 // all of our routes will be prefixed with /api

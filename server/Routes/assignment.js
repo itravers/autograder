@@ -193,10 +193,10 @@ exports.getTestCases = function(req, res, db) {
        });
  }
  
-// Uploads a file. :id is the assignment ID that this file will belong to.
+// Uploads a file. :aid is the assignment ID that this file will belong to.
 exports.uploadFile = function(req, res, db, acl) {
     const current_user = req.session.user;
-    const assignment_id = req.params.id;
+    const assignment_id = req.params.aid;
     const uploaded_file = req.files.filepond;
     let session = req.session;
  
