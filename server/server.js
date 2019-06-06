@@ -108,8 +108,7 @@ router.get('/assignment/:assignment_id/testCases', (req, res) => assignmentRoute
 
 // gets user's test results for this assignment, if the user has permission
 // to view them 
-// assignment/aid/user/uid 
-router.get('/assignment/:assignment_id/:user_id/testResults', (req, res) => assignmentRoute.getTestResults(req, res, db, acl)); 
+router.get('/assignment/:assignment_id/user/:user_id/testResults', (req, res) => assignmentRoute.getTestResults(req, res, db, acl)); 
 
 //runs student's code without compiling first (saves time)
 router.post('/assignment/:assignment_id/run', (req, res) => assignmentRoute.run(req, res, db, config, acl, Compiler)); 
@@ -118,7 +117,7 @@ router.post('/assignment/:assignment_id/run', (req, res) => assignmentRoute.run(
 router.post('/assignment/:assignment_id/compile', (req, res) => assignmentRoute.compileAndRun(req, res, db, config, acl, Compiler)); 
 
 // Retrieves all files for the specified assignment and user (if allowed to grade)
-router.get('/assignment/:aid/:uid/file', (req, res) => assignmentRoute.assignmentFiles(req, res, db, acl)); 
+router.get('/assignment/:aid/user/:uid/file', (req, res) => assignmentRoute.assignmentFiles(req, res, db, acl)); 
 
 // Uploads a file. :id is the assignment ID that this file will belong to.
 router.post('/assignment/:id/file', (req, res) => assignmentRoute.uploadFile(req, res, db, acl)); 

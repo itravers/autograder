@@ -16,11 +16,12 @@ class SharedConfig{
    {
       let next_arg = 0; 
 
-      // while there is still an unreplaced {parameter} in path  
+      // while there is still an unreplaced {parameter} in path
+      let regex_find = path.search(/{([^}]*)}/);  
       while(path.search(/{([^}]*)}/) > -1)
       {
          // replace whatever's in {} with the next passed argument
-         path.replace(/{([^}]*)}/, params[next_arg]);
+         path = path.replace(/{([^}]*)}/, params[next_arg]);
          next_arg++; 
       }
       return this.root_endpoint + path; 
@@ -31,7 +32,10 @@ class SharedConfig{
       this.endpoints = {
          root: root_endpoint,
          assignment: {
-            file: root_endpoint + "/api/assignment/file",
+            //file: root_endpoint + "/api/assignment/file",
+            file: this.constructRoute("/api/assignment/file"),
+            // THIS IS A TEST TO SEE IF THE PARAMETER {} SEARCH WORKS
+            TEST: this.constructRoute("/api/assignment/{a:id}/testCases", [1]),
             test_cases: root_endpoint + "/api/assignment/testCases",
             test_results: root_endpoint + "/api/assignment/testResults",
             run: root_endpoint + "/api/assignment/run",
