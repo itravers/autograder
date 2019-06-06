@@ -21,8 +21,6 @@ convertUser = function(user, db)
      })
      .catch(() => {
         // create user in DB 
-        // TESTING: previously !== undefined 
-        // or "password" in user
         if ((user.first_name !== undefined) && (user.first_name.length > 0)
          && (user.last_name !== undefined) && (user.last_name.length > 0)
          && (user.email !== undefined) && (user.email.length > 0)
@@ -41,17 +39,6 @@ convertUser = function(user, db)
         else {
            reject("missing required parameters"); 
         }
-        /*
-        db.Users.create(user, (result, err) => {
-           if (err === null) {
-              user.id = result;
-              delete password; 
-              resolve(user); 
-           }
-           else {
-              reject(err); 
-           }
-        });*/
      });
   });
 }
@@ -63,25 +50,36 @@ exports.addRoster = function(req, res, db, acl) {
   let course_id = req.params.course_id;
   let output_roster = []; 
 
+  // does the logged-in user have permission to change the course?
   acl.canModifyCourse(session.user, course_id)
      .then(() => {
-       for (let user of roster) {
-          convertUser(user, db)
-             .then(() => db.Courses.addUser(course_id, user.id))
-             .then(() => {
-                 output_roster.push(user); 
-                 //res.json({ response: result })
-             })
-             .catch(err => {
-                output_roster.push(err); 
-                //res.json({ response: err });
-              });
-       }
-       res.json({response: output_roster});
-    })
-    .catch(err => {
-       res.json({ response: err }); 
-    })
+        // for each user in roster
+         let user_promises = roster.map(user => { 
+            // add to DB if they don't already exist 
+            return convertUser(user, db)
+               // then add to course if not already added 
+               .then(() => db.Courses.addUser(course_id, user.id))
+               .then(() => {
+                  output_roster.push(user); 
+               })
+               .catch(err => {
+                  let err_message = {
+                     email: user.email, 
+                     error: err
+                  };
+                  output_roster.push(err_message); 
+               });
+         })
+         return Promise.all(user_promises).then(() => {
+            return output_roster; 
+         });
+      })
+      .then(() => {
+         res.json({response: output_roster})
+      })
+      .catch(err => {
+         res.json({ response: err })
+      });
 }
  
  // returns all active assignments from the given course 
