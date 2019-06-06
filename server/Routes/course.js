@@ -85,9 +85,13 @@ exports.addRoster = function(req, res, db, acl) {
  // returns all active assignments from the given course 
  exports.activeAssignments = function(req, res, db) {
     const course_id = req.params.id; 
-    db.Courses.assignments(course_id, true, false, (result) => {
-       res.json({response: result}); 
-    })
+    db.Courses.assignments(course_id, true, false)
+      .then(result => 
+         res.json({ response: result })
+      )
+      .catch(err =>
+         res.json({ response: err })
+      );
  }
 
  // Adds the logged-in user to the specified course
@@ -109,15 +113,26 @@ exports.addUser = function(req, res, db, acl) {
 // returns all assignments from the given course 
 exports.assignments = function(req, res, db) {
     const course_id = req.params.id;
-    db.Courses.assignments(course_id, true, true, (result) => {
-       res.json({ response: result });
-    });
+    db.Courses.assignments(course_id, true, true)
+      .then(result => 
+         res.json({ response: result })
+      )
+      .catch(err =>
+         res.json({ response: err })
+      );
  }
 
  //Returns all available courses
 exports.courses = function(req, res, db) {
-    db.Courses.all((result) => { res.json({ response: result }); });
- }
+    //db.Courses.all((result) => { res.json({ response: result }); });
+   db.Courses.all()
+   .then(result => 
+      res.json({ response: result })
+   )
+   .catch(err => 
+      res.json({response: err})
+   );
+}
 
  // Creates a course. 
  exports.createCourse = function(req, res, db, acl) {
@@ -163,23 +178,31 @@ exports.editRole = function(req, res, db, acl) {
  
 // Returns all courses that the currently logged in user is taking
 exports.enrollments = function(req, res, db) {
-    const current_user = req.session.user;
-    if (current_user !== undefined) {
-       db.Courses.forUser(current_user.id, (result) => {
-          res.json({ response: result });
-       });
-    }
-    else {
+   const current_user = req.session.user;
+   if (current_user !== undefined) {
+      db.Courses.forUser(current_user.id)
+       .then(result => 
+          res.json({ response: result })
+      )
+      .catch(err =>
+         res.json({ response: err })
+      );
+   }
+   else {
        res.json({ response: {} });
-    }
+   }
  }
 
  // returns all inactive assignments from the given course 
 exports.inactiveAssignments = function(req, res, db) {
     const course_id = req.params.id; 
-    db.Courses.assignments(course_id, false, true, (result) => {
-       res.json({response: result}); 
-    })
+    db.Courses.assignments(course_id, false, true)
+   .then(result => 
+      res.json({ response: result })
+   )
+   .catch(err =>
+      res.json({ response: err })
+   );
  }
  
 // Removes the logged-in user from the selected course

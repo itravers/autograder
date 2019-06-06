@@ -19,22 +19,20 @@ class UsersDb {
     * Returns user if valid, -1 otherwise.
     * @param {*} email 
     * @param {*} password 
-    * @param {function} callback 
     */
-   authenticate(email, password, callback) {
+   authenticate(email, password) {
       const sql = "SELECT * FROM users WHERE email = $email AND password = $password LIMIT 1";
       password = this.hash_password(password, email);
       const params = { $email: email, $password: password };
-      let result = this.db.get(sql, params, (err, row) => {
-         if (typeof (callback) !== "function") {
-            callback = function (x, y) { };
-         }
-         if (err === null && row !== undefined) {
-            callback(row, null);
-         }
-         else {
-            callback(-1, err);
-         }
+      return new Promise((resolve, reject) => {
+         this.db.get(sql, params, (err, row) => {
+            if (err === null && row !== undefined) {
+               resolve(row);
+            }
+            else {
+               reject(err); 
+            }
+         });
       });
    }
 

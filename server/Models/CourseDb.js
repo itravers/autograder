@@ -56,43 +56,53 @@ class CoursesDb {
       });
    }
 
-   all(callback, include_deleted = false) {
-      let sql = "SELECT c.*, s.name AS school_name, s.acronym  FROM courses c INNER JOIN schools s ON c.school_id = s.id";
-      if (include_deleted === false) {
-         sql += " WHERE is_deleted = 0 AND is_active = 1";
-      }
-      sql += " ORDER BY c.year, c.term DESC";
-      this.db.all(sql, {}, (err, rows) => {
-         if (err === null && rows !== undefined) {
-            callback(rows);
-            return;
+   all(include_deleted = false) {
+      return new Promise((resolve, reject) => { 
+         let sql = "SELECT c.*, s.name AS school_name, s.acronym  FROM courses c INNER JOIN schools s ON c.school_id = s.id";
+         if (include_deleted === false) {
+            sql += " WHERE is_deleted = 0 AND is_active = 1";
          }
-         else if (err !== null) {
-            console.log(err);
-         }
-         callback({});
+         sql += " ORDER BY c.year, c.term DESC";
+         this.db.all(sql, {}, (err, rows) => {
+               if (err === null && rows !== undefined) {
+                  resolve(rows);
+               }
+               else if (err !== null) {
+                  console.log(err);
+                  reject(err);
+               }
+               else
+               {
+                  reject(false);
+               }
+            });
       });
    }
 
-   assignments(course_id, include_active = true, include_deleted = true,  callback) {
-      let sql = "SELECT * FROM assignments WHERE course_id = $course_id";
-      if(include_active === true && include_deleted === false)
-      {
-         sql += " AND is_deleted = 0"; 
-      }
-      else if(include_active === false && include_deleted === true)
-      {
-         sql += " AND is_deleted = 1"; 
-      }
-      this.db.all(sql, { $course_id: course_id }, (err, rows) => {
-         if (err === null && rows !== undefined) {
-            callback(rows);
-            return;
+   assignments(course_id, include_active = true, include_deleted = true) {
+      return new Promise((resolve, reject) => {
+         let sql = "SELECT * FROM assignments WHERE course_id = $course_id";
+         if(include_active === true && include_deleted === false)
+         {
+            sql += " AND is_deleted = 0"; 
          }
-         else if (err !== null) {
-            console.log(err);
+         else if(include_active === false && include_deleted === true)
+         {
+            sql += " AND is_deleted = 1"; 
          }
-         callback({});
+         this.db.all(sql, { $course_id: course_id }, (err, rows) => {
+            if (err === null && rows !== undefined) {
+               resolve(rows);
+            }
+            else if (err !== null) {
+               console.log(err);
+               reject(err); 
+            }
+            else
+            {
+               reject(false); 
+            }
+         });
       });
    }
 
@@ -160,19 +170,23 @@ class CoursesDb {
       });
    }
 
-   forUser(user_id, callback) {
-      const sql = "SELECT * FROM courses c " +
-         " INNER JOIN course_users cu ON c.id = cu.course_id " +
-         " WHERE cu.user_id = $user_id";
-      this.db.all(sql, { $user_id: user_id }, (err, rows) => {
-         if (err === null && rows !== undefined) {
-            callback(rows);
-            return;
-         }
-         else if (err !== null) {
-            console.log(err);
-         }
-         callback({});
+   forUser(user_id) {
+      return new Promise((resolve, reject) => {
+         const sql = "SELECT * FROM courses c " +
+            " INNER JOIN course_users cu ON c.id = cu.course_id " +
+            " WHERE cu.user_id = $user_id";
+         this.db.all(sql, { $user_id: user_id }, (err, rows) => {
+            if (err === null && rows !== undefined) {
+               resolve(rows);
+            }
+            else if (err !== null) {
+               console.log(err);
+               reject(err); 
+            }
+            else {
+               reject(false); 
+            }
+         });
       });
    }
 

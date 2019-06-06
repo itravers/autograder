@@ -34,8 +34,6 @@ class SharedConfig{
          assignment: {
             //file: root_endpoint + "/api/assignment/file",
             file: this.constructRoute("/api/assignment/file"),
-            // THIS IS A TEST TO SEE IF THE PARAMETER {} SEARCH WORKS
-            TEST: this.constructRoute("/api/assignment/{a:id}/testCases", [1]),
             test_cases: root_endpoint + "/api/assignment/testCases",
             test_results: root_endpoint + "/api/assignment/testResults",
             run: root_endpoint + "/api/assignment/run",

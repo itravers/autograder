@@ -30,17 +30,16 @@ exports.info = function(req, res) {
 
 // logs in a user with given credentials 
 exports.login = function(req, res, db){
-    db.Users.authenticate(req.body.email, req.body.password, (result, err) => {
-       if (err === null) {
-          delete result.password;
-          req.session.user = result;
-          res.json({ response: result });
-       }
-       else {
-          res.json({ response: err });
-       }
-    });
- }
+   db.Users.authenticate(req.body.email, req.body.password)
+   .then(result => {
+      delete result.password;
+      req.session.user = result;
+      res.json({ response: result });
+   })
+   .catch(err => {
+      res.json({ response: err });
+   });
+}
  
  // logs out user 
 exports.logout = function(req, res) {
