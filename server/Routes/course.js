@@ -25,16 +25,15 @@ convertUser = function(user, db)
          && (user.last_name !== undefined) && (user.last_name.length > 0)
          && (user.email !== undefined) && (user.email.length > 0)
          && (user.password !== undefined) && (user.password.length > 0)) {
-           db.Users.create(user, (result, err) => {
-              if (err === null) {
-                 user.id = result;
-                 delete user.password;
-                 resolve(user);
-              }
-              else {
-                 reject(err); 
-              }
-           });
+            db.Users.create(user)
+               .then(result => {
+                  user.id = result;
+                  delete user.password;
+                  resolve(user);
+               })
+               .catch(err => {
+                  reject(err); 
+               });
         }
         else {
            reject("missing required parameters"); 

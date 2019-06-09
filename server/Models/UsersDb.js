@@ -30,7 +30,7 @@ class UsersDb {
                resolve(row);
             }
             else {
-               reject(err); 
+               reject(-1); 
             }
          });
       });
@@ -39,9 +39,8 @@ class UsersDb {
    /**
     * Creates a new user
     * @param {object} user
-    * @param {function} callback 
     */
-   create(user, callback) {
+   create(user) {
       const sql = "INSERT INTO users " +
          " (email, first_name, last_name, password) " +
          " VALUES ($email, $first_name, $last_name, $password)";
@@ -51,22 +50,22 @@ class UsersDb {
 
       //add base options
       const params = { $email: user.email, $first_name: user.first_name, $last_name: user.last_name, $password: password };
+      
+      return new Promise((resolve, reject) => {
 
-      //AC: placing db callback function into its own variable changes 
-      //*this* from local AssignmentFilesDb object to result of sqlite3 db call.
-      var local_callback = function (err) {
-         if (typeof (callback) !== "function") {
-            callback = function (x, y) { };
-         }
-         if (err === null) {
-            callback(this.lastID, null);
-         }
-         else {
-            console.log(err);
-            callback(null, err);
-         }
-      };
-      this.db.run(sql, params, local_callback);
+         //AC: placing db callback function into its own variable changes 
+         //*this* from local object to result of sqlite3 db call.
+         var local_callback = function (err) {
+            if (err === null) {
+               resolve(this.lastID);
+            }
+            else {
+               console.log(err);
+               reject(err);
+            }
+         };
+         this.db.run(sql, params, local_callback);
+      });
    }
 
    /**

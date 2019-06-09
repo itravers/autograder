@@ -22,7 +22,9 @@ class Course {
    addUser(course_id, user_id) {
       return new Promise((resolve, reject) => {
          let call = WebRequest.makePost;
-         const endpoint = this.config.endpoints.course.course_user + "/" + course_id;
+         //const endpoint = this.config.endpoints.course.course_user + "/" + course_id;
+         const path = this.config.endpoints.course.course_user; 
+         const endpoint = this.config.constructRoute(path, [course_id]); 
          call(endpoint, { user_id: user_id }, (result) => {
             if (result !== null && result !== undefined) {
                resolve(result.data.response);
@@ -41,7 +43,8 @@ class Course {
          if (this.cache_results === true) {
             call = WebRequest.makeCacheableUrlRequest;
          }
-         const endpoint = this.config.endpoints.course.all;
+         //const endpoint = this.config.endpoints.course.all;
+         const endpoint = this.config.constructRoute(this.config.endpoints.course.all);
          call(endpoint, (result) => {
             if (result !== null && result !== undefined && result.data.response !== undefined) {
                resolve(result.data.response);
@@ -60,7 +63,9 @@ class Course {
          if (this.cache_results === true) {
             call = WebRequest.makeCacheableUrlRequest;
          }
-         const endpoint = this.config.endpoints.course.active_assignments + "/" + course_id;
+         //const endpoint = this.config.endpoints.course.active_assignments + "/" + course_id;
+         const path = this.config.endpoints.course.active_assignments; 
+         const endpoint = this.config.constructRoute(path, [course_id]); 
          call(endpoint, (result) => {
             if (result !== null && result !== undefined) {
                resolve(result.data.response);
@@ -132,7 +137,9 @@ class Course {
          if (this.cache_results === true) {
             call = WebRequest.makeCacheableUrlRequest;
          }
-         const endpoint = this.config.endpoints.course.course_user;
+         //const endpoint = this.config.endpoints.course.course_user;
+         const path = this.config.endpoints.course.enrolled;
+         const endpoint = this.config.constructRoute(path);  
          call(endpoint, (result) => {
             if (result !== null && result !== undefined) {
                resolve(result.data.response);
@@ -156,7 +163,9 @@ class Course {
          if (this.cache_results === true) {
             call = WebRequest.makeCacheableUrlRequest;
          }
-         const endpoint = this.config.endpoints.course.course_user + "/" + course_id;
+         //const endpoint = this.config.endpoints.course.course_user + "/" + course_id;
+         const path = this.config.endpoints.course.course_user; 
+         const endpoint = this.config.constructRoute(path, [course_id]);
          call(endpoint, (result) => {
             if (result !== null && result !== undefined) {
                resolve(result.data.response);
@@ -172,7 +181,9 @@ class Course {
    removeUser(course_id, user_id) {
       return new Promise((resolve, reject) => {
          let call = WebRequest.makeDelete;
-         const endpoint = this.config.endpoints.course.course_user + "/" + course_id;
+         //const endpoint = this.config.endpoints.course.course_user + "/" + course_id;
+         const path = this.config.endpoints.course.course_user; 
+         const endpoint = this.config.constructRoute(path, [course_id]);
          call(endpoint, { user_id: user_id }, (result) => {
             if (result !== null && result !== undefined && result.data.response !== undefined) {
                resolve(result.data.response);
@@ -188,7 +199,9 @@ class Course {
    setCourseRole(course_id, user_id, role){
       return new Promise((resolve, reject) => {
          let call = WebRequest.makePut;
-         const endpoint = this.config.endpoints.course.course_user + "/" + course_id;
+         //const endpoint = this.config.endpoints.course.course_user + "/" + course_id;
+         const path = this.config.endpoints.course.course_user; 
+         const endpoint = this.config.constructRoute(path, [course_id]);
          call(endpoint, { user_id: user_id, role: role }, (result) => {
             if (result !== null && result !== undefined && result.data.response !== undefined) {
                resolve(result.data.response);

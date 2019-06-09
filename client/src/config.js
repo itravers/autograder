@@ -32,9 +32,9 @@ class SharedConfig{
       this.endpoints = {
          root: root_endpoint,
          assignment: {
-            //file: root_endpoint + "/api/assignment/file",
-            file: this.constructRoute("/api/assignment/file"),
-            test_cases: root_endpoint + "/api/assignment/testCases",
+            // TODO: make all uses of assignment.file go through constructRoute()
+            file: root_endpoint + "/api/assignment/file",
+            test_cases: root_endpoint + "/api/assignment/{:assignment_id}/testCases",
             test_results: root_endpoint + "/api/assignment/testResults",
             run: root_endpoint + "/api/assignment/run",
             compile: root_endpoint + "/api/assignment/compile"
@@ -44,7 +44,7 @@ class SharedConfig{
             active_assignments: root_endpoint + "/api/course/assignments/active",
             all_assignments: root_endpoint + "/api/course/assignments",
             deleted_assignments: root_endpoint + "/api/course/assignments/inactive",
-            course_user: root_endpoint + "/api/course/user"
+            course_user: root_endpoint + "/api/course/enrolled"
          },
          user: {
             create: root_endpoint + "/api/user/create",

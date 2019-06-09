@@ -5,17 +5,16 @@
        if (user.last_name !== undefined && user.last_name.length > 0) {
           if (user.email !== undefined && user.email.length > 0) {
              if (user.password !== undefined && user.password.length > 0) {
-                db.Users.create(user, (result, err) => {
-                   if (err === null) {
+                db.Users.create(user)
+                  .then(result => {
                       user.id = result;
                       delete user.password;
                       res.json({ response: user });
-                   }
-                   else {
-                      res.json({ response: err });
-                   }
-                });
-                return;
+                  })
+                  .catch(err => {
+                     res.json({ response: err });
+                  });
+               return; 
              }
           }
        }

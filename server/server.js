@@ -120,13 +120,13 @@ router.post('/assignment/:assignment_id/compile', (req, res) => assignmentRoute.
 router.get('/assignment/:aid/user/:uid/file', (req, res) => assignmentRoute.assignmentFiles(req, res, db, acl)); 
 
 // Uploads a file. :id is the assignment ID that this file will belong to.
-router.post('/assignment/:id/file', (req, res) => assignmentRoute.uploadFile(req, res, db, acl)); 
+router.post('/assignment/:aid/user/:uid/file', (req, res) => assignmentRoute.uploadFile(req, res, db, acl)); 
 
 /**
  * :id is the assignment ID that this file will belong to.   The file ID to delete 
  * should be in req.body.id.
  */
-router.delete('/assignment/:id/file', (req, res) => assignmentRoute.deleteFile(req, res, db, acl)); 
+router.delete('/assignment/:aid/user/:uid/file', (req, res) => assignmentRoute.deleteFile(req, res, db, acl)); 
 
 //Returns all available courses
 router.get('/course', (req, res) => courseRoute.courses(req, res, db)); 
