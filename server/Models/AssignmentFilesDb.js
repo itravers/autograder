@@ -32,10 +32,28 @@ class AssignmentFilesDb {
             $file_name: file_name, 
             $contents: contents 
          };
+         /*
+         return new Promise((resolve, reject) => {
+
+            //AC: placing db callback function into its own variable changes 
+            //*this* from local object to result of sqlite3 db call.
+            var local_callback = function (err) {
+               if (err === null) {
+                  resolve(this.lastID);
+               }
+               else {
+                  console.log(err);
+                  reject(err);
+               }
+            };
+            this.db.run(sql, params, local_callback);
+         });
+         */
 
          //AC: placing db callback function into its own variable changes 
          //*this* from local AssignmentFilesDb object to result of sqlite3 db call.
-         var local_callback = function(err){
+         
+            var local_callback = function(err){
             if (typeof (callback) !== "function") {
                callback = function (x, y) { };
             }
@@ -57,16 +75,34 @@ class AssignmentFilesDb {
     * @param {*} user_id 
     */
    all(assignment_id, user_id, callback){
-      const sql = "SELECT * FROM assignment_files WHERE assignment_id = $assignment_id AND owner_id = $user_id AND is_deleted = 0";
-      this.db.all(sql, {$assignment_id: assignment_id, $user_id: user_id}, (err, rows) =>{
-         if (err === null && rows !== undefined) {
-            callback(rows);
-            return;
-         }
-         else if(err !== null){
-            console.log(err);
-         }
-         callback({});
+      return new Promise((resolve, reject) => {
+         const sql = "SELECT * FROM assignment_files WHERE assignment_id = $assignment_id AND owner_id = $user_id AND is_deleted = 0";
+         // implementing this using a promise would affect the compiler files 
+         /*
+         this.db.all(sql, {$assignment_id: assignment_id, $user_id: user_id}, (err, rows) => {
+            if (err === null && rows !== undefined) {
+               resolve(rows);
+            }
+            else if (err !== null) {
+               console.log(err);
+               reject(err); 
+            }
+            else {
+               reject(); 
+            }
+         });
+         */
+         
+         this.db.all(sql, {$assignment_id: assignment_id, $user_id: user_id}, (err, rows) =>{
+            if (err === null && rows !== undefined) {
+               callback(rows);
+               return;
+            }
+            else if(err !== null){
+               console.log(err);
+            }
+            callback({});
+         });
       });
    }
 

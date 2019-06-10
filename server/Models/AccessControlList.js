@@ -70,14 +70,13 @@ class AccessControlList {
 
    userHasAssignment(user, assignment_id) {
       return new Promise((resolve, reject) => {
-         this.db.Assignments.hasUser(assignment_id, user.id, (result, err) => {
-            if (result === false) {
-               reject(false);
-            }
-            else {
-               resolve(result);
-            }
-         });
+         this.db.Assignments.hasUser(assignment_id, user.id)
+            .then(result => {
+               resolve(result);    
+            })
+            .catch(() => {
+               reject(false); 
+            });
       });
    }
 

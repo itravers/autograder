@@ -13,22 +13,21 @@ class AssignmentsDb {
     * @param {*} assignment_id 
     * @param {*} user_id 
     */
-   hasUser(assignment_id, user_id, callback){
+   hasUser(assignment_id, user_id){
       const sql = "SELECT a.id, a.course_id FROM assignments a " +
                   " INNER JOIN course_users cu ON a.course_id = cu.course_id " +
                   " WHERE user_id = $user_id AND a.id = $assignment_id " +
                   " LIMIT 1";
       const params = {$user_id: user_id, $assignment_id: assignment_id};
-      this.db.get(sql, params, (err, row) => {
-         if(typeof(callback) !== "function"){
-            callback = function(x, y){};
-         }
-         if (err === null && row !== undefined) {
-            callback(row, null);
-         }
-         else{
-            callback(false, err);
-         }
+      return new Promise((resolve, reject) => {
+         this.db.get(sql, params, (err, row) => {
+            if(err === null && row !== undefined) {
+               resolve(row); 
+            }
+            else {
+               reject(err); 
+            }
+         });
       });
    }
 }
