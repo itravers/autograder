@@ -18,7 +18,8 @@ class User {
       const self = this;
       return new Promise((resolve, reject) =>{
          let call = WebRequest.makePost;
-         const endpoint = self.config.endpoints.user.create;
+         const path = self.config.endpoints.user.create; 
+         const endpoint = self.config.constructRoute(path, []); 
          call(endpoint, {
             first_name: user.first_name,
             last_name: user.last_name,
@@ -44,7 +45,8 @@ class User {
       const self = this;
       return new Promise((resolve, reject) => {
          let call = WebRequest.makeUrlRequest;
-         const endpoint = self.config.endpoints.user.login;
+         const path = self.config.endpoints.user.login;
+         const endpoint = self.config.constructRoute(path, []); 
          call(endpoint, (result) => {
             if (result !== null
                && result !== undefined
@@ -71,7 +73,8 @@ class User {
       const self = this;
       return new Promise((resolve, reject) => {
          let call = WebRequest.makePost;
-         const endpoint = self.config.endpoints.user.login;
+         const path = self.config.endpoints.user.login;
+         const endpoint = self.config.constructRoute(path, []); 
          const user = { email: user_name, password: password };
          call(endpoint, user, (result) => {
             if (result !== null
@@ -94,7 +97,8 @@ class User {
       const self = this;
       return new Promise((resolve, reject) => {
          let call = WebRequest.makeUrlRequest;
-         const endpoint = self.config.endpoints.user.logout;
+         const path = self.config.endpoints.user.logout;
+         const endpoint = self.config.constructRoute(path, []); 
          call(endpoint, (result) => {
             if (result !== null
                && result !== undefined

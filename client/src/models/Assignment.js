@@ -57,7 +57,6 @@ class Assignment {
          if (this.cache_results === true) {
             call = WebRequest.makeCacheableUrlRequest;
          }
-         //const endpoint = this.config.endpoints.assignment.test_cases + "/" + assignment_id;
          const path = this.config.endpoints.assignment.test_cases; 
          const endpoint = this.config.constructRoute(path, [assignment_id]); 
          call(endpoint, (result) => {
@@ -101,14 +100,11 @@ class Assignment {
 
          //never allow caching of compile calls
          let call = WebRequest.makePost;
-         const compile_path = this.config.endpoints.assignment.compile; 
-         let endpoint = this.config.constructRoute(compile_path, [assignment_id]);
-         //let endpoint = this.config.endpoints.assignment.compile + "/" + assignment_id;
+         let path = this.config.endpoints.assignment.compile; 
          if (run_only === true) {
-            const run_path = this.config.endpoints.assignment.run; 
-            endpoint = this.config.constructRoute(run_path, [assignment_id]); 
-            //endpoint = this.config.endpoints.assignment.run + "/" + assignment_id;
+            path = this.config.endpoints.assignment.run; 
          }
+         const endpoint = this.config.constructRoute(path, [assignment_id]);
          call(endpoint, { stdin: test_case, test_name: test_name }, (result) => {
             if (result !== null && result !== undefined && Object.keys(result.data.response).length > 0) {
                resolve(result.data.response);

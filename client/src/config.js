@@ -36,15 +36,16 @@ class SharedConfig{
             test_cases: root_endpoint + "/api/assignment/{:assignment_id}/testCases",
             test_results: root_endpoint + "/api/assignment/{:assignment_id}/user/{:user_id}/testResults",
             run: root_endpoint + "/api/assignment/{:assignment_id}/run",
-            compile: root_endpoint + "/assignment/{:assignment_id}/compile"
+            compile: root_endpoint + "/api/assignment/{:assignment_id}/compile"
          },
          course: {
             all: root_endpoint + "/api/course",
             active_assignments: root_endpoint + "/api/course/{:id}/assignments/active",
             all_assignments: root_endpoint + "/api/course/{:id}/assignments",
             deleted_assignments: root_endpoint + "/api/course/{:id}/assignments/inactive",
+            enrolled: root_endpoint + "/api/course/enrolled",
             course_user: root_endpoint + "/api/course/{:course_id}/user",
-            enrolled: root_endpoint + "/api/course/enrolled"
+            roster: root_endpoint + "/api/course/{:course_id}/addRoster"
          },
          user: {
             create: root_endpoint + "/api/user/create",

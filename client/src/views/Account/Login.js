@@ -49,8 +49,7 @@ class LoginView extends Component {
    }
 
    render() {
-      const user_name = this.state.user_name;
-      const password = this.state.password;
+      const user_name = this.state.user_name;      const password = this.state.password;
       if(this.props.current_user.id !== undefined && this.props.current_user.id > 0)
       {
          return(<Redirect to="/assignment" />);
