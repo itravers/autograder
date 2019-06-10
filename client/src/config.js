@@ -24,7 +24,7 @@ class SharedConfig{
          path = path.replace(/{([^}]*)}/, params[next_arg]);
          next_arg++; 
       }
-      return this.root_endpoint + path; 
+      return path; 
    }
 
    buildEndpoints(){
@@ -32,19 +32,19 @@ class SharedConfig{
       this.endpoints = {
          root: root_endpoint,
          assignment: {
-            // TODO: make all uses of assignment.file go through constructRoute()
-            file: root_endpoint + "/api/assignment/file",
+            file: root_endpoint + "/api/assignment/{:aid}/user/{:uid}/file",
             test_cases: root_endpoint + "/api/assignment/{:assignment_id}/testCases",
-            test_results: root_endpoint + "/api/assignment/testResults",
-            run: root_endpoint + "/api/assignment/run",
-            compile: root_endpoint + "/api/assignment/compile"
+            test_results: root_endpoint + "/api/assignment/{:assignment_id}/user/{:user_id}/testResults",
+            run: root_endpoint + "/api/assignment/{:assignment_id}/run",
+            compile: root_endpoint + "/assignment/{:assignment_id}/compile"
          },
          course: {
             all: root_endpoint + "/api/course",
-            active_assignments: root_endpoint + "/api/course/assignments/active",
-            all_assignments: root_endpoint + "/api/course/assignments",
-            deleted_assignments: root_endpoint + "/api/course/assignments/inactive",
-            course_user: root_endpoint + "/api/course/enrolled"
+            active_assignments: root_endpoint + "/api/course/{:id}/assignments/active",
+            all_assignments: root_endpoint + "/api/course/{:id}/assignments",
+            deleted_assignments: root_endpoint + "/api/course/{:id}/assignments/inactive",
+            course_user: root_endpoint + "/api/course/{:course_id}/user",
+            enrolled: root_endpoint + "/api/course/enrolled"
          },
          user: {
             create: root_endpoint + "/api/user/create",

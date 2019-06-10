@@ -83,7 +83,7 @@ exports.compileAndRun = function(req, res, db, config, acl, Compiler) {
 }
 
  /**
-  * :id is the assignment ID that this file will belong to.   The file ID to delete 
+  * :aid is the assignment ID that this file will belong to.   The file ID to delete 
   * should be in req.body.id.
   */
  exports.deleteFile = function(req, res, db, acl) {
@@ -193,10 +193,11 @@ exports.getTestCases = function(req, res, db) {
        });
  }
  
-// Uploads a file. :id is the assignment ID that this file will belong to.
+// Uploads a file. :aid is the assignment ID that this file will belong to.
 exports.uploadFile = function(req, res, db, acl) {
     const current_user = req.session.user;
-    const assignment_id = req.params.id;
+    const assignment_id = req.params.aid;
+    const user_id = req.params.uid; 
     const uploaded_file = req.files.filepond;
     let session = req.session;
  
@@ -205,7 +206,10 @@ exports.uploadFile = function(req, res, db, acl) {
  
        //and belongs to the current assignment
        .then(result => acl.userHasAssignment(current_user, assignment_id))
- 
+
+       // and is the user that was passed as parameter 
+       .then(result => acl.isSessionUser(session, user_id))
+
        //then allow them to upload the file
        .then(result => {
           let buffer_data = Buffer.from(uploaded_file.data);

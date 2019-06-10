@@ -119,12 +119,13 @@ router.post('/assignment/:assignment_id/compile', (req, res) => assignmentRoute.
 // Retrieves all files for the specified assignment and user (if allowed to grade)
 router.get('/assignment/:aid/user/:uid/file', (req, res) => assignmentRoute.assignmentFiles(req, res, db, acl)); 
 
-// Uploads a file. :id is the assignment ID that this file will belong to.
+// Uploads a file. :aid is the assignment ID that this file will belong to;
+// :uid is the ID of the user who has the assignment. 
 router.post('/assignment/:aid/user/:uid/file', (req, res) => assignmentRoute.uploadFile(req, res, db, acl)); 
 
 /**
- * :id is the assignment ID that this file will belong to.   The file ID to delete 
- * should be in req.body.id.
+ * :aid is the assignment ID that this file will belong to. :uid is the ID of the user who has the assignment.
+ * The file ID to delete should be in req.body.id.
  */
 router.delete('/assignment/:aid/user/:uid/file', (req, res) => assignmentRoute.deleteFile(req, res, db, acl)); 
 

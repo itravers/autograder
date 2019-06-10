@@ -26,7 +26,9 @@ class Assignment {
 
    getFiles(assignment_id, user_id) {
       return new Promise((resolve, reject) => {
-         const url = this.config.endpoints.assignment.file + "/" + assignment_id + "/" + user_id;
+         //const url = this.config.endpoints.assignment.file + "/" + assignment_id + "/" + user_id;
+         const endpoint = this.config.endpoints.assignment.file; 
+         const url = this.config.constructRoute(endpoint, [assignment_id, user_id]);
          WebRequest.makeUrlRequest(url, (result) => {
             if (result !== null && result !== undefined) {
                const data = result.data.response;
@@ -99,7 +101,9 @@ class Assignment {
 
          //never allow caching of compile calls
          let call = WebRequest.makePost;
-         let endpoint = this.config.endpoints.assignment.compile + "/" + assignment_id;
+         const compile_path = this.config.endpoints.assignment.compile; 
+         let endpoint = this.config.constructRoute(compile_path, [assignment_id]);
+         //let endpoint = this.config.endpoints.assignment.compile + "/" + assignment_id;
          if (run_only === true) {
             const run_path = this.config.endpoints.assignment.run; 
             endpoint = this.config.constructRoute(run_path, [assignment_id]); 
