@@ -12,26 +12,24 @@ class TestCasesDb {
    /**
     * Returns all tests cases associated with a particular assignment
     * @param {int} assignment_id 
-    * @param {function} callback 
     */
-   forAssignment(assignment_id, callback) {
+   forAssignment(assignment_id) {
       const sql = "SELECT * FROM assignment_tests WHERE assignment_id = $aid";
       const params = { $aid: assignment_id };
-      this.db.all(sql, params, (err, rows) => {
-         if (typeof (callback) !== "function") {
-            callback = function (x, y) { };
-         }
-         if (err === null && rows !== undefined) {
-            callback(rows, null);
-         }
-         else {
-            console.log(err);
-            callback(false, err);
-         }
+      return new Promise((resolve, reject) => {
+         this.db.all(sql, params, (err, rows) => {
+            if (err === null && rows !== undefined) {
+               resolve(rows);
+            }
+            else {
+               console.log(err);
+               reject(err); 
+            }
+         });
       });
    }
 
-   log(assignment_id, user_id, test_name, test_input, test_result, callback) {
+   log(assignment_id, user_id, test_name, test_input, test_result) {
 
       const sql = "INSERT INTO test_results " +
          " (assignment_id, user_id, test_name, test_input, test_result) " +
@@ -43,22 +41,21 @@ class TestCasesDb {
          $test_input: test_input,
          $test_result: test_result
       };
+      return new Promise((resolve, reject) => {
 
-      //AC: placing db callback function into its own variable changes 
-      //*this* from local AssignmentFilesDb object to result of sqlite3 db call.
-      var local_callback = function (err) {
-         if (typeof (callback) !== "function") {
-            callback = function (x, y) { };
-         }
-         if (err === null) {
-            callback(this.lastID, null);
-         }
-         else {
-            console.log(err);
-            callback(null, err);
-         }
-      };
-      this.db.run(sql, params, local_callback);
+         //AC: placing db callback function into its own variable changes 
+         //*this* from local AssignmentFilesDb object to result of sqlite3 db call.
+         var local_callback = function (err) {
+            if (err === null) {
+               resolve(this.lastID);
+            }
+            else {
+               console.log(err);
+               reject(err); 
+            }
+         };
+         this.db.run(sql, params, local_callback);
+      });
    }
 
    testResults(assignment_id, user_id) {

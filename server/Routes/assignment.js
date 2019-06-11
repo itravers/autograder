@@ -71,14 +71,22 @@ exports.compileAndRun = function(req, res, db, config, acl, Compiler) {
 
       // log test results in database 
       .then((result) => {
-         db.Assignments.TestCases.log(assignment_id, current_user.id, test_name, stdin, result, () => {
-            res.json({ response: result });
-         });
+         db.Assignments.TestCases.log(assignment_id, current_user.id, test_name, stdin, result)
+            .then(() => {
+               res.json({ response: result });
+            })
+            .catch(log_err => {
+               res.json({ response: log_err });
+            });
       })
       .catch((err) => {
-         db.Assignments.TestCases.log(assignment_id, current_user.id, test_name, stdin, err.message, () => {
-            res.json({ response: err.message });
-         });
+         db.Assignments.TestCases.log(assignment_id, current_user.id, test_name, stdin, err.message)
+            .then(() => {
+               res.json({ response: err.message });
+            })
+            .catch(log_err => {
+               res.json({ response: log_err });
+            });
       });
 }
 
@@ -117,14 +125,13 @@ exports.compileAndRun = function(req, res, db, config, acl, Compiler) {
 
 // get test cases for the given assignment 
 exports.getTestCases = function(req, res, db) {
-    db.Assignments.TestCases.forAssignment(req.params.assignment_id, (result, err) => {
-       if (!err) {
-          res.json({ response: result });
-       }
-       else {
-          res.json({ response: err });
-       }
-    });
+    db.Assignments.TestCases.forAssignment(req.params.assignment_id)
+      .then(result => {
+         res.json({ response: result });
+      })
+      .catch(err => {
+         res.json({ response: err });
+      });
  }
  
  // gets user's test results for this assignment, if the user has permission
@@ -181,16 +188,24 @@ exports.getTestCases = function(req, res, db) {
        })
        
        // log test results in database 
-       .then((result) => {
-          db.Assignments.TestCases.log(assignment_id, current_user.id, test_name, stdin, result, () => {
-             res.json({ response: result });
-          });
-       })
-       .catch((err) => {
-          db.Assignments.TestCases.log(assignment_id, current_user.id, test_name, stdin, err.message, () => {
-             res.json({ response: err.message });
-          });
-       });
+      .then((result) => {
+         db.Assignments.TestCases.log(assignment_id, current_user.id, test_name, stdin, result)
+            .then(() => {
+               res.json({ response: result });
+            })
+            .catch(log_err => {
+               res.json({ response: log_err });
+            });
+      })
+      .catch((err) => {
+         db.Assignments.TestCases.log(assignment_id, current_user.id, test_name, stdin, err.message)
+            .then(() => {
+               res.json({ response: err.message });
+            })
+            .catch(log_err => {
+               res.json({ response: log_err });
+            });
+      });
  }
  
 // Uploads a file. :aid is the assignment ID that this file will belong to.
