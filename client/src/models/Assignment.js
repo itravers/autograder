@@ -11,9 +11,11 @@ class Assignment {
       this.compile = this.compile.bind(this);
    }
 
-   removeFile(file) {
+   removeFile(file, assignment_id) {
       return new Promise((resolve, reject) => {
-         WebRequest.makeDelete(this.config.endpoints.assignment.file, { id: file.serverId }, (result) => {
+         const path = this.config.endpoints.assignment.file;
+         const endpoint = this.config.constructRoute(path, [assignment_id]);
+         WebRequest.makeDelete(endpoint, { id: file.serverId }, (result) => {
             if (result !== null && result !== undefined) {
                resolve(file.file.name);
             }
@@ -26,8 +28,7 @@ class Assignment {
 
    getFiles(assignment_id, user_id) {
       return new Promise((resolve, reject) => {
-         //const url = this.config.endpoints.assignment.file + "/" + assignment_id + "/" + user_id;
-         const endpoint = this.config.endpoints.assignment.file; 
+         const endpoint = this.config.endpoints.assignment.user_files; 
          const url = this.config.constructRoute(endpoint, [assignment_id, user_id]);
          WebRequest.makeUrlRequest(url, (result) => {
             if (result !== null && result !== undefined) {

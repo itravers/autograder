@@ -42,7 +42,8 @@ class Course {
          if (this.cache_results === true) {
             call = WebRequest.makeCacheableUrlRequest;
          }
-         const endpoint = this.config.constructRoute(this.config.endpoints.course.all, []);
+         const path = this.config.endpoints.course.all; 
+         const endpoint = this.config.constructRoute(path, []);
          call(endpoint, (result) => {
             if (result !== null && result !== undefined && result.data.response !== undefined) {
                resolve(result.data.response);

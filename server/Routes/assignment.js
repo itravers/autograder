@@ -197,7 +197,6 @@ exports.getTestCases = function(req, res, db) {
 exports.uploadFile = function(req, res, db, acl) {
     const current_user = req.session.user;
     const assignment_id = req.params.aid;
-    const user_id = req.params.uid; 
     const uploaded_file = req.files.filepond;
     let session = req.session;
  
@@ -206,9 +205,6 @@ exports.uploadFile = function(req, res, db, acl) {
  
        //and belongs to the current assignment
        .then(result => acl.userHasAssignment(current_user, assignment_id))
-
-       // and is the user that was passed as parameter 
-       .then(result => acl.isSessionUser(session, user_id))
 
        //then allow them to upload the file
        .then(result => {
