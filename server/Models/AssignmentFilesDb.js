@@ -19,21 +19,20 @@ class AssignmentFilesDb {
     * @param {*} data 
     * @param {*} callback 
     */
-   add(user_id, assignment_id, file_name, contents, callback) {
-      
-      //remove any prior version of this file before adding new version
-      this.removePrior(assignment_id, file_name, (result) => {
-         const sql = "INSERT INTO assignment_files " +
-            " (assignment_id, owner_id, file_name, contents) " +
-            " VALUES ($assignment_id, $user_id, $file_name, $contents)";
-         const params = { 
-            $user_id: user_id, 
-            $assignment_id: assignment_id, 
-            $file_name: file_name, 
-            $contents: contents 
-         };
-         /*
-         return new Promise((resolve, reject) => {
+   add(user_id, assignment_id, file_name, contents) {
+      return new Promise((resolve, reject) => {
+
+         //remove any prior version of this file before adding new version
+         this.removePrior(assignment_id, file_name, (result) => {
+            const sql = "INSERT INTO assignment_files " +
+               " (assignment_id, owner_id, file_name, contents) " +
+               " VALUES ($assignment_id, $user_id, $file_name, $contents)";
+            const params = { 
+               $user_id: user_id, 
+               $assignment_id: assignment_id, 
+               $file_name: file_name, 
+               $contents: contents 
+            };
 
             //AC: placing db callback function into its own variable changes 
             //*this* from local object to result of sqlite3 db call.
@@ -48,24 +47,6 @@ class AssignmentFilesDb {
             };
             this.db.run(sql, params, local_callback);
          });
-         */
-
-         //AC: placing db callback function into its own variable changes 
-         //*this* from local AssignmentFilesDb object to result of sqlite3 db call.
-         
-            var local_callback = function(err){
-            if (typeof (callback) !== "function") {
-               callback = function (x, y) { };
-            }
-            if (err === null) {
-               callback(this.lastID, null);
-            }
-            else {
-               console.log(err);
-               callback(null, err);
-            }
-         };
-         this.db.run(sql, params, local_callback);
       });
    }
 

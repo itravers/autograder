@@ -219,29 +219,20 @@ exports.uploadFile = function(req, res, db, acl) {
     acl.isLoggedIn(session)
  
        //and belongs to the current assignment
-       .then(result => acl.userHasAssignment(current_user, assignment_id))
+       .then(() => acl.userHasAssignment(current_user, assignment_id))
 
        //then allow them to upload the file
-       .then(result => {
+       .then(() => {
           let buffer_data = Buffer.from(uploaded_file.data);
           const text = buffer_data.toString('utf8');
-          /*
+
           db.AssignmentFiles.add(current_user.id, assignment_id, uploaded_file.name, text)
             .then(result => {
                res.type('html').send(String(result));
             })
-            .catch(() => {
+            .catch(err => {
                return res.status(500).send(err);
-            })
-            */
-          db.AssignmentFiles.add(current_user.id, assignment_id, uploaded_file.name, text, (result, err) => {
-             if (result !== null) {
-                res.type('html').send(String(result));
-             }
-             else {
-                return res.status(500).send(err);
-             }
-          });
+            });
        })
        .catch(() => {
           return res.status(500).send("Invalid user");
