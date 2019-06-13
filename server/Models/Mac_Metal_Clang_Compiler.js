@@ -42,40 +42,43 @@ class Compiler {
       return new Promise((resolve, reject) => {
 
          //grab all files from the DB
-         this.db.AssignmentFiles.all(this.assignment_id, this.student_id, (files) => {
+         this.db.AssignmentFiles.all(this.assignment_id, this.student_id)
+            .then(files => {
+               if (files.length === 0) {
+                  reject("No files found");
+               }
 
-            if (files.length === 0) {
-               reject("No files found");
-            }
+               //add stdin as a file
+               files.push({file_name: "stdin.txt", contents: this.stdin});
 
-            //add stdin as a file
-            files.push({file_name: "stdin.txt", contents: this.stdin});
+               //and throw them into a temp workspace
+               let write_counter = 0;
 
-            //and throw them into a temp workspace
-            let write_counter = 0;
-
-            if (fs.existsSync(this.assignment_workspace) === false) {
-               fs.mkdirSync(this.assignment_workspace);
-            }
-            if (fs.existsSync(this.student_workspace) === false) {
-               fs.mkdirSync(this.student_workspace);
-            }
-            for (let file of files) {
-               const file_path = this.student_workspace + "/" + file.file_name;
-               file.path = file_path;
-               fs.writeFile(file_path, file.contents, { encoding: "utf8" }, (err) => {
-                  if (!err) {
-                     write_counter++;
-                     if (write_counter === files.length) {
-                        resolve(files);
+               if (fs.existsSync(this.assignment_workspace) === false) {
+                  fs.mkdirSync(this.assignment_workspace);
+               }
+               if (fs.existsSync(this.student_workspace) === false) {
+                  fs.mkdirSync(this.student_workspace);
+               }
+               for (let file of files) {
+                  const file_path = this.student_workspace + "/" + file.file_name;
+                  file.path = file_path;
+                  fs.writeFile(file_path, file.contents, { encoding: "utf8" }, (err) => {
+                     if (!err) {
+                        write_counter++;
+                        if (write_counter === files.length) {
+                           resolve(files);
+                        }
                      }
-                  }
-                  else {
-                     reject(err);
-                  }
-               });
-            }
-         });
+                     else {
+                        reject(err);
+                     }
+                  });
+               }
+            })
+            .catch(err => {
+               reject(err); 
+            });
       });
    }
 

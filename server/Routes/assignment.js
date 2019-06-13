@@ -20,17 +20,20 @@ exports.assignmentFiles = function(req, res, db, acl) {
       //if this succeeds, allow caller to use the specified user ID.  Otherwise, just
       //use the caller's ID instead
       .then((result) => acl.canGradeAssignment(current_user, result.course_id))
-      .then(() => {
-         db.AssignmentFiles.all(assignment_id, user_id, (data) => {
-            return res.json({ response: data });
-         })
+      .then(() => db.AssignmentFiles.all(assignment_id, user_id))
+      .then(data => { 
+         return res.json({ response: data });
       })
       .catch(() => {
 
          //only run if first catch was not triggered
          if (has_error === false) {
-            db.AssignmentFiles.all(assignment_id, current_user.id, (data) => {
+            db.AssignmentFiles.all(assignment_id, current_user.id)
+            .then(data => { 
                return res.json({ response: data });
+            })
+            .catch(err => {
+               return res.status(500).send("Error");
             });
          }
          else {

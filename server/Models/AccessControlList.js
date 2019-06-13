@@ -13,8 +13,10 @@ class AccessControlList {
    canGradeAssignment(user, course_id){
       return new Promise((resolve, reject) => {
          this.db.Courses.canGrade(course_id, user.id)
-         .then(result => resolve(result))
-         .catch(err => reject(err));
+         .then(result => 
+            resolve(result))
+         .catch(err => 
+            reject(err));
       });
    }
 

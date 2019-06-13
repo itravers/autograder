@@ -59,11 +59,9 @@ class AssignmentFilesDb {
     * @param {*} assignment_id 
     * @param {*} user_id 
     */
-   all(assignment_id, user_id, callback){
+   all(assignment_id, user_id){
       return new Promise((resolve, reject) => {
          const sql = "SELECT * FROM assignment_files WHERE assignment_id = $assignment_id AND owner_id = $user_id AND is_deleted = 0";
-         // implementing this using a promise would affect the compiler files 
-         /*
          this.db.all(sql, {$assignment_id: assignment_id, $user_id: user_id}, (err, rows) => {
             if (err === null && rows !== undefined) {
                resolve(rows);
@@ -75,18 +73,6 @@ class AssignmentFilesDb {
             else {
                reject(); 
             }
-         });
-         */
-         
-         this.db.all(sql, {$assignment_id: assignment_id, $user_id: user_id}, (err, rows) =>{
-            if (err === null && rows !== undefined) {
-               callback(rows);
-               return;
-            }
-            else if(err !== null){
-               console.log(err);
-            }
-            callback({});
          });
       });
    }
@@ -143,22 +129,8 @@ class AssignmentFilesDb {
    removePrior(assignment_id, file_name) {
       const sql = "UPDATE assignment_files set is_deleted = 1 WHERE assignment_id = $assignment_id AND file_name = $file_name ";
       const params = { $assignment_id: assignment_id, $file_name: file_name };
-      
-      /*
-      this.db.run(sql, params, (err) => {
-         if (typeof (callback) !== "function") {
-            callback = function (x, y) { };
-         }
-         if (err === null) {
-            callback(this.changes, null);
-         }
-         else {
-            console.log(err);
-            callback(null, err);
-         }
-      });*/
 
-     return new Promise((resolve, reject) => {
+      return new Promise((resolve, reject) => {
          //AC: placing db callback function into its own variable changes 
          //*this* from local object to result of sqlite3 db call.
          var local_callback = function (err) {
