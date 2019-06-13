@@ -42,8 +42,9 @@ class Compiler {
       return new Promise((resolve, reject) => {
 
          //grab all files from the DB
-         this.db.AssignmentFiles.all(this.assignment_id, this.student_id, (files) => {
-
+         //this.db.AssignmentFiles.all(this.assignment_id, this.student_id, (files) => {
+         this.db.AssignmentFiles.all(this.assignment_id, this.student_id)
+         .then(files => {
             if (files.length === 0) {
                reject("No files found");
             }
@@ -75,7 +76,10 @@ class Compiler {
                   }
                });
             }
-         });
+         })
+         .catch(err => {
+            reject(err); 
+         })
       });
    }
 
