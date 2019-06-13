@@ -82,13 +82,17 @@ class AccessControlList {
 
    userOwnsFile(user, file_id) {
       return new Promise((resolve, reject) => {
-         this.db.AssignmentFiles.get(file_id, (result, err) => {
-            if (result !== null && result.owner_id === user.id) {
-               resolve(true);
+        this.db.AssignmentFiles.get(file_id)
+         .then(result => {
+            if(result.owner_id == user.id) {
+               resolve(true); 
             }
             else {
-               reject(false);
+               reject(false); 
             }
+         })
+         .catch(() => {
+            reject(false); 
          });
       });
    }

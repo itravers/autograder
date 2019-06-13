@@ -23,7 +23,8 @@ class AssignmentFilesDb {
       return new Promise((resolve, reject) => {
 
          //remove any prior version of this file before adding new version
-         this.removePrior(assignment_id, file_name, (result) => {
+         this.removePrior(assignment_id, file_name)
+         .then(() => {
             const sql = "INSERT INTO assignment_files " +
                " (assignment_id, owner_id, file_name, contents) " +
                " VALUES ($assignment_id, $user_id, $file_name, $contents)";
@@ -46,7 +47,10 @@ class AssignmentFilesDb {
                }
             };
             this.db.run(sql, params, local_callback);
-         });
+         })
+         .catch(err => {
+            reject(err); 
+         }); 
       });
    }
 
@@ -92,41 +96,42 @@ class AssignmentFilesDb {
     * @param {*} file_id 
     * @param {*} callback 
     */
-   get(file_id, callback){
+   get(file_id){
       const sql = "SELECT * FROM assignment_files WHERE id = $file_id";
       const params = { $file_id: file_id };
-      this.db.get(sql, params, (err, row) => {
-         if (typeof (callback) !== "function") {
-            callback = function (x, y) { };
-         }
-         if (err === null && row !== undefined) {
-            callback(row, null);
-         }
-         else {
-            callback(null, err);
-         }
-      });
+      return new Promise((resolve, reject) => {
+         this.db.get(sql, params, (err, row) => {
+            if (err === null && row !== undefined) {
+               resolve(row);
+            }
+            else {
+               reject(err);
+            }
+         });
+     });
    }
 
    /**
     * Soft-deletes a file from the database
     * @param {*} id 
-    * @param {*} callback 
     */
-   remove(id, callback) {
+   remove(id) {
       const sql = "UPDATE assignment_files set is_deleted = 1 WHERE id = $id ";
       const params = { $id: id };
-      this.db.run(sql, params, (err) => {
-         if (typeof (callback) !== "function") {
-            callback = function (x, y) { };
-         }
-         if (err === null) {
-            callback(this.changes, null);
-         }
-         else {
-            console.log(err);
-            callback(null, err);
-         }
+     return new Promise((resolve, reject) => {
+
+         //AC: placing db callback function into its own variable changes 
+         //*this* from local object to result of sqlite3 db call.
+         var local_callback = function (err) {
+            if (err === null) {
+               resolve(this.changes);
+            }
+            else {
+               console.log(err);
+               reject(err);
+            }
+         };
+         this.db.run(sql, params, local_callback);
       });
    }
 
@@ -134,11 +139,12 @@ class AssignmentFilesDb {
     * Removes (soft deletes) of prior versions of a given file for a given assignment
     * @param {*} assignment_id 
     * @param {*} file_name 
-    * @param {*} callback 
     */
-   removePrior(assignment_id, file_name, callback) {
+   removePrior(assignment_id, file_name) {
       const sql = "UPDATE assignment_files set is_deleted = 1 WHERE assignment_id = $assignment_id AND file_name = $file_name ";
       const params = { $assignment_id: assignment_id, $file_name: file_name };
+      
+      /*
       this.db.run(sql, params, (err) => {
          if (typeof (callback) !== "function") {
             callback = function (x, y) { };
@@ -150,7 +156,22 @@ class AssignmentFilesDb {
             console.log(err);
             callback(null, err);
          }
-      });
+      });*/
+
+     return new Promise((resolve, reject) => {
+         //AC: placing db callback function into its own variable changes 
+         //*this* from local object to result of sqlite3 db call.
+         var local_callback = function (err) {
+            if (err === null) {
+               resolve(this.changes);
+            }
+            else {
+               console.log(err);
+               reject(err);
+            }
+         };
+         this.db.run(sql, params, local_callback);
+     });
    }
 }
 

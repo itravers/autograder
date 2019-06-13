@@ -107,20 +107,19 @@ exports.compileAndRun = function(req, res, db, config, acl, Compiler) {
 
       //then make the call
       .then(() => {
-         db.AssignmentFiles.remove(file_id, (changes, err) => {
-            if (err === null) {
-               return res.json({ response: file_id });
-            }
-            else {
+
+         db.AssignmentFiles.remove(file_id)
+            .then(() => {
+               return res.json({ response: file_id }); 
+            })
+            .catch(err => {
                console.log(err);
                return res.status(500).send("Error");
-            }
-         });
+            });
       })
       .catch((error) => {
          return res.status(500).send("Error");
       });
-
 }
 
 // get test cases for the given assignment 
