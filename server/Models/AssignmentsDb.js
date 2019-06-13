@@ -9,7 +9,7 @@ class AssignmentsDb {
    }
 
    /**
-    * Determines whether or not the supplied user is attached to the supplied assignment
+    * Determines whether or not the supplied user is attached to the supplied assignment.
     * @param {*} assignment_id 
     * @param {*} user_id 
     */

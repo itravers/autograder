@@ -68,8 +68,7 @@ if (config.compile_platform === "unix") {
    Compiler = require('./Models/Mac_Metal_Clang_Compiler.js');
 }
 else if (config.compile_platform === "windows") {
-   //Compiler = require('./Models/Windows_Metal_MSVC_Compiler.js');
-   Compiler = require('./Models/Mac_Metal_Clang_Compiler.js');
+   Compiler = require('./Models/Windows_Metal_MSVC_Compiler.js');
 }
 
 app.use((req, res, next) => {

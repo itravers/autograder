@@ -16,8 +16,8 @@ class AssignmentFilesDb {
     * Adds a new file for the supplied user / assignment combo.
     * @param {*} user_id 
     * @param {*} assignment_id 
-    * @param {*} data 
-    * @param {*} callback 
+    * @param {*} file_name
+    * @param {*} contents  
     */
    add(user_id, assignment_id, file_name, contents) {
       return new Promise((resolve, reject) => {
@@ -55,7 +55,7 @@ class AssignmentFilesDb {
    }
 
    /**
-    * Returns all assignments for the specified user
+    * Returns all assignments for the specified user.
     * @param {*} assignment_id 
     * @param {*} user_id 
     */
@@ -78,9 +78,8 @@ class AssignmentFilesDb {
    }
 
    /**
-    * Returns a single file based on its unique ID
+    * Returns a single file based on its unique ID.
     * @param {*} file_id 
-    * @param {*} callback 
     */
    get(file_id){
       const sql = "SELECT * FROM assignment_files WHERE id = $file_id";
@@ -98,7 +97,7 @@ class AssignmentFilesDb {
    }
 
    /**
-    * Soft-deletes a file from the database
+    * Soft-deletes a file from the database.
     * @param {*} id 
     */
    remove(id) {
@@ -122,7 +121,7 @@ class AssignmentFilesDb {
    }
 
    /**
-    * Removes (soft deletes) of prior versions of a given file for a given assignment
+    * Removes (soft deletes) of prior versions of a given file for a given assignment.
     * @param {*} assignment_id 
     * @param {*} file_name 
     */

@@ -14,6 +14,11 @@ class CoursesDb {
       this.canModify = this.canModify.bind(this);
    }
 
+   /**
+    * Returns true if the user identified by user_id is the logged-in user.
+    * @param {*} session 
+    * @param {*} user_id
+    */
    addCourse(school_id, name, term, year) {
       const sql = "INSERT INTO courses(school_id, name, term, year) VALUES($school_id, $name, $term, $year)";
       const params = { $school_id: school_id, $name: name, $term: term, $year: year }
