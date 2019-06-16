@@ -7,6 +7,7 @@ class TestCasesDb {
 
       this.forAssignment = this.forAssignment.bind(this);
       this.log = this.log.bind(this);
+      this.testResults = this.testResults.bind(this); 
    }
 
    /**
@@ -29,6 +30,14 @@ class TestCasesDb {
       });
    }
 
+   /**
+    * Records test results in the database. 
+    * @param {*} assignment_id 
+    * @param {*} user_id 
+    * @param {*} test_name 
+    * @param {*} test_input 
+    * @param {*} test_result 
+    */
    log(assignment_id, user_id, test_name, test_input, test_result) {
 
       const sql = "INSERT INTO test_results " +
@@ -58,6 +67,11 @@ class TestCasesDb {
       });
    }
 
+   /**
+    * Returns test results for a given user's assignment. 
+    * @param {*} assignment_id 
+    * @param {*} user_id 
+    */
    testResults(assignment_id, user_id) {
       return new Promise((resolve, reject) => {
          const sql = "SELECT * FROM test_results WHERE assignment_id = $assignment_id AND user_id = $user_id ORDER BY date_run DESC, test_name";

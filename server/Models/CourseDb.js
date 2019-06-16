@@ -9,15 +9,21 @@ class CoursesDb {
       this.addUser = this.addUser.bind(this); 
       this.all = this.all.bind(this);
       this.assignments = this.assignments.bind(this);
-      this.forUser = this.forUser.bind(this);
       this.canGrade = this.canGrade.bind(this);
       this.canModify = this.canModify.bind(this);
+      this.courseUsers = this.courseUsers.bind(this); 
+      this.forUser = this.forUser.bind(this);
+      this.isUnique = this.isUnique.bind(this);
+      this.removeUser = this.removeUser.bind(this); 
+      this.setCourseRole = this.setCourseRole.bind(this); 
    }
 
    /**
-    * Returns true if the user identified by user_id is the logged-in user.
-    * @param {*} session 
-    * @param {*} user_id
+    * Adds a new course with the given information to the database.
+    * @param {*} school_id 
+    * @param {*} name
+    * @param {*} term 
+    * @param {*} year 
     */
    addCourse(school_id, name, term, year) {
       const sql = "INSERT INTO courses(school_id, name, term, year) VALUES($school_id, $name, $term, $year)";
@@ -40,6 +46,11 @@ class CoursesDb {
       });
    }
 
+   /**
+    * Adds an existing user to a course. 
+    * @param {*} course_id 
+    * @param {*} user_id
+    */
    addUser(course_id, user_id) {
       const sql = "INSERT INTO course_users (course_id, user_id) VALUES($course_id, $user_id)";
       const params = { $course_id: course_id, $user_id: user_id }
@@ -61,6 +72,10 @@ class CoursesDb {
       });
    }
 
+   /**
+    * Returns all courses.
+    * @param {*} include_deleted 
+    */
    all(include_deleted = false) {
       return new Promise((resolve, reject) => { 
          let sql = "SELECT c.*, s.name AS school_name, s.acronym  FROM courses c INNER JOIN schools s ON c.school_id = s.id";
@@ -84,6 +99,13 @@ class CoursesDb {
       });
    }
 
+   /**
+    * Returns active and/or deleted assignments for a given course, depending on values passed 
+    * for include_active and include_deleted. 
+    * @param {*} course_id 
+    * @param {*} include_active 
+    * @param {*} include_deleted 
+    */
    assignments(course_id, include_active = true, include_deleted = true) {
       return new Promise((resolve, reject) => {
          let sql = "SELECT * FROM assignments WHERE course_id = $course_id";
@@ -111,6 +133,11 @@ class CoursesDb {
       });
    }
 
+   /**
+    * Returns true if the given user is permitted to grade assignments for this course.
+    * @param {*} course_id 
+    * @param {*} user_id 
+    */
    canGrade(course_id, user_id) {
       return new Promise((resolve, reject) => {
          const sql = "SELECT * FROM course_users "
@@ -132,6 +159,11 @@ class CoursesDb {
       });
    }
 
+   /**
+    * Returns true if the given user is permitted to modify this course.
+    * @param {*} course_id 
+    * @param {*} user_id
+    */
    canModify(course_id, user_id) {
       return new Promise((resolve, reject) => {
          const sql = "SELECT * FROM course_users "
@@ -153,6 +185,10 @@ class CoursesDb {
       });
    }
 
+   /**
+    * Returns all users associated with a course.
+    * @param {*} course_id 
+    */
    courseUsers(course_id) {
       return new Promise((resolve, reject) => {
          let sql = "SELECT u.first_name, u.last_name, u.email, cu.* "
@@ -175,6 +211,10 @@ class CoursesDb {
       });
    }
 
+   /**
+    * Returns all courses that the user is taking. 
+    * @param {*} user_id 
+    */
    forUser(user_id) {
       return new Promise((resolve, reject) => {
          const sql = "SELECT * FROM courses c " +
@@ -195,7 +235,13 @@ class CoursesDb {
       });
    }
 
-   //ensures that the combination of school, name, term, and year are all unique
+   /** 
+    * Ensures that the combination of school, name, term, and year are all unique.
+    * @param {*} school_id
+    * @param {*} name
+    * @param {*} term
+    * @param {*} year
+    */
    isUnique(school_id, name, term, year) {
       return new Promise((resolve, reject) => {
          const sql = "SELECT * FROM courses "
@@ -217,6 +263,11 @@ class CoursesDb {
       });
    }
 
+   /**
+    * Removes the user from the selected course. 
+    * @param {*} course_id 
+    * @param {*} user_id 
+    */
    removeUser(course_id, user_id) {
       const sql = "DELETE FROM course_users WHERE course_id = $course_id AND user_id = $user_id";
       const params = { $course_id: course_id, $user_id: user_id }
@@ -238,6 +289,12 @@ class CoursesDb {
       });
    }
 
+   /**
+    * Sets the given user's role in the course. 
+    * @param {*} course_id 
+    * @param {*} user_id 
+    * @param {*} role 
+    */
    setCourseRole(course_id, user_id, role){
       const sql = "UPDATE course_users SET course_role = $role WHERE course_id = $course_id AND user_id = $user_id";
       const params = { $course_id: course_id, $user_id: user_id, $role: role }

@@ -14,12 +14,16 @@ class Compiler {
       this.student_workspace = this.assignment_workspace + "/" + student_id;
       this.stdin = stdin;
 
-      this.compileFiles = this.compileFiles.bind(this);
-      this.loadFiles = this.loadFiles.bind(this);
-      this.runFiles = this.runFiles.bind(this);
       this.begin = this.begin.bind(this);
+      this.loadFiles = this.loadFiles.bind(this);
+      this.compileFiles = this.compileFiles.bind(this);
+      this.runFiles = this.runFiles.bind(this);
+      this.canRunFiles = this.runFiles.bind(this); 
    }
 
+   /**
+    * Start the process of compiling and running code.
+    */
    begin() {
       return new Promise((resolve, reject) => {
          this.loadFiles()

@@ -15,16 +15,21 @@ class Compiler {
       this.stdin = stdin;
       this.timeout = timeout;
 
-      this.compileFiles = this.compileFiles.bind(this);
+      this.begin = this.begin.bind(this);
       this.loadFiles = this.loadFiles.bind(this);
+      this.compileFiles = this.compileFiles.bind(this);
       this.createDockerFile = this.createDockerFile.bind(this);
+      this.createRunFile = this.createRunFile.bind(this);
       this.createDockerBuildFile = this.createDockerBuildFile.bind(this);
       this.createDockerRunFile = this.createDockerRunFile.bind(this);
-      this.createRunFile = this.createRunFile.bind(this);
+      this.buildDockerContainer = this.buildDockerContainer.bind(this); 
       this.runDockerContainer = this.runDockerContainer.bind(this);
-      this.begin = this.begin.bind(this);
+      this.canRunFiles = this.canRunFiles.bind(this); 
    }
 
+   /**
+    * Start the process of compiling and running code.
+    */
    begin() {
       return new Promise((resolve, reject) => {
          this.loadFiles()
@@ -123,7 +128,9 @@ class Compiler {
       });
    }
 
-   //creates docker file that will run the untrusted code
+   /** 
+    * Creates docker file that will run the untrusted code.
+    */
    createDockerFile() {
       return new Promise((resolve, reject) => {
          const absolute_path = path.resolve(this.student_workspace);
@@ -146,7 +153,9 @@ class Compiler {
       });
    }
 
-   //creates the run.bat file that will be responsible for running the user's code on the supplied stdin
+   /** 
+    * Creates the run.bat file that will be responsible for running the user's code on the supplied stdin.
+    */
    createRunFile() {
 
       return new Promise((resolve, reject) => {
@@ -168,7 +177,9 @@ class Compiler {
       });
    }
 
-   //create BATCH file that will build the docker container
+   /** 
+    * Create BATCH file that will build the docker container.
+    */
    createDockerBuildFile() {
       return new Promise((resolve, reject) => {
 
@@ -190,7 +201,9 @@ class Compiler {
       });
    }
 
-   //create BATCH file that will run the docker container
+   /** 
+    * Create BATCH file that will run the docker container.
+    */
    createDockerRunFile() {
       return new Promise((resolve, reject) => {
 

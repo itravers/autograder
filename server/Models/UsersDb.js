@@ -11,6 +11,7 @@ class UsersDb {
       this.create = this.create.bind(this);
       this.exists = this.exists.bind(this);
       this.hash_password = this.hash_password.bind(this);
+      this.userRow = this.userRow.bind(this); 
    }
 
 
@@ -70,7 +71,7 @@ class UsersDb {
 
    /**
     * Returns true if the user exists in the system
-    * @param {} user_name 
+    * @param {*} user_name 
     */
    exists(user_name){
       const sql = "SELECT * FROM users WHERE email = $email LIMIT 1";
@@ -87,10 +88,22 @@ class UsersDb {
       });
    }
 
+   /**
+    * Hashes the supplied password.  By convention, salt should be the user's email.
+    * @param {*} password 
+    * @param {*} salt 
+    */
+   hash_password(password, salt) {
+      let hasher = crypto.createHash(this.crypto_method);
+      password += this.hash_salt + salt;
+      hasher.update(password);
+      password = hasher.digest('hex');
+      return password;
+   }
+
    /** 
     * Selects information from users table for requested user 
     * @param {*} email
-    * @param {function} callback
     */
    userRow(email) {
       const sql = "SELECT * FROM users WHERE email = $email LIMIT 1"; 
@@ -105,19 +118,6 @@ class UsersDb {
             }
          });
       });
-   }
-
-   /**
-    * Hashes the supplied password.  By convention, salt should be the user's email.
-    * @param {*} password 
-    * @param {*} salt 
-    */
-   hash_password(password, salt) {
-      let hasher = crypto.createHash(this.crypto_method);
-      password += this.hash_salt + salt;
-      hasher.update(password);
-      password = hasher.digest('hex');
-      return password;
    }
 }
 
