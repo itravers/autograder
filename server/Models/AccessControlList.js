@@ -2,6 +2,7 @@ class AccessControlList {
 
    /**
     * AccessControlList constructor.
+    * @class
     * @param {*} db The database connection. 
     */
    constructor(db) {
@@ -156,9 +157,15 @@ class AccessControlList {
 }
 
 /**
+ * An object containing methods to allow or deny users permission to 
+ *    alter information in the database. 
+ * @typedef {Object} AccessControlList
+ */
+
+/**
  * Creates a new AccessControlList.
  * @param {Object} db_connection Database connection.
- * @returns {Object} Instance of AccessControlList.
+ * @returns {AccessControlList} Instance of AccessControlList.
  */
 exports.createACL = function (db_connection) {
    return new AccessControlList(db_connection);

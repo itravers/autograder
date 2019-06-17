@@ -3,6 +3,11 @@ const crypto = require('crypto');
 
 class UsersDb {
 
+   /**
+    * UsersDb constructor.
+    * @param {Object} db_connection The database connection. 
+    * @param {String} crypto_method Cryptographic hash method.
+    */
    constructor(db_connection, crypto_method) {
       this.db = db_connection;
       this.crypto_method = crypto_method;
@@ -17,9 +22,9 @@ class UsersDb {
 
    /**
     * Attempts to authenticate the supplied email / password combo.  
-    * Returns user if valid, -1 otherwise.
-    * @param {*} email 
-    * @param {*} password 
+    * @param {String} email The supplied email. 
+    * @param {String} password The suppllied password. 
+    * @returns {Promise} Resolves with user if valid; rejects with -1 otherwise. 
     */
    authenticate(email, password) {
       const sql = "SELECT * FROM users WHERE email = $email AND password = $password LIMIT 1";
@@ -38,8 +43,9 @@ class UsersDb {
    }
 
    /**
-    * Creates a new user
-    * @param {object} user
+    * Creates a new user.
+    * @param {Object} user The user to create. 
+    * @returns {Promise} Resolves with the new user's ID if successful; rejects with error otherwise. 
     */
    create(user) {
       const sql = "INSERT INTO users " +
@@ -70,8 +76,9 @@ class UsersDb {
    }
 
    /**
-    * Returns true if the user exists in the system
-    * @param {*} user_name 
+    * Returns true if the user exists in the system.
+    * @param {String} user_name 
+    * @returns {Promise} Resolves with true if the user exists, and false if not. 
     */
    exists(user_name){
       const sql = "SELECT * FROM users WHERE email = $email LIMIT 1";
@@ -90,8 +97,9 @@ class UsersDb {
 
    /**
     * Hashes the supplied password.  By convention, salt should be the user's email.
-    * @param {*} password 
-    * @param {*} salt 
+    * @param {String} password The supplied password.
+    * @param {*} salt Salt for hashing password. 
+    * @returns {String} The hashed password. 
     */
    hash_password(password, salt) {
       let hasher = crypto.createHash(this.crypto_method);
@@ -102,8 +110,10 @@ class UsersDb {
    }
 
    /** 
-    * Selects information from users table for requested user 
-    * @param {*} email
+    * Selects information from users table for requested user.
+    * @param {String} email The requested user's email.
+    * @returns {Promise} Resolves with the user if the user exists and there are no errors;
+    *    rejects otherwise. 
     */
    userRow(email) {
       const sql = "SELECT * FROM users WHERE email = $email LIMIT 1"; 
@@ -121,6 +131,17 @@ class UsersDb {
    }
 }
 
+/**
+ * Contains methods to interact with user records in database.
+ * @typedef {Object} UsersDb
+ */
+
+/**
+ * Creates a new UsersDb.
+ * @param {Object} db_connection Database connection.
+ * @param {String} crypto_method Cryptographic hash method.
+ * @returns {UsersDb} Instance of UsersDb.
+ */
 exports.createUsersDb = function (db_connection, crypto_method) {
    return new UsersDb(db_connection, crypto_method);
 }

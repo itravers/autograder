@@ -2,6 +2,10 @@ const sqlite3 = require('sqlite3').verbose();
 
 class TestCasesDb {
 
+   /**
+    * TestCasesDb constructor.
+    * @param {*} db_connection The database connection. 
+    */
    constructor(db_connection) {
       this.db = db_connection;
 
@@ -11,8 +15,10 @@ class TestCasesDb {
    }
 
    /**
-    * Returns all tests cases associated with a particular assignment
-    * @param {int} assignment_id 
+    * Returns all tests cases associated with a particular assignment.
+    * @param {Number} assignment_id The assignment's ID number (integer). 
+    * @returns {Promise} Resolves with all test cases if successful; rejects if no 
+    *    test cases exist for this assignment or if there's an error. 
     */
    forAssignment(assignment_id) {
       const sql = "SELECT * FROM assignment_tests WHERE assignment_id = $aid";
@@ -32,11 +38,13 @@ class TestCasesDb {
 
    /**
     * Records test results in the database. 
-    * @param {*} assignment_id 
-    * @param {*} user_id 
-    * @param {*} test_name 
-    * @param {*} test_input 
-    * @param {*} test_result 
+    * @param {Number} assignment_id The assignment's ID nnumber (integer).
+    * @param {Number} user_id The ID number for the assignment's owner (integer). 
+    * @param {String} test_name The test case's name. 
+    * @param {String} test_input Input for the test. 
+    * @param {String} test_result Results of running the test. 
+    * @returns {Promise} Resolves with the ID of the new row inserted in the DB if 
+    *    successful; rejects with error otherwise. 
     */
    log(assignment_id, user_id, test_name, test_input, test_result) {
 
@@ -69,8 +77,10 @@ class TestCasesDb {
 
    /**
     * Returns test results for a given user's assignment. 
-    * @param {*} assignment_id 
-    * @param {*} user_id 
+    * @param {Number} assignment_id The assignment's ID number (integer).
+    * @param {Number} user_id The user's ID number (integer). 
+    * @returns {Promise} Resolves with all the test results for this user's assignment, or 
+    *    rejects with error if unsuccessful. 
     */
    testResults(assignment_id, user_id) {
       return new Promise((resolve, reject) => {
@@ -89,6 +99,16 @@ class TestCasesDb {
    }
 }
 
+/**
+ * Contains methods to interact with records of test cases in the database. 
+ * @typedef {Object} TestCasesDb
+ */
+
+/**
+ * Creates a new TestCasesDb.
+ * @param {Object} db_connection Database connection.
+ * @returns {TestCasesDb} Instance of TestCasesDb.
+ */
 exports.createTestCasesDb = function (db_connection) {
    return new TestCasesDb(db_connection);
 }

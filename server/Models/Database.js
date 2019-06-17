@@ -10,6 +10,7 @@ class Database{
 
    /**
     * Database constructor.
+    * @class
     * @param {String} connection_string String for connecting to DB.
     * @param {*} [hash_salt="change this"] Salt for hashing passwords. 
     * @param {String} [crypto_method=sha512] Cryptographic hash method. 
@@ -36,6 +37,18 @@ class Database{
    }  
 }
 
+/**
+ * Contains connection to SQLite database and corresponding methods. 
+ * @typedef {Object} Database
+ */
+
+/**
+ * Creates a new Database object.
+ * @param {String} connection_string String for connecting to DB.
+ * @param {*} [hash_salt="change this"] Salt for hashing passwords. 
+ * @param {String} [crypto_method=sha512] Cryptographic hash method. 
+ * @returns {Database} Instance of Database. 
+ */
 exports.createDatabase = function(connection_string, hash_salt = "change this", crypto_method = "sha512"){
    return new Database(connection_string, hash_salt, crypto_method);
 }

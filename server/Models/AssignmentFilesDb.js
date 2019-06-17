@@ -2,6 +2,11 @@ const sqlite3 = require('sqlite3').verbose();
 
 class AssignmentFilesDb {
 
+   /**
+    * AssignmentFilesDb constructor.
+    * @class
+    * @param {*} db_connection The database connection. 
+    */
    constructor(db_connection) {
       this.db = db_connection;
 
@@ -14,10 +19,12 @@ class AssignmentFilesDb {
 
    /**
     * Adds a new file for the supplied user / assignment combo.
-    * @param {*} user_id 
-    * @param {*} assignment_id 
-    * @param {*} file_name
-    * @param {*} contents  
+    * @param {Number} user_id The user's ID number (integer). 
+    * @param {Number} assignment_id The assignment's ID number (integer). 
+    * @param {String} file_name The new file's name. 
+    * @param {String} contents The new file's contents. 
+    * @returns {Promise} Resolves with new file's ID number if successful; rejects with 
+    *    error otherwise. 
     */
    add(user_id, assignment_id, file_name, contents) {
       return new Promise((resolve, reject) => {
@@ -56,8 +63,10 @@ class AssignmentFilesDb {
 
    /**
     * Returns all assignments for the specified user.
-    * @param {*} assignment_id 
-    * @param {*} user_id 
+    * @param {Number} assignment_id The assignment's ID number (integer).
+    * @param {Number} user_id The specified user's ID number (integer). 
+    * @returns {Promise} Resolves with all assignments for the user if successful; 
+    *    rejects if there is an error or user has no assignments. 
     */
    all(assignment_id, user_id){
       return new Promise((resolve, reject) => {
@@ -79,7 +88,9 @@ class AssignmentFilesDb {
 
    /**
     * Returns a single file based on its unique ID.
-    * @param {*} file_id 
+    * @param {Number} file_id The file's ID number (integer). 
+    * @returns {Promise} Resolves with the file if successful; rejects with 
+    *    error if the file does not exist or other error occurs. 
     */
    get(file_id){
       const sql = "SELECT * FROM assignment_files WHERE id = $file_id";
@@ -98,7 +109,9 @@ class AssignmentFilesDb {
 
    /**
     * Soft-deletes a file from the database.
-    * @param {*} id 
+    * @param {Number} id The file's ID number (integer).
+    * @returns {Promise} Resolves with the number of rows affected if successful;
+    *    rejects with error otherwise. 
     */
    remove(id) {
       const sql = "UPDATE assignment_files set is_deleted = 1 WHERE id = $id ";
@@ -122,8 +135,10 @@ class AssignmentFilesDb {
 
    /**
     * Removes (soft deletes) of prior versions of a given file for a given assignment.
-    * @param {*} assignment_id 
-    * @param {*} file_name 
+    * @param {Number} assignment_id The assignment's ID number (integer).
+    * @param {String} file_name The file's name. 
+    * @returns {Promise} Resolves with the number of files affected if successful; 
+    *    rejects with error otherwise. 
     */
    removePrior(assignment_id, file_name) {
       const sql = "UPDATE assignment_files set is_deleted = 1 WHERE assignment_id = $assignment_id AND file_name = $file_name ";
@@ -146,6 +161,17 @@ class AssignmentFilesDb {
    }
 }
 
+/**
+ * Contains methods to alter records of files belonging to assignments
+ * in the database. 
+ * @typedef {Object} AssignmentFilesDb
+ */
+
+/**
+ * Creates a new AssignmentFilesDb.
+ * @param {Object} db_connection Database connection.
+ * @returns {AssignmentFilesDb} Instance of AssignmentFilesDb.
+ */
 exports.createAssignmentFilesDb = function (db_connection) {
    return new AssignmentFilesDb(db_connection);
 }

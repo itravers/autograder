@@ -3,6 +3,7 @@ const sqlite3 = require('sqlite3').verbose();
 class CoursesDb {
    /**
     * CoursesDb constructor.
+    * @class
     * @param {*} db_connection The database connection. 
     */
    constructor(db_connection) {
@@ -343,9 +344,14 @@ class CoursesDb {
 }
 
 /**
+ * Contains methods for altering course-related information in the database.
+ * @typedef {Object} CoursesDb
+ */
+
+/**
  * Creates a new CoursesDb object.
  * @param {Object} db_connection Database connection.
- * @returns {Object} Instance of CoursesDb.
+ * @returns {CoursesDb} Instance of CoursesDb.
  */
 exports.createCoursesDb = function (db_connection) {
    return new CoursesDb(db_connection);
