@@ -1,4 +1,9 @@
 class AccessControlList {
+
+   /**
+    * AccessControlList constructor.
+    * @param {*} db The database connection. 
+    */
    constructor(db) {
       this.db = db;
 
@@ -13,9 +18,10 @@ class AccessControlList {
    }
 
    /**
-    * Returns true if user can grade assignments for the given course.
-    * @param {*} user
-    * @param {*} course_id
+    * Resolves with true if the user can grade assignments for the given course.
+    * @param {Object} user
+    * @param {Number} course_id The course's ID number (integer).
+    * @returns {Promise} Promise object represents the result of calling canGrade().
     */
    canGradeAssignment(user, course_id){
       return new Promise((resolve, reject) => {
@@ -28,9 +34,10 @@ class AccessControlList {
    }
 
    /**
-    * Returns true if user can modify the given course.
-    * @param {*} user
-    * @param {*} course_id
+    * Resolves with true if user can modify the given course.
+    * @param {Object} user
+    * @param {Number} course_id The course's ID number (integer).
+    * @returns {Promise} Promise object represents the result of calling canModify().
     */
    canModifyCourse(user, course_id) {
       return new Promise((resolve, reject) => {
@@ -41,17 +48,20 @@ class AccessControlList {
    }
 
    /**
-    * Returns true if the current user can create courses.
-    * @param {*} session
+    * Resolves with true if the current user can create courses.
+    * @param {*} session Current session.
+    * @returns {Promise} Promise object represents the result of calling isAdmin().
     */
-   //no "teacher" level so same as admin for now
    canCreateCourses(session) {
+
+      //no "teacher" level so same as admin for now
       return isAdmin(session);
    }
 
    /**
-    * Returns true if the current user is an admin.
-    * @param {*} session
+    * Resolves with true if the current user is an admin.
+    * @param {*} session Current session.
+    * @returns {Promise} Resolves to true if the user is an admin; rejects false otherwise.
     */
    isAdmin(session) {
       return new Promise((resolve, reject) => {
@@ -68,8 +78,9 @@ class AccessControlList {
    }
 
    /**
-    * Returns true if a user is currently logged into the session.
-    * @param {*} session
+    * Resolves with true if a user is currently logged into the session.
+    * @param {*} session Current session. 
+    * @returns {Promise} Resolves to true if someone is currently logged in; rejects false otherwise.
     */
    isLoggedIn(session) {
       return new Promise((resolve, reject) => {
@@ -83,9 +94,11 @@ class AccessControlList {
    }
 
    /**
-    * Returns true if the user identified by user_id is the logged-in user. 
-    * @param {*} session 
-    * @param {*} user_id
+    * Resolves with true if the given user is logged into this session. 
+    * @param {*} session Current session. 
+    * @param {Number} user_id Given user's ID number (integer). 
+    * @returns {Promise} Resolves to true if the given user is currently logged in; 
+    *    rejects false otherwise.
     */
    isSessionUser(session, user_id) {
       user_id = Number(user_id);
@@ -100,9 +113,11 @@ class AccessControlList {
    }
 
    /**
-    * Returns true if user is attached to the given assignment.  
-    * @param {*} user 
-    * @param {*} assignment_id
+    * Resolves with true if user is attached to the given assignment.  
+    * @param {Object} user The given user.
+    * @param {Number} assignment_id Assignment's ID number (integer).
+    * @returns {Promise} Represents the result of calling hasUser(); rejects false if this
+    *    user doesn't have the assignment.
     */
    userHasAssignment(user, assignment_id) {
       return new Promise((resolve, reject) => {
@@ -117,9 +132,10 @@ class AccessControlList {
    }
 
    /**
-    * Returns true if user owns the file identified by file_id.
-    * @param {*} user 
-    * @param {*} file_id
+    * Resolves with true if the user owns the given file.
+    * @param {Object} user 
+    * @param {Number} file_id The file's ID number (integer). 
+    * @returns {Promise} Resolves with true if the user owns this file; rejects with false otherwise.
     */
    userOwnsFile(user, file_id) {
       return new Promise((resolve, reject) => {
@@ -139,6 +155,11 @@ class AccessControlList {
    }
 }
 
+/**
+ * Creates a new AccessControlList.
+ * @param {Object} db_connection Database connection.
+ * @returns {Object} Instance of AccessControlList.
+ */
 exports.createACL = function (db_connection) {
    return new AccessControlList(db_connection);
 }

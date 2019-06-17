@@ -204,21 +204,20 @@ exports.inactiveAssignments = function(req, res, db) {
    );
  }
  
-// Removes the logged-in user from the selected course
+// Removes the user specified in req.body from the selected course
  exports.removeUser = function(req, res, db, acl) {
-    const course_id = req.params.course_id;
-    let session = req.session;
-    const user_id = session.user.id; 
- 
-    acl.isLoggedIn(session)
-       .then(() => db.Courses.removeUser(course_id, user_id))
-       .then(result => 
-         res.json({ response: result })
+   const course_id = req.params.course_id;
+   const user_id = req.body.user_id;
+   let session = req.session;
+
+   acl.isLoggedIn(session)
+      .then(() => acl.isSessionUser(session, user_id))
+      .then(() => db.Courses.removeUser(course_id, user_id))
+      .then(
+         result => res.json({ response: result })
       )
-       .catch(err => 
-         res.json({ response: err })
-      );
- }
+      .catch(err => res.json({ response: err }));
+   }
 
   /**
   * Returns a detailed roster for this course if the user has 

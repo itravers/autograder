@@ -1,7 +1,10 @@
 const sqlite3 = require('sqlite3').verbose();
 
 class CoursesDb {
-
+   /**
+    * CoursesDb constructor.
+    * @param {*} db_connection The database connection. 
+    */
    constructor(db_connection) {
       this.db = db_connection;
 
@@ -20,10 +23,11 @@ class CoursesDb {
 
    /**
     * Adds a new course with the given information to the database.
-    * @param {*} school_id 
-    * @param {*} name
-    * @param {*} term 
-    * @param {*} year 
+    * @param {Number} school_id The ID of the school to which the course will be added (integer).
+    * @param {String} name The course's name.
+    * @param {String} term Which term this course is being taught.
+    * @param {Number} year What year this course is being taught (integer).
+    * @returns {Promise} Resolves with the new course's ID if successful; rejects with error otherwise.
     */
    addCourse(school_id, name, term, year) {
       const sql = "INSERT INTO courses(school_id, name, term, year) VALUES($school_id, $name, $term, $year)";
@@ -48,8 +52,9 @@ class CoursesDb {
 
    /**
     * Adds an existing user to a course. 
-    * @param {*} course_id 
-    * @param {*} user_id
+    * @param {Number} course_id The course's ID number (integer).
+    * @param {Number} user_id The user's ID number (integer). 
+    * @returns {Promise} Resolves with the database's new row ID if successful; rejects with error otherwise. 
     */
    addUser(course_id, user_id) {
       const sql = "INSERT INTO course_users (course_id, user_id) VALUES($course_id, $user_id)";
@@ -74,7 +79,8 @@ class CoursesDb {
 
    /**
     * Returns all courses.
-    * @param {*} include_deleted 
+    * @param {Boolean} [include_deleted=false] To include deleted courses, set this to true.
+    * @returns {Promise} Resolves with all courses if successful; rejects with error otherwise. 
     */
    all(include_deleted = false) {
       return new Promise((resolve, reject) => { 
@@ -100,11 +106,11 @@ class CoursesDb {
    }
 
    /**
-    * Returns active and/or deleted assignments for a given course, depending on values passed 
-    * for include_active and include_deleted. 
-    * @param {*} course_id 
-    * @param {*} include_active 
-    * @param {*} include_deleted 
+    * Returns assignments for a given course.
+    * @param {Number} course_id The course's ID number (integer).
+    * @param {Boolean} [include_active=true] Set this to false to exclude active assignments.
+    * @param {Boolean} [include_deleted=true] Set this to false to exclude deleted assignments.
+    * @returns {Promise} Resolves with all selected assignments if successful; rejects otherwise.
     */
    assignments(course_id, include_active = true, include_deleted = true) {
       return new Promise((resolve, reject) => {
@@ -135,8 +141,10 @@ class CoursesDb {
 
    /**
     * Returns true if the given user is permitted to grade assignments for this course.
-    * @param {*} course_id 
-    * @param {*} user_id 
+    * @param {Number} course_id The course's ID number (integer).
+    * @param {Number} user_id The given user's ID number (integer).
+    * @returns {Promise} Resolves with true if the user may grade assignments for this course;
+    *    rejects otherwise. 
     */
    canGrade(course_id, user_id) {
       return new Promise((resolve, reject) => {
@@ -161,8 +169,10 @@ class CoursesDb {
 
    /**
     * Returns true if the given user is permitted to modify this course.
-    * @param {*} course_id 
-    * @param {*} user_id
+    * @param {Number} course_id The course's ID number (integer).
+    * @param {Number} user_id The given user's ID number (integer).
+    * @returns {Promise} Resolves with true if the user may modify this course;
+    *    rejects otherwise.
     */
    canModify(course_id, user_id) {
       return new Promise((resolve, reject) => {
@@ -187,7 +197,8 @@ class CoursesDb {
 
    /**
     * Returns all users associated with a course.
-    * @param {*} course_id 
+    * @param {Number} course_id The course's ID number (integer).
+    * @returns {Promise} Resolves with all users in the course if successful; rejects otherwise. 
     */
    courseUsers(course_id) {
       return new Promise((resolve, reject) => {
@@ -213,7 +224,9 @@ class CoursesDb {
 
    /**
     * Returns all courses that the user is taking. 
-    * @param {*} user_id 
+    * @param {Number} user_id The user's ID number (integer). 
+    * @returns {Promise} Resolves with all courses that this user is taking if successful;
+    *    rejects otherwise.
     */
    forUser(user_id) {
       return new Promise((resolve, reject) => {
@@ -237,10 +250,12 @@ class CoursesDb {
 
    /** 
     * Ensures that the combination of school, name, term, and year are all unique.
-    * @param {*} school_id
-    * @param {*} name
-    * @param {*} term
-    * @param {*} year
+    * @param {Number} school_id The school's ID number (integer).
+    * @param {String} name A course's name. 
+    * @param {String} term The term in which the course is held.
+    * @param {Number} year The year in which the course is held (integer).
+    * @returns {Promise} Resolves with true if the combination of these arguments is unique in the database;
+    *    rejects with false otherwise. 
     */
    isUnique(school_id, name, term, year) {
       return new Promise((resolve, reject) => {
@@ -265,8 +280,10 @@ class CoursesDb {
 
    /**
     * Removes the user from the selected course. 
-    * @param {*} course_id 
-    * @param {*} user_id 
+    * @param {Number} course_id The course's ID number (integer).
+    * @param {Number} user_id The user's ID number (integer).
+    * @returns {Promise} Resolves with the number of rows deleted if successful;
+    *    rejects with error otherwise. 
     */
    removeUser(course_id, user_id) {
       const sql = "DELETE FROM course_users WHERE course_id = $course_id AND user_id = $user_id";
@@ -290,10 +307,16 @@ class CoursesDb {
    }
 
    /**
-    * Sets the given user's role in the course. 
-    * @param {*} course_id 
-    * @param {*} user_id 
-    * @param {*} role 
+    * Sets the given user's role in the course.
+    * @param {Number} course_id The course's ID number (integer).
+    * @param {Number} user_id The user's ID number (integer).
+    * @param {Number} role Integer representing a role, specified by these bits: 
+    *    0001 = is pending user, 
+    *    0010 = can submit assignment,
+    *    0100 = can modify course,
+    *    1000 = can grade assignments
+    * @returns {Promise} Resolves with the number of rows affected if successful; 
+    *    rejects with error otherwise. 
     */
    setCourseRole(course_id, user_id, role){
       const sql = "UPDATE course_users SET course_role = $role WHERE course_id = $course_id AND user_id = $user_id";
@@ -319,6 +342,11 @@ class CoursesDb {
    }
 }
 
+/**
+ * Creates a new CoursesDb object.
+ * @param {Object} db_connection Database connection.
+ * @returns {Object} Instance of CoursesDb.
+ */
 exports.createCoursesDb = function (db_connection) {
    return new CoursesDb(db_connection);
 }
