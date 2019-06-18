@@ -2,7 +2,6 @@ class AccessControlList {
 
    /**
     * AccessControlList constructor.
-    * @class
     * @param {*} db The database connection. 
     */
    constructor(db) {

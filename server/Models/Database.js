@@ -10,7 +10,6 @@ class Database{
 
    /**
     * Database constructor.
-    * @class
     * @param {String} connection_string String for connecting to DB.
     * @param {*} [hash_salt="change this"] Salt for hashing passwords. 
     * @param {String} [crypto_method=sha512] Cryptographic hash method. 

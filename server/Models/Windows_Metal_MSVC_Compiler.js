@@ -2,6 +2,16 @@ const fs = require('fs');
 const { exec, execFile, spawn, onExit } = require('child_process');
 const path = require("path");
 
+/**
+ * Constructor for Windows MSVC compiler.
+ * @param {Object} db Database connection.
+ * @param {String} workspace_path Path to directory containing files to compile and run. 
+ * @param {Number} assignment_id This code's assignment's ID number (integer). 
+ * @param {Number} student_id ID number of the user to whom this code belongs.  
+ * @param {String} tools_setup_cmd Command for setting up build tools. 
+ * @param {String} compile_cmd Command for compiling this code. 
+ * @param {String} stdin Input stream to be entered into code. 
+ */
 class Compiler {
    constructor(db, workspace_path, assignment_id, student_id, tools_setup_cmd, compile_cmd, stdin) {
       this.db = db;
@@ -23,6 +33,9 @@ class Compiler {
 
    /**
     * Start the process of compiling and running code.
+    * @returns {Promise} Represents whether the code successfully compiled and ran. 
+    *    Resolves with output from running code if successful, rejects with error 
+    *    message otherwise. 
     */
    begin() {
       return new Promise((resolve, reject) => {
@@ -39,7 +52,10 @@ class Compiler {
    }
 
    /**
-    * Step #1: Load files stored in DB onto local file system
+    * Step #1: Load files stored in DB onto local file system. 
+    * @returns {Promise} Resolves with all files in addition to stdin.txt if 
+    *    files were successfully loaded onto local file system. Rejects with
+    *    error otherwise. 
     */
    loadFiles() {
 
@@ -87,7 +103,9 @@ class Compiler {
    }
 
    /**
-    * Step #2: compile files after loading from the DB
+    * Step #2: compile files after loading from the DB.
+    * @returns {Promise} Resolves with output from compiler if successful; 
+    *    rejects with error otherwise. 
     */
    compileFiles() {
       return new Promise((resolve, reject) => {
@@ -118,7 +136,10 @@ class Compiler {
    }
 
    /**
-    * Step #3: Run compiled program
+    * Step #3: Run compiled program.
+    * @returns {Promise} If program took stdin as input and ran successfully, 
+    *    Promise resolves with output from running program. Otherwise, Promise 
+    *    rejects with error encountered. 
     */
    runFiles() {
       return new Promise((resolve, reject) => {
@@ -149,7 +170,10 @@ class Compiler {
    /**
     * If we're just testing the same program against multiple tests, it's wasteful to always
     * compile.  This function tells us if we can run an existing program without a compile
-    * by checking to see if the necessasry files already exist (i.e. main.exe)
+    * by checking to see if the necessary files already exist (i.e. main.exe)
+    * @returns {Promise} Resolves with true if the necessary files to run this program already 
+    *    exist. Otherwise, if the necessary files don't already exist, we can't run this 
+    *    program, so it rejects with error. 
     */
    canRunFiles(){
       return new Promise((resolve, reject) => {
@@ -175,6 +199,22 @@ class Compiler {
    }
 }
 
+/**
+ * Contains methods for compiling and running C++ code in Windows using MSVC.
+ * @typedef {Object} Compiler 
+ */
+
+/**
+ * Creates an instance of the Windows MSVC compiler. 
+ * @param {Object} db Database connection.
+ * @param {String} workspace_path Path to directory containing files to compile and run. 
+ * @param {Number} assignment_id This code's assignment's ID number (integer). 
+ * @param {Number} student_id ID number of the logged-in user who is running this code. 
+ * @param {String} tools_setup_cmd Command for setting up build tools. 
+ * @param {String} compile_cmd Command for compiling this code. 
+ * @param {String} stdin Input stream to be entered into code. 
+ * @returns {Compiler} Windows MSVC compiler. 
+ */
 exports.createCompiler = function (db, workspace_path, assignment_id, student_id, tools_setup_cmd, compile_cmd, stdin) {
    return new Compiler(db, workspace_path, assignment_id, student_id, tools_setup_cmd, compile_cmd, stdin);
 }

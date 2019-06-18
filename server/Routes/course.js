@@ -1,7 +1,11 @@
- /* *
-  * helper function for addRoster()
-  * adds a user to the database if they don't already exist; 
-  * deletes password from user object and adds their ID from DB
+ /**
+  * Helper function for addRoster().
+  * Adds a user to the database if they don't already exist; 
+  * deletes password from user object and adds their ID from DB.
+  * @param {Object} user The user object. 
+  * @param {Object} db Database connection. 
+  * @returns {Promise} Resolves with user object with password removed if successful;
+  *   rejects with error otherwise. 
   */
 convertUser = function(user, db)
 {
@@ -42,7 +46,16 @@ convertUser = function(user, db)
   });
 }
 
-// Allows bulk user creation and addition to a course.
+/** 
+ * Allows bulk user creation and addition to a course.
+ * @param {Object} req HTTP request object. 
+ * @param {Object} res HTTP response object. 
+ * @param {Object} db Database connection. 
+ * @param {Object} acl Object containing AccessControlList methods. 
+ * @returns {Object} If the logged-in user doesn't have permission to modify 
+ *    course, returns JSON error. Else, returns JSON response containing a roster of 
+ *    students with either a user object or an error message for each student.
+ */
 exports.addRoster = function(req, res, db, acl) {
   let session = req.session;
   let roster = req.body.roster;
@@ -81,7 +94,14 @@ exports.addRoster = function(req, res, db, acl) {
       });
 }
  
- // returns all active assignments from the given course 
+ /** 
+  * Returns all active assignments from the given course.
+  * @param {Object} req HTTP request object. 
+  * @param {Object} res HTTP response object. 
+  * @param {Object} db Database connection. 
+  * @returns {Object} JSON response with all active assignments if successful, 
+  *   or an error message otherwise. 
+  */
  exports.activeAssignments = function(req, res, db) {
     const course_id = req.params.id; 
     db.Courses.assignments(course_id, true, false)
@@ -93,7 +113,15 @@ exports.addRoster = function(req, res, db, acl) {
       );
  }
 
- // Adds the logged-in user to the specified course
+ /**
+  * Adds the logged-in user to the specified course
+  * @param {Object} req HTTP request object. 
+  * @param {Object} res HTTP response object. 
+  * @param {Object} db Database connection. 
+  * @param {Object} acl Object containing AccessControlList methods. 
+  * @returns {Object} JSON response with row ID for newly added user in 
+  *   database if successful, or error message otherwise. 
+  */
 exports.addUser = function(req, res, db, acl) {
     const course_id = req.params.course_id;
     let session = req.session;
@@ -109,7 +137,14 @@ exports.addUser = function(req, res, db, acl) {
        });
  }
 
-// returns all assignments from the given course 
+/**  
+ * Returns all assignments from the given course.
+ * @param {Object} req HTTP request object. 
+ * @param {Object} res HTTP response object. 
+ * @param {Object} db Database connection. 
+ * @returns {Object} JSON response with all assignments from given course, 
+ *    or with error message if unsuccessful. 
+ */
 exports.assignments = function(req, res, db) {
     const course_id = req.params.id;
     db.Courses.assignments(course_id, true, true)
@@ -121,9 +156,15 @@ exports.assignments = function(req, res, db) {
       );
  }
 
- //Returns all available courses
+ /** 
+  * Returns all available courses.
+  * @param {Object} req HTTP request object. 
+  * @param {Object} res HTTP response object. 
+  * @param {Object} db Database connection. 
+  * @returns {Object} JSON response with all available courses, or with 
+  *   error message if unsuccessful. 
+  */
 exports.courses = function(req, res, db) {
-    //db.Courses.all((result) => { res.json({ response: result }); });
    db.Courses.all()
    .then(result => 
       res.json({ response: result })
@@ -133,7 +174,15 @@ exports.courses = function(req, res, db) {
    );
 }
 
- // Creates a course. 
+ /** 
+  * Creates a course. 
+  * @param {Object} req HTTP request object. 
+  * @param {Object} res HTTP response object. 
+  * @param {Object} db Database connection. 
+  * @param {Object} acl Object containing AccessControlList methods. 
+  * @returns {Object} JSON response with new course's ID if successful, or 
+  *   with error message if unsuccessful for any reason. 
+  */
  exports.createCourse = function(req, res, db, acl) {
     let session = req.session;
     const school_id = req.body.school_id;
@@ -157,7 +206,15 @@ exports.courses = function(req, res, db) {
        );
  }
 
- // Alters user's course role
+ /** 
+  * Alters user's course role.
+  * @param {Object} req HTTP request object. 
+  * @param {Object} res HTTP response object. 
+  * @param {Object} db Database connection. 
+  * @param {Object} acl Object containing AccessControlList methods. 
+  * @returns {Object} JSON response with number of database table rows affected
+  *   if successful, or with error message if unsuccessful for any reason. 
+  */
 exports.editRole = function(req, res, db, acl) {
     const course_id = req.params.course_id;
     const user_id = req.body.user_id;
@@ -175,7 +232,14 @@ exports.editRole = function(req, res, db, acl) {
        );
  }
  
-// Returns all courses that the currently logged in user is taking
+/** 
+ * Returns all courses that the currently logged in user is taking.
+ * @param {Object} req HTTP request object. 
+ * @param {Object} res HTTP response object. 
+ * @param {Object} db Database connection. 
+ * @returns {Object} JSON response with all courses that the user is taking, or 
+ *    with an error message or an empty response if unsuccessful. 
+ */
 exports.enrollments = function(req, res, db) {
    const current_user = req.session.user;
    if (current_user !== undefined) {
@@ -192,7 +256,14 @@ exports.enrollments = function(req, res, db) {
    }
  }
 
- // returns all inactive assignments from the given course 
+ /** 
+  * Returns all inactive assignments from the given course.
+  * @param {Object} req HTTP request object. 
+  * @param {Object} res HTTP response object. 
+  * @param {Object} db Database connection. 
+  * @returns {Object} JSON response with all inactive assignments from the 
+  *   course if successful, or with an error message otherwise. 
+  */
 exports.inactiveAssignments = function(req, res, db) {
     const course_id = req.params.id; 
     db.Courses.assignments(course_id, false, true)
@@ -204,7 +275,15 @@ exports.inactiveAssignments = function(req, res, db) {
    );
  }
  
-// Removes the user specified in req.body from the selected course
+/** 
+ * Removes the user specified in req.body from the selected course.
+ * @param {Object} req HTTP request object. 
+ * @param {Object} res HTTP response object. 
+ * @param {Object} db Database connection. 
+ * @param {Object} acl Object containing AccessControlList methods. 
+ * @returns {Object} JSON response with the number of rows deleted if successful, 
+ *    or with error message otherwise. 
+ */
  exports.removeUser = function(req, res, db, acl) {
    const course_id = req.params.course_id;
    const user_id = req.body.user_id;
@@ -221,7 +300,13 @@ exports.inactiveAssignments = function(req, res, db) {
 
   /**
   * Returns a detailed roster for this course if the user has 
-  * instructor rights
+  * instructor rights.
+  * @param {Object} req HTTP request object. 
+  * @param {Object} res HTTP response object. 
+  * @param {Object} db Database connection. 
+  * @param {Object} acl Object containing AccessControlList methods. 
+  * @returns {Object} JSON response with detailed roster for this course, or 
+  *   with error message if unsuccessful. 
   */
  exports.roster = function(req, res, db, acl) {
     const course_id = req.params.course_id;

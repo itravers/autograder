@@ -1,4 +1,11 @@
-// Retrieves all files for the specified assignment and user (if allowed to grade)
+/** 
+ * Retrieves all files for the specified assignment and user (if allowed to grade).
+ * @param {Object} req HTTP request object. 
+ * @param {Object} res HTTP response object. 
+ * @param {Object} db Database connection.
+ * @param {Object} acl Object containing AccessControlList methods. 
+ * @returns {Object} JSON response containing all files, or status code indicating error. 
+ */
 exports.assignmentFiles = function(req, res, db, acl) {
    let session = req.session;
    const current_user = session.user;
@@ -42,7 +49,16 @@ exports.assignmentFiles = function(req, res, db, acl) {
       });
 }
 
-//compiles & runs student's code
+/** 
+ * Compiles & runs student's code.
+ * @param {Object} req HTTP request object. 
+ * @param {Object} res HTTP response object. 
+ * @param {Object} db Database connection.
+ * @param {Object} config config.ini settings  
+ * @param {Object} acl Object containing AccessControlList methods.
+ * @param {Object} Compiler Methods for compiling and running. 
+ * @returns {Object} JSON with the result of running student's code.
+ */
 exports.compileAndRun = function(req, res, db, config, acl, Compiler) {
    let session = req.session;
    const current_user = session.user;
@@ -94,8 +110,13 @@ exports.compileAndRun = function(req, res, db, config, acl, Compiler) {
 }
 
  /**
-  * :aid is the assignment ID that this file will belong to.   The file ID to delete 
-  * should be in req.body.id.
+  * Deletes a file from an assignment. :aid is the assignment ID that this file will belong to.   
+  * The file ID to delete should be in req.body.id.
+  * @param {Object} req HTTP request object. 
+  * @param {Object} res HTTP response object. 
+  * @param {Object} db Database connection.
+  * @param {Object} acl Object containing AccessControlList methods.
+  * @returns {Object} JSON containing the deleted file's ID, or a 500 status code.
   */
  exports.deleteFile = function(req, res, db, acl) {
    let session = req.session;
@@ -125,7 +146,13 @@ exports.compileAndRun = function(req, res, db, config, acl, Compiler) {
       });
 }
 
-// get test cases for the given assignment 
+/** 
+ * Get test cases for the given assignment.
+ * @param {Object} req HTTP request object. 
+ * @param {Object} res HTTP response object. 
+ * @param {Object} db Database connection.
+ * @returns {Object} JSON containing test cases for the assignment, or error message. 
+ */
 exports.getTestCases = function(req, res, db) {
     db.Assignments.TestCases.forAssignment(req.params.assignment_id)
       .then(result => {
@@ -136,8 +163,16 @@ exports.getTestCases = function(req, res, db) {
       });
  }
  
- // gets user's test results for this assignment, if the user has permission
- // to view them 
+ /** 
+  * Gets user's test results for this assignment, if the user has permission
+  * to view them.
+  * @param {Object} req HTTP request object. 
+  * @param {Object} res HTTP response object. 
+  * @param {Object} db Database connection.
+  * @param {Object} acl Object containing AccessControlList methods.
+  * @returns {Object} JSON with user's test results, or an error if user doesn't
+  *   have permission to view them. 
+  */
  exports.getTestResults = function(req, res, db, acl) {
     let session = req.session;
     let user_id = req.params.user_id;
@@ -158,7 +193,16 @@ exports.getTestCases = function(req, res, db) {
        });
  }
  
- //runs student's code without compiling first (saves time)
+ /** 
+  * Runs student's code without compiling first (saves time).
+  * @param {Object} req HTTP request object. 
+  * @param {Object} res HTTP response object. 
+  * @param {Object} db Database connection.
+  * @param {Object} config config.ini settings  
+  * @param {Object} acl Object containing AccessControlList methods.
+  * @param {Object} Compiler Methods for compiling and running. 
+  * @returns {Object} JSON with the result of running student's code.
+  */
  exports.run = function(req, res, db, config, acl, Compiler)  {
     let session = req.session;
     const current_user = session.user;
@@ -210,7 +254,15 @@ exports.getTestCases = function(req, res, db) {
       });
  }
  
-// Uploads a file. :aid is the assignment ID that this file will belong to.
+/** 
+ * Uploads a file. :aid is the assignment ID that this file will belong to.
+ * @param {Object} req HTTP request object. 
+ * @param {Object} res HTTP response object. 
+ * @param {Object} db Database connection.
+ * @param {Object} acl Object containing AccessControlList methods.
+ * @returns {Object} Responds with new file's ID number if successful, or 
+ *    500 status code with corresponding error message otherwise. 
+ */
 exports.uploadFile = function(req, res, db, acl) {
     const current_user = req.session.user;
     const assignment_id = req.params.aid;
