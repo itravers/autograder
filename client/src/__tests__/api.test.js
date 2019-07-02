@@ -3,8 +3,9 @@ import ConfigManager from '../config.js'
 
 const config = ConfigManager.getConfig(); 
 
+// async jest tutorial-- https://jestjs.io/docs/en/asynchronous.html
 // example: how to send web requests to server asynchronously, 
-// then handle resulting data appropriately 
+// then handle resulting data appropriately. 
 // 1.) on server: start up server with "node server.js"
 // 2.) on client: run jest with "npm test"
 describe('api endpoint request', () => {
