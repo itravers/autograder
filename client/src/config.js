@@ -14,22 +14,12 @@ class SharedConfig{
 
    constructRoute(path, params)
    {
-      // check if path is valid  
-      if(typeof path === 'undefined' || typeof path !== 'string') {
-         return this.root_endpoint;  
-      }
-
-      // check if parameters are an iterable array 
-      if(!Array.isArray(params)) {
-         params = [params]; 
-      }
       let next_arg = 0; 
 
-      // while there is still an unreplaced {parameter} in path,
-      // and there are still parameters to be inserted
+      // while there is still an unreplaced {parameter} in path
       let regex_find = path.search(/{([^}]*)}/);  
-      while((path.search(/{([^}]*)}/) > -1) && (next_arg < params.length)) {
-
+      while(path.search(/{([^}]*)}/) > -1)
+      {
          // replace whatever's in {} with the next passed argument
          path = path.replace(/{([^}]*)}/, params[next_arg]);
          next_arg++; 
