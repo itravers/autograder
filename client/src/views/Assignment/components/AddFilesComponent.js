@@ -36,7 +36,8 @@ class AddFilesComponent extends Component{
    }
 
    serverEndpoint(){
-      const serverEndpoint = this.props.config.endpoints.assignment.file + "/" + this.props.assignment.id;
+      const path = this.props.config.endpoints.assignment.file; 
+      const serverEndpoint = this.props.config.constructRoute(path, [this.props.assignment.id]);
       return serverEndpoint;
    }
 
@@ -44,7 +45,7 @@ class AddFilesComponent extends Component{
 
       //file pond isn't sending delete messages to server correctly.  Manual hack
       //until I figure it out.
-      this.props.models.assignment.removeFile(raw_file)
+      this.props.models.assignment.removeFile(raw_file, this.props.assignment.id)
       .then((file) => {
          this.props.file_remove_callback(file);
       })

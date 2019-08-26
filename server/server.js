@@ -22,6 +22,10 @@ var Compiler = require('./Models/Windows_Metal_MSVC_Compiler.js');
 
 var FileStore = require('session-file-store')(session);
 
+// require modules for API routes 
+const userRoute = require('./Routes/user.js'); 
+const assignmentRoute = require('./Routes/assignment.js'); 
+const courseRoute = require('./Routes/course.js'); 
 
 let config = ini.parse(fs.readFileSync('./config.ini', 'utf-8'));
 config.database.connection_string = config.database.db_path + config.database.db_name;;
@@ -64,7 +68,8 @@ if (config.compile_platform === "unix") {
    Compiler = require('./Models/Mac_Metal_Clang_Compiler.js');
 }
 else if (config.compile_platform === "windows") {
-   Compiler = require('./Models/Windows_Metal_MSVC_Compiler.js');
+   //Compiler = require('./Models/Windows_Metal_MSVC_Compiler.js');
+   Compiler = require('./Models/Windows_Docker_MSVC_Compiler.js');
 }
 
 app.use((req, res, next) => {
@@ -99,411 +104,80 @@ router.get('/', (req, res) => {
    res.json({ message: 'hooray! welcome to our api!' });
 });
 
-router.get('/assignment/testCases/:assignment_id', (req, res) => {
-   db.Assignments.TestCases.forAssignment(req.params.assignment_id, (result, err) => {
-      if (!err) {
-         res.json({ response: result });
-      }
-      else {
-         res.json({ response: err });
-      }
-   });
-});
+// get test cases for the given assignment 
+router.get('/assignment/:assignment_id/testCases', (req, res) => assignmentRoute.getTestCases(req, res, db)); 
 
-router.get('/assignment/testResults/:assignment_id/:user_id', (req, res) => {
-   let session = req.session;
-   let user_id = req.params.user_id;
-   const assignment_id = req.params.assignment_id;
-   acl.isLoggedIn(session)
-      .then(() => {
-         //admins and instructors are allowed to look at others' stuff.  Students not.
-         if (session.user.is_instructor !== 1 && session.user.is_admin !== 1) {
-            user_id = session.user.id;
-         }
-      })
-      .then(() => db.Assignments.TestCases.testResults(assignment_id, user_id))
-      .then(results => {
-         res.json({ response: results });
-      })
-      .catch(err => {
-         res.json({ response: err });
-      });
-});
+// gets user's test results for this assignment, if the user has permission
+// to view them 
+router.get('/assignment/:assignment_id/user/:user_id/testResults', (req, res) => assignmentRoute.getTestResults(req, res, db, acl)); 
 
 //runs student's code without compiling first (saves time)
-router.post('/assignment/run/:assignment_id', (req, res) => {
-   let session = req.session;
-   const current_user = session.user;
-   const assignment_id = req.params.assignment_id;
-   const tools_command = config.compiler.tools_path + "\\" + config.compiler.tools_batch;
-   const compile_cmd = config.compiler.compile_command;
-   const stdin = req.body.stdin;
-   const test_name = req.body.test_name;
-
-   //do we have an active user?
-   acl.isLoggedIn(session)
-
-      //and this user can access the current assignment
-      .then(() => acl.userHasAssignment(current_user, assignment_id))
-
-      //then, try to compile and build the assignment
-      .then(() => {
-         let compiler = Compiler.createCompiler(
-            db,
-            config.temp_path,
-            req.params.assignment_id,
-            current_user.id,
-            tools_command,
-            compile_cmd,
-            stdin
-         );
-         return compiler.canRunFiles()
-            .then(() => compiler.runFiles());
-      })
-      .then((result) => {
-         db.Assignments.TestCases.log(assignment_id, current_user.id, test_name, stdin, result, () => {
-            res.json({ response: result });
-         });
-      })
-      .catch((err) => {
-         db.Assignments.TestCases.log(assignment_id, current_user.id, test_name, stdin, err.message, () => {
-            res.json({ response: err.message });
-         });
-      });
-});
+router.post('/assignment/:assignment_id/run', (req, res) => assignmentRoute.run(req, res, db, config, acl, Compiler)); 
 
 //compiles & runs student's code
-router.post('/assignment/compile/:assignment_id', (req, res) => {
-   let session = req.session;
-   const current_user = session.user;
-   const assignment_id = req.params.assignment_id;
-   const tools_command = '"' + config.compiler.tools_path + "\\" + config.compiler.tools_batch + '"';
-   const compile_cmd = config.compiler.compile_command;
-   const stdin = req.body.stdin;
-   const test_name = req.body.test_name;
+router.post('/assignment/:assignment_id/compile', (req, res) => assignmentRoute.compileAndRun(req, res, db, config, acl, Compiler)); 
 
-   //do we have an active user?
-   acl.isLoggedIn(session)
+// Retrieves all files for the specified assignment and user (if allowed to grade)
+router.get('/assignment/:aid/user/:uid/file', (req, res) => assignmentRoute.assignmentFiles(req, res, db, acl)); 
 
-      //and this user can access the current assignment
-      .then(() => acl.userHasAssignment(current_user, assignment_id))
-
-      //then, try to compile and build the assignment
-      .then(() => {
-         let compiler = Compiler.createCompiler(
-            db,
-            config.temp_path,
-            req.params.assignment_id,
-            current_user.id,
-            tools_command,
-            compile_cmd,
-            stdin
-         );
-         return compiler.begin();
-      })
-      .then((result) => {
-         db.Assignments.TestCases.log(assignment_id, current_user.id, test_name, stdin, result, () => {
-            res.json({ response: result });
-         });
-      })
-      .catch((err) => {
-         db.Assignments.TestCases.log(assignment_id, current_user.id, test_name, stdin, err.message, () => {
-            res.json({ response: err.message });
-         });
-      });
-});
+// Uploads a file. :aid is the assignment ID that this file will belong to;
+// :uid is the ID of the user who has the assignment. 
+router.post('/assignment/:aid/file', (req, res) => assignmentRoute.uploadFile(req, res, db, acl)); 
 
 /**
- * Retrieves all files for the specified assignment and user (if allowed to grade)
+ * The file ID to delete should be in req.body.id.
  */
-router.get('/assignment/file/:aid/:uid', (req, res) => {
-   let session = req.session;
-   const current_user = session.user;
-   const assignment_id = req.params.aid;
-   const user_id = req.params.uid;
-   let has_error = false;
-
-   //do we have an active user?
-   acl.isLoggedIn(session)
-
-      //and this user can access the current assignment
-      .then(() => acl.userHasAssignment(current_user, assignment_id))
-
-      .catch(() => {
-         has_error = true;
-         return has_error;
-      })
-
-      //if this succeeds, allow caller to use the specified user ID.  Otherwise, just
-      //use the caller's ID instead
-      .then((result) => acl.canGradeAssignment(current_user, result.course_id))
-      .then(() => {
-         db.AssignmentFiles.all(assignment_id, user_id, (data) => {
-            return res.json({ response: data });
-         })
-      })
-      .catch(() => {
-
-         //only run if first catch was not triggered
-         if (has_error === false) {
-            db.AssignmentFiles.all(assignment_id, current_user.id, (data) => {
-               return res.json({ response: data });
-            });
-         }
-         else {
-            return res.status(500).send("Error");
-         }
-      });
-});
-
-/**
- * Uploads a file. :id is the assignment ID that this file will belong to.
- */
-router.post('/assignment/file/:id', (req, res) => {
-   const current_user = req.session.user;
-   const assignment_id = req.params.id;
-   const uploaded_file = req.files.filepond;
-   let session = req.session;
-
-   //make sure user can upload to this assignment
-   acl.isLoggedIn(session)
-
-      //and belongs to the current assignment
-      .then(result => acl.userHasAssignment(current_user, assignment_id))
-
-      //then allow them to upload the file
-      .then(result => {
-         let buffer_data = Buffer.from(uploaded_file.data);
-         const text = buffer_data.toString('utf8');
-         db.AssignmentFiles.add(current_user.id, assignment_id, uploaded_file.name, text, (result, err) => {
-            if (result !== null) {
-               res.type('html').send(String(result));
-            }
-            else {
-               return res.status(500).send(err);
-            }
-         });
-      })
-      .catch(() => {
-         return res.status(500).send("Invalid user");
-      });
-});
-
-/**
- * :id is the assignment ID that this file will belong to.   The file ID to delete 
- * should be in req.body.id.
- */
-router.delete('/assignment/file/:id', (req, res) => {
-   let session = req.session;
-   const current_user = session.user;
-   const file_id = req.body.id;
-
-   //do we have an active user?
-   acl.isLoggedIn(session)
-
-      //and this user can access the current assignment
-      .then(() => acl.userOwnsFile(current_user, file_id))
-
-      //then make the call
-      .then(() => {
-         db.AssignmentFiles.remove(file_id, (changes, err) => {
-            if (err === null) {
-               return res.json({ response: file_id });
-            }
-            else {
-               console.log(err);
-               return res.status(500).send("Error");
-            }
-         });
-      })
-      .catch((error) => {
-         return res.status(500).send("Error");
-      });
-
-});
+router.delete('/assignment/:aid/file', (req, res) => assignmentRoute.deleteFile(req, res, db, acl)); 
 
 //Returns all available courses
-router.get('/course', (req, res) => {
-   db.Courses.all((result) => { res.json({ response: result }); });
-});
+router.get('/course', (req, res) => courseRoute.courses(req, res, db)); 
 
-//AC note: used to create courses.  Not finished
-router.post('/course', (req, res) => {
-   let session = req.session;
-   const school_id = req.body.school_id;
-   const name = req.body.name;
-   const term = req.body.term;
-   const year = req.body.year;
-   acl.isAdmin(session)
-      .then(() => db.Courses.isUnique(school_id, name, term, year))
-      .then((result) => {
-         return res.json({ response: result });
-      })
-      .catch((result) => res.json({ response: { result } }));
-});
+// Creates a course. 
+router.post('/course', (req, res) => courseRoute.createCourse(req, res, db, acl)); 
 
-router.get('/course/assignments/active/:id', (req, res) => {
-   const course_id = req.params.id;
-   db.Courses.assignments(course_id, (result) => {
-      res.json({ response: result });
-   });
-});
+// returns all assignments from the given course 
+router.get('/course/:id/assignments', (req, res) => courseRoute.assignments(req, res, db)); 
+
+// returns all active assignments from the given course 
+router.get('/course/:id/assignments/active', (req, res) => courseRoute.activeAssignments(req, res, db));
+
+// returns all inactive assignments from the given course 
+router.get('/course/:id/assignments/inactive', (req, res) => courseRoute.inactiveAssignments(req, res, db)); 
+
+// Returns all courses that the currently logged in user is taking
+router.get('/course/enrolled', (req, res) => courseRoute.enrollments(req, res, db));
 
 /**
- * Returns all courses that the currently logged in user is taking
- */
-router.get('/course/user', (req, res) => {
-   const current_user = req.session.user;
-   if (current_user !== undefined) {
-      db.Courses.forUser(current_user.id, (result) => {
-         res.json({ response: result });
-      });
-   }
-   else {
-      res.json({ response: {} });
-   }
-});
-
-/**
- * Returns a detailed roster for all courses where the user has 
+ * Returns a detailed roster for this course if the user has 
  * instructor rights
  */
-router.get('/course/user/:course_id', (req, res) => {
-   const course_id = req.params.course_id;
-   let session = req.session;
-   acl.isLoggedIn(session)
+router.get('/course/:course_id/user', (req, res) => courseRoute.roster(req, res, db, acl)); 
 
-      .then(() => acl.canModifyCourse(session.user, course_id))
-      .then(() => db.Courses.courseUsers(course_id))
-      .then(result => {
-         res.json({ response: result });
-      })
-      .catch(err => res.json({ response: err }));
-});
+// Removes the user specified in req.body from the selected course
+// TODO: revise so that students can't remove/add each other from 
+// courses-- only instructors should be able to do that, right?
+router.delete('/course/:course_id/user', (req, res) => courseRoute.removeUser(req, res, db, acl)); 
 
-/**
- * Removes the user specified in req.body from the selected course
- */
-router.delete('/course/user/:course_id', (req, res) => {
-   const course_id = req.params.course_id;
-   const user_id = req.body.user_id;
-   let session = req.session;
+// Adds the user to the specified course
+router.post('/course/:course_id/user', (req, res) => courseRoute.addUser(req, res, db, acl)); 
 
-   acl.isLoggedIn(session)
-      .then(acl.isSessionUser(session, user_id))
-      .then(db.Courses.removeUser(course_id, user_id))
-      .then(
-         result => res.json({ response: result })
-      )
-      .catch(err => res.json({ response: err }));
-});
+// Alters user's course role
+router.put('/course/:course_id/user', (req, res) => courseRoute.editRole(req, res, db, acl)); 
 
-/**
- * Adds the user to the specified course
- */
-router.post('/course/user/:course_id', (req, res) => {
-   const course_id = req.params.course_id;
-   const user_id = req.body.user_id;
-   let session = req.session;
+// Allows bulk user creation and addition to course.  TODO: needs testing
+router.post('/course/:course_id/addRoster', (req, res) => courseRoute.addRoster(req, res, db, acl)); 
 
-   acl.isLoggedIn(session)
-      .then(acl.isSessionUser(session, user_id))
-      .then(db.Courses.addUser(course_id, user_id))
-      .then(
-         result => res.json({ response: result })
-      )
-      .catch(err => {
-         res.json({ response: err });
-      });
-});
+// returns information on currently logged in user
+router.get('/user/login', (req, res) => userRoute.info(req, res)); 
 
-/**
- * Alters user's course role
- */
-router.put('/course/user/:course_id', (req, res) => {
-   const course_id = req.params.course_id;
-   const user_id = req.body.user_id;
-   const role = req.body.role;
-   let session = req.session;
+// logs in a user with given credentials 
+router.post('/user/login', (req, res) => userRoute.login(req, res, db)); 
 
-   acl.isLoggedIn(session)
-      .then(() => acl.canModifyCourse(session.user, course_id))
-      .then(() => db.Courses.setCourseRole(course_id, user_id, role))
-      .then(
-         result => res.json({ response: result })
-      )
-      .catch(err =>
-         res.json({ response: err })
-      );
-});
+// logs out user 
+router.get('/user/logout', (req, res) => userRoute.logout(req, res)); 
 
-router.get('/user/login', (req, res) => {
-   res.json({ response: req.session.user });
-});
-
-router.post('/user/login', (req, res) => {
-   db.Users.authenticate(req.body.email, req.body.password, (result, err) => {
-      if (err === null) {
-         delete result.password;
-         req.session.user = result;
-         res.json({ response: result });
-      }
-      else {
-         res.json({ response: err });
-      }
-   });
-});
-
-router.get('/user/logout', (req, res) => {
-   req.session.user = null;
-   res.json({ response: req.session.user });
-});
-
-router.post('/user/create', (req, res) => {
-   const user = { first_name: req.body.first_name, last_name: req.body.last_name, email: req.body.email, password: req.body.password };
-   if (user.first_name !== undefined && user.first_name.length > 0) {
-      if (user.last_name !== undefined && user.last_name.length > 0) {
-         if (user.email !== undefined && user.email.length > 0) {
-            if (user.password !== undefined && user.password.length > 0) {
-               db.Users.create(user, (result, err) => {
-                  if (err === null) {
-                     user.id = result;
-                     delete user.password;
-                     res.json({ response: user });
-                  }
-                  else {
-                     res.json({ response: err });
-                  }
-               });
-               return;
-            }
-         }
-      }
-   }
-   res.json({ response: "missing required parameters" });
-});
-
-/**
- * Allows bulk user creation.  TODO: needs testing
- */
-router.post('/user/addRoster', (req, res) => {
-   let session = req.session;
-   let roster = req.body.roster;
-   let course_id = req.body.course_id;
-   acl.canModifyCourse(session, course_id)
-      .then(() => {
-         for (let user of roster) {
-            db.Users.exists(user.email)
-               .then()
-               .catch(() => {
-
-                  //user doesn't already exist, create
-                  db.Users.create(user.email, user.first_name, user.last_name, user.password);
-               });
-         }
-      })
-      .catch((err) => { res.json({ response: err }); });
-});
+// creates new user
+router.post('/user/create', (req, res) => userRoute.createUser(req, res, db)); 
 
 // REGISTER OUR ROUTES -------------------------------
 // all of our routes will be prefixed with /api

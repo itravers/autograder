@@ -12,23 +12,41 @@ class SharedConfig{
       this.buildEndpoints();
    }
 
+   constructRoute(path, params)
+   {
+      let next_arg = 0; 
+
+      // while there is still an unreplaced {parameter} in path
+      let regex_find = path.search(/{([^}]*)}/);  
+      while(path.search(/{([^}]*)}/) > -1)
+      {
+         // replace whatever's in {} with the next passed argument
+         path = path.replace(/{([^}]*)}/, params[next_arg]);
+         next_arg++; 
+      }
+      return path; 
+   }
+
    buildEndpoints(){
       const root_endpoint = this.root_endpoint;
       this.endpoints = {
          root: root_endpoint,
          assignment: {
-            file: root_endpoint + "/api/assignment/file",
-            test_cases: root_endpoint + "/api/assignment/testCases",
-            test_results: root_endpoint + "/api/assignment/testResults",
-            run: root_endpoint + "/api/assignment/run",
-            compile: root_endpoint + "/api/assignment/compile"
+            user_files: root_endpoint + "/api/assignment/{:aid}/user/{:uid}/file", 
+            file: root_endpoint + "/api/assignment/{:aid}/file", 
+            test_cases: root_endpoint + "/api/assignment/{:assignment_id}/testCases",
+            test_results: root_endpoint + "/api/assignment/{:assignment_id}/user/{:user_id}/testResults",
+            run: root_endpoint + "/api/assignment/{:assignment_id}/run",
+            compile: root_endpoint + "/api/assignment/{:assignment_id}/compile"
          },
          course: {
             all: root_endpoint + "/api/course",
-            active_assignments: root_endpoint + "/api/course/assignments/active",
-            all_assignments: root_endpoint + "/api/course/assignments",
-            deleted_assignments: root_endpoint + "/api/course/assignments/inactive",
-            course_user: root_endpoint + "/api/course/user"
+            active_assignments: root_endpoint + "/api/course/{:id}/assignments/active",
+            all_assignments: root_endpoint + "/api/course/{:id}/assignments",
+            deleted_assignments: root_endpoint + "/api/course/{:id}/assignments/inactive",
+            enrolled: root_endpoint + "/api/course/enrolled",
+            course_user: root_endpoint + "/api/course/{:course_id}/user",
+            roster: root_endpoint + "/api/course/{:course_id}/addRoster"
          },
          user: {
             create: root_endpoint + "/api/user/create",

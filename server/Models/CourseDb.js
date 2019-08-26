@@ -1,18 +1,61 @@
 const sqlite3 = require('sqlite3').verbose();
 
 class CoursesDb {
-
+   /**
+    * CoursesDb constructor.
+    * @param {*} db_connection The database connection. 
+    */
    constructor(db_connection) {
       this.db = db_connection;
 
+      this.addCourse = this.addCourse.bind(this);
+      this.addUser = this.addUser.bind(this); 
       this.all = this.all.bind(this);
       this.assignments = this.assignments.bind(this);
-      this.forUser = this.forUser.bind(this);
       this.canGrade = this.canGrade.bind(this);
       this.canModify = this.canModify.bind(this);
-      this.addUser = this.addUser.bind(this);
+      this.courseUsers = this.courseUsers.bind(this); 
+      this.forUser = this.forUser.bind(this);
+      this.isUnique = this.isUnique.bind(this);
+      this.removeUser = this.removeUser.bind(this); 
+      this.setCourseRole = this.setCourseRole.bind(this); 
    }
 
+   /**
+    * Adds a new course with the given information to the database.
+    * @param {Number} school_id The ID of the school to which the course will be added (integer).
+    * @param {String} name The course's name.
+    * @param {String} term Which term this course is being taught.
+    * @param {Number} year What year this course is being taught (integer).
+    * @returns {Promise} Resolves with the new course's ID if successful; rejects with error otherwise.
+    */
+   addCourse(school_id, name, term, year) {
+      const sql = "INSERT INTO courses(school_id, name, term, year) VALUES($school_id, $name, $term, $year)";
+      const params = { $school_id: school_id, $name: name, $term: term, $year: year }
+
+      return new Promise((resolve, reject) => {
+
+         //AC: placing db callback function into its own variable changes 
+         //*this* from local object to result of sqlite3 db call.
+         var local_callback = function (err) {
+            if (err === null) {
+               resolve(this.lastID);
+            }
+            else {
+               console.log(err);
+               reject(err);
+            }
+         };
+         this.db.run(sql, params, local_callback);
+      });
+   }
+
+   /**
+    * Adds an existing user to a course. 
+    * @param {Number} course_id The course's ID number (integer).
+    * @param {Number} user_id The user's ID number (integer). 
+    * @returns {Promise} Resolves with the database's new row ID if successful; rejects with error otherwise. 
+    */
    addUser(course_id, user_id) {
       const sql = "INSERT INTO course_users (course_id, user_id) VALUES($course_id, $user_id)";
       const params = { $course_id: course_id, $user_id: user_id }
@@ -34,38 +77,75 @@ class CoursesDb {
       });
    }
 
-   all(callback, include_deleted = false) {
-      let sql = "SELECT c.*, s.name AS school_name, s.acronym  FROM courses c INNER JOIN schools s ON c.school_id = s.id";
-      if (include_deleted === false) {
-         sql += " WHERE is_deleted = 0 AND is_active = 1";
-      }
-      sql += " ORDER BY c.year, c.term DESC";
-      this.db.all(sql, {}, (err, rows) => {
-         if (err === null && rows !== undefined) {
-            callback(rows);
-            return;
+   /**
+    * Returns all courses.
+    * @param {Boolean} [include_deleted=false] To include deleted courses, set this to true.
+    * @returns {Promise} Resolves with all courses if successful; rejects with error otherwise. 
+    */
+   all(include_deleted = false) {
+      return new Promise((resolve, reject) => { 
+         let sql = "SELECT c.*, s.name AS school_name, s.acronym  FROM courses c INNER JOIN schools s ON c.school_id = s.id";
+         if (include_deleted === false) {
+            sql += " WHERE is_deleted = 0 AND is_active = 1";
          }
-         else if (err !== null) {
-            console.log(err);
-         }
-         callback({});
+         sql += " ORDER BY c.year, c.term DESC";
+         this.db.all(sql, {}, (err, rows) => {
+               if (err === null && rows !== undefined) {
+                  resolve(rows);
+               }
+               else if (err !== null) {
+                  console.log(err);
+                  reject(err);
+               }
+               else
+               {
+                  reject(false);
+               }
+            });
       });
    }
 
-   assignments(course_id, callback) {
-      const sql = "SELECT * FROM assignments WHERE course_id = $course_id";
-      this.db.all(sql, { $course_id: course_id }, (err, rows) => {
-         if (err === null && rows !== undefined) {
-            callback(rows);
-            return;
+   /**
+    * Returns assignments for a given course.
+    * @param {Number} course_id The course's ID number (integer).
+    * @param {Boolean} [include_active=true] Set this to false to exclude active assignments.
+    * @param {Boolean} [include_deleted=true] Set this to false to exclude deleted assignments.
+    * @returns {Promise} Resolves with all selected assignments if successful; rejects otherwise.
+    */
+   assignments(course_id, include_active = true, include_deleted = true) {
+      return new Promise((resolve, reject) => {
+         let sql = "SELECT * FROM assignments WHERE course_id = $course_id";
+         if(include_active === true && include_deleted === false)
+         {
+            sql += " AND is_deleted = 0"; 
          }
-         else if (err !== null) {
-            console.log(err);
+         else if(include_active === false && include_deleted === true)
+         {
+            sql += " AND is_deleted = 1"; 
          }
-         callback({});
+         this.db.all(sql, { $course_id: course_id }, (err, rows) => {
+            if (err === null && rows !== undefined) {
+               resolve(rows);
+            }
+            else if (err !== null) {
+               console.log(err);
+               reject(err); 
+            }
+            else
+            {
+               reject(false); 
+            }
+         });
       });
    }
 
+   /**
+    * Returns true if the given user is permitted to grade assignments for this course.
+    * @param {Number} course_id The course's ID number (integer).
+    * @param {Number} user_id The given user's ID number (integer).
+    * @returns {Promise} Resolves with true if the user may grade assignments for this course;
+    *    rejects otherwise. 
+    */
    canGrade(course_id, user_id) {
       return new Promise((resolve, reject) => {
          const sql = "SELECT * FROM course_users "
@@ -87,6 +167,13 @@ class CoursesDb {
       });
    }
 
+   /**
+    * Returns true if the given user is permitted to modify this course.
+    * @param {Number} course_id The course's ID number (integer).
+    * @param {Number} user_id The given user's ID number (integer).
+    * @returns {Promise} Resolves with true if the user may modify this course;
+    *    rejects otherwise.
+    */
    canModify(course_id, user_id) {
       return new Promise((resolve, reject) => {
          const sql = "SELECT * FROM course_users "
@@ -108,6 +195,11 @@ class CoursesDb {
       });
    }
 
+   /**
+    * Returns all users associated with a course.
+    * @param {Number} course_id The course's ID number (integer).
+    * @returns {Promise} Resolves with all users in the course if successful; rejects otherwise. 
+    */
    courseUsers(course_id) {
       return new Promise((resolve, reject) => {
          let sql = "SELECT u.first_name, u.last_name, u.email, cu.* "
@@ -130,23 +222,41 @@ class CoursesDb {
       });
    }
 
-   forUser(user_id, callback) {
-      const sql = "SELECT * FROM courses c " +
-         " INNER JOIN course_users cu ON c.id = cu.course_id " +
-         " WHERE cu.user_id = $user_id";
-      this.db.all(sql, { $user_id: user_id }, (err, rows) => {
-         if (err === null && rows !== undefined) {
-            callback(rows);
-            return;
-         }
-         else if (err !== null) {
-            console.log(err);
-         }
-         callback({});
+   /**
+    * Returns all courses that the user is taking. 
+    * @param {Number} user_id The user's ID number (integer). 
+    * @returns {Promise} Resolves with all courses that this user is taking if successful;
+    *    rejects otherwise.
+    */
+   forUser(user_id) {
+      return new Promise((resolve, reject) => {
+         const sql = "SELECT * FROM courses c " +
+            " INNER JOIN course_users cu ON c.id = cu.course_id " +
+            " WHERE cu.user_id = $user_id";
+         this.db.all(sql, { $user_id: user_id }, (err, rows) => {
+            if (err === null && rows !== undefined) {
+               resolve(rows);
+            }
+            else if (err !== null) {
+               console.log(err);
+               reject(err); 
+            }
+            else {
+               reject(false); 
+            }
+         });
       });
    }
 
-   //ensures that the combination of school, name, term, and year are all unique
+   /** 
+    * Ensures that the combination of school, name, term, and year are all unique.
+    * @param {Number} school_id The school's ID number (integer).
+    * @param {String} name A course's name. 
+    * @param {String} term The term in which the course is held.
+    * @param {Number} year The year in which the course is held (integer).
+    * @returns {Promise} Resolves with true if the combination of these arguments is unique in the database;
+    *    rejects with false otherwise. 
+    */
    isUnique(school_id, name, term, year) {
       return new Promise((resolve, reject) => {
          const sql = "SELECT * FROM courses "
@@ -168,6 +278,13 @@ class CoursesDb {
       });
    }
 
+   /**
+    * Removes the user from the selected course. 
+    * @param {Number} course_id The course's ID number (integer).
+    * @param {Number} user_id The user's ID number (integer).
+    * @returns {Promise} Resolves with the number of rows deleted if successful;
+    *    rejects with error otherwise. 
+    */
    removeUser(course_id, user_id) {
       const sql = "DELETE FROM course_users WHERE course_id = $course_id AND user_id = $user_id";
       const params = { $course_id: course_id, $user_id: user_id }
@@ -189,6 +306,18 @@ class CoursesDb {
       });
    }
 
+   /**
+    * Sets the given user's role in the course.
+    * @param {Number} course_id The course's ID number (integer).
+    * @param {Number} user_id The user's ID number (integer).
+    * @param {Number} role Integer representing a role, specified by these bits: 
+    *    0001 = is pending user, 
+    *    0010 = can submit assignment,
+    *    0100 = can modify course,
+    *    1000 = can grade assignments
+    * @returns {Promise} Resolves with the number of rows affected if successful; 
+    *    rejects with error otherwise. 
+    */
    setCourseRole(course_id, user_id, role){
       const sql = "UPDATE course_users SET course_role = $role WHERE course_id = $course_id AND user_id = $user_id";
       const params = { $course_id: course_id, $user_id: user_id, $role: role }
@@ -213,6 +342,16 @@ class CoursesDb {
    }
 }
 
+/**
+ * Contains methods for altering course-related information in the database.
+ * @typedef {Object} CoursesDb
+ */
+
+/**
+ * Creates a new CoursesDb object.
+ * @param {Object} db_connection Database connection.
+ * @returns {CoursesDb} Instance of CoursesDb.
+ */
 exports.createCoursesDb = function (db_connection) {
    return new CoursesDb(db_connection);
 }

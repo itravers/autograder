@@ -11,9 +11,11 @@ class Assignment {
       this.compile = this.compile.bind(this);
    }
 
-   removeFile(file) {
+   removeFile(file, assignment_id) {
       return new Promise((resolve, reject) => {
-         WebRequest.makeDelete(this.config.endpoints.assignment.file, { id: file.serverId }, (result) => {
+         const path = this.config.endpoints.assignment.file;
+         const endpoint = this.config.constructRoute(path, [assignment_id]);
+         WebRequest.makeDelete(endpoint, { id: file.serverId }, (result) => {
             if (result !== null && result !== undefined) {
                resolve(file.file.name);
             }
@@ -26,7 +28,8 @@ class Assignment {
 
    getFiles(assignment_id, user_id) {
       return new Promise((resolve, reject) => {
-         const url = this.config.endpoints.assignment.file + "/" + assignment_id + "/" + user_id;
+         const endpoint = this.config.endpoints.assignment.user_files; 
+         const url = this.config.constructRoute(endpoint, [assignment_id, user_id]);
          WebRequest.makeUrlRequest(url, (result) => {
             if (result !== null && result !== undefined) {
                const data = result.data.response;
@@ -55,7 +58,8 @@ class Assignment {
          if (this.cache_results === true) {
             call = WebRequest.makeCacheableUrlRequest;
          }
-         const endpoint = this.config.endpoints.assignment.test_cases + "/" + assignment_id;
+         const path = this.config.endpoints.assignment.test_cases; 
+         const endpoint = this.config.constructRoute(path, [assignment_id]); 
          call(endpoint, (result) => {
             if (result !== null && result !== undefined && Object.keys(result.data.response).length > 0) {
                resolve(result.data.response);
@@ -74,7 +78,8 @@ class Assignment {
          if (this.cache_results === true) {
             call = WebRequest.makeCacheableUrlRequest;
          }
-         const endpoint = this.config.endpoints.assignment.test_results + "/" + assignment_id + "/" + user_id;
+         const path = this.config.endpoints.assignment.test_results;
+         const endpoint = this.config.constructRoute(path, [assignment_id, user_id]); 
          call(endpoint, (result) => {
             if (result !== null && result !== undefined && Object.keys(result.data.response).length > 0) {
                resolve(result.data.response);
@@ -96,10 +101,11 @@ class Assignment {
 
          //never allow caching of compile calls
          let call = WebRequest.makePost;
-         let endpoint = this.config.endpoints.assignment.compile + "/" + assignment_id;
+         let path = this.config.endpoints.assignment.compile; 
          if (run_only === true) {
-            endpoint = this.config.endpoints.assignment.run + "/" + assignment_id;
+            path = this.config.endpoints.assignment.run; 
          }
+         const endpoint = this.config.constructRoute(path, [assignment_id]);
          call(endpoint, { stdin: test_case, test_name: test_name }, (result) => {
             if (result !== null && result !== undefined && Object.keys(result.data.response).length > 0) {
                resolve(result.data.response);

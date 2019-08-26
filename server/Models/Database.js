@@ -8,6 +8,12 @@ const TestCasesDb = require('./TestCasesDb.js');
 
 class Database{
 
+   /**
+    * Database constructor.
+    * @param {String} connection_string String for connecting to DB.
+    * @param {*} [hash_salt="change this"] Salt for hashing passwords. 
+    * @param {String} [crypto_method=sha512] Cryptographic hash method. 
+    */
    constructor(connection_string, hash_salt = "change this", crypto_method = "sha512"){
       this.connection_string = connection_string;
       this.hash_salt = hash_salt;
@@ -27,13 +33,21 @@ class Database{
       //AC: I like the idea of doing this.Assignments.Files better than having something separate,
       //so I added AssignmentFiles as a prop.  Leaving this one here for now for compatibility.
       this.AssignmentFiles = this.Assignments.Files;
-
-      
-   }
-
-   
+   }  
 }
 
+/**
+ * Contains connection to SQLite database and corresponding methods. 
+ * @typedef {Object} Database
+ */
+
+/**
+ * Creates a new Database object.
+ * @param {String} connection_string String for connecting to DB.
+ * @param {*} [hash_salt="change this"] Salt for hashing passwords. 
+ * @param {String} [crypto_method=sha512] Cryptographic hash method. 
+ * @returns {Database} Instance of Database. 
+ */
 exports.createDatabase = function(connection_string, hash_salt = "change this", crypto_method = "sha512"){
    return new Database(connection_string, hash_salt, crypto_method);
 }
