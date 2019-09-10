@@ -15,6 +15,42 @@ class TestCasesDb {
    }
 
    /**
+    * Creates a test case for an assignment.
+    * @param {Number} assignment_id The assignment's ID number (integer). 
+    * @param {String} test_name The test case's name. 
+    * @param {String} test_input What the input should be when running this test.
+    * @param {String} test_desc A description of the test case. 
+    * @returns {Promise} Resolves with the new test case's ID if successful;
+    *    rejects if there's an error. 
+    */
+   createTest(assignment_id, test_name, test_input, test_desc) {
+      const sql = "INSERT INTO assignment_tests " +
+         " (assignment_id, test_name, test_input, test_description) " +
+         " VALUES ($assignment_id, $test_name, $test_input, $test_desc) ";
+      const params = {
+         $assignment_id: assignment_id,
+         $test_name: test_name,
+         $test_input: test_input,
+         $test_desc: test_desc
+      };
+      return new Promise((resolve, reject) => {
+
+         //AC: placing db callback function into its own variable changes 
+         //*this* from local AssignmentFilesDb object to result of sqlite3 db call.
+         var local_callback = function (err) {
+            if (err === null) {
+               resolve(this.lastID);
+            }
+            else {
+               console.log(err);
+               reject(err); 
+            }
+         };
+         this.db.run(sql, params, local_callback);
+      });
+   }
+
+   /**
     * Returns all tests cases associated with a particular assignment.
     * @param {Number} assignment_id The assignment's ID number (integer). 
     * @returns {Promise} Resolves with all test cases if successful; rejects if no 
@@ -32,6 +68,31 @@ class TestCasesDb {
                console.log(err);
                reject(err); 
             }
+         });
+      });
+   }
+
+   /** 
+    * Ensures that the test input is unique for the given assignment.
+    * @param {Number} assignment_id The assignment's ID number (integer).
+    * @param {String} test_input The input for the test case.
+    * @returns {Promise} Resolves with true if the combination of these arguments is unique in the database;
+    *    rejects with false otherwise. 
+    */
+   isUnique(assignment_id, test_input) {
+      return new Promise((resolve, reject) => {
+         const sql = "SELECT * FROM assignment_tests "
+            + "WHERE assignment_id = $id "
+            + "AND test_input = $input ";
+         this.db.get(sql, { $id: assignment_id, $input: test_input }, (err, row) => {
+            if (err === null && row !== undefined) {
+               reject(false);
+               return;
+            }
+            else if (err !== null) {
+               console.log(err);
+            }
+            resolve(true);
          });
       });
    }

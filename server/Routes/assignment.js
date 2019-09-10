@@ -109,6 +109,38 @@ exports.compileAndRun = function(req, res, db, config, acl, Compiler) {
       });
 }
 
+/**
+ * Creates a test case. 
+ * @param {Object} req HTTP request object. 
+ * @param {Object} res HTTP response object. 
+ * @param {Object} db Database connection. 
+ * @param {Object} acl Object containing AccessControlList methods.
+ * @returns {Object} JSON response with test case's ID if successful, or
+ *    with error message if unsuccessful for any reason.
+ */
+exports.createTestCase = function(req, res, db, acl) {
+   let session = req.session;
+   const test_name = req.body.test_name; 
+   const test_input = req.body.test_input; 
+   const test_desc = req.body.test_desc;
+
+   // does the current user have permission to create test cases 
+   // for this assignment? (are they an admin?)
+   acl.isAdmin(session)
+
+      // does this test case already exist for this assignment?
+      .then(() => db.Assignments.TestCases.isUnique(req.params.assignment_id, test_input))
+
+      // if the test case doesn't exist yet, add it to the database
+      .then(() => db.Assignments.TestCases.createTest(req.params.assignment_id, test_name, test_input, test_desc))
+      .then(
+         result => res.json({ response: result })
+      )
+      .catch(err =>
+         res.json({ response: err })
+      );
+}
+
  /**
   * Deletes a file from an assignment. :aid is the assignment ID that this file will belong to.   
   * The file ID to delete should be in req.body.id.
