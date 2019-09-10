@@ -156,9 +156,8 @@ router.get('/course/enrolled', (req, res) => courseRoute.enrollments(req, res, d
  */
 router.get('/course/:course_id/user', (req, res) => courseRoute.roster(req, res, db, acl)); 
 
-// Removes the user specified in req.body from the selected course
-// TODO: revise so that students can't remove/add each other from 
-// courses-- only instructors should be able to do that, right?
+// Removes the user specified in req.body from the selected course if
+// they are the current session user
 router.delete('/course/:course_id/user', (req, res) => courseRoute.removeUser(req, res, db, acl)); 
 
 // Adds the user to the specified course
