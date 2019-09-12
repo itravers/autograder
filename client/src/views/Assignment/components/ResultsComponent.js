@@ -100,10 +100,21 @@ class ResultsComponent extends Component {
                            id={item_id}
                            role="tabpanel"
                            aria-labelledby={tab_name}
-                        >
-                           <div>{first_item.date_run}</div>
-                           <div>{first_item.test_input}</div>
-                           <div>{first_item.test_result}</div>
+                        >                          
+                           <div>
+                              <h6 style={{fontWeight: "bold"}}>Date run:</h6>
+                              {first_item.date_run}
+                           </div>
+                           <div><hr></hr></div>
+                           <div>
+                              <h6 style={{fontWeight: "bold"}}>Inputs:</h6>
+                              {first_item.test_input}
+                           </div>
+                           <div><hr></hr></div>
+                           <div>
+                              <h6 style={{fontWeight: "bold"}}>Test results:</h6>
+                              {first_item.test_result}
+                           </div>
                         </div>
                      )
                   })
