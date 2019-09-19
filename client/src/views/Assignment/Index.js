@@ -116,9 +116,18 @@ class IndexView extends Component {
    }
 
    updateTabs() {
-      const files = this.state.files;
       let links = [...this.base_links];
       let links_by_name = {};
+      
+      // add a tab to manage test cases if current user has permission
+      const test_id = -1; 
+      const test_url = "/assignment/tests"; 
+      const test_name = "Manage Tests"; 
+      const test_tab = {id: test_id, url: test_url, name: test_name, css: "nav-link"};
+      links.push(test_tab); 
+
+      // add tabs for each file 
+      const files = this.state.files;
       for (let key of Object.keys(files)) {
          const file = files[key];
          const url = "/assignment/files/" + file.name.toLowerCase();
