@@ -19,6 +19,7 @@ const FileManager = require('./FileManager.js');
 const Database = require('./Models/Database.js');
 const AccessControlList = require('./Models/AccessControlList.js');
 var Compiler = require('./Models/Windows_Metal_MSVC_Compiler.js');
+var FolderSetup = require('./setup.js');
 
 var FileStore = require('session-file-store')(session);
 
@@ -28,8 +29,11 @@ const assignmentRoute = require('./Routes/assignment.js');
 const courseRoute = require('./Routes/course.js'); 
 
 let config = ini.parse(fs.readFileSync('./config.ini', 'utf-8'));
-config.database.connection_string = config.database.db_path + config.database.db_name;;
+
+config.database.connection_string = config.database.db_path + config.database.db_name;
 let file_manager = FileManager.FileManager(config.temp_path, config.uploads_path);
+let all_folders = [config.temp_path, config.uploads_path];
+let folder_setup = FolderSetup.setupFolders(all_folders);
 let db = Database.createDatabase(config.database.connection_string, config.database.secret_hash, config.database.crypto_method);
 let acl = AccessControlList.createACL(db);
 

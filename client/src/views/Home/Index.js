@@ -44,8 +44,8 @@ class IndexView extends Component {
             <div className="row">
                <div className="col text-left">
                If you are a student that is using the Assisted Grader, your first step is to 
-               <Link to="/account/create">create an account</Link> in the system.  If you have
-               already registered, you may <Link to="/account/create">log in</Link> using the 
+                <Link to="/account/create">create an account</Link> in the system.  If you have
+               already registered, you may <Link to="/account/login">log in</Link> using the 
                Account dropdown in the top menu.
                </div>
             </div>

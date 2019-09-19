@@ -108,7 +108,7 @@ class ResultsComponent extends Component {
                            <div><hr></hr></div>
                            <div>
                               <h6 style={{fontWeight: "bold"}}>Inputs:</h6>
-                              {first_item.test_input}
+                              <pre>{first_item.test_input}</pre>
                            </div>
                            <div><hr></hr></div>
                            <div>
