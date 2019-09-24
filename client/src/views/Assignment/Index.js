@@ -7,6 +7,7 @@ import CourseAssignmentSelector from '../components/CourseAssignmentSelector';
 import AddFiles from './components/AddFilesComponent';
 import Source from './components/SourceViewComponent';
 import TestCases from './components/TestCasesComponent';
+import ManageTests from './components/ManageTestsComponent';
 import Results from './components/ResultsComponent';
 
 const mapStateToProps = state => {
@@ -280,6 +281,18 @@ class IndexView extends Component {
                                  user={this.selectedUser()}
                               />
                            </div>
+                        )
+                     }} />
+               <Route path="/assignment/tests"
+                  render={
+                     (props) => {
+                        return (
+                           <div className="container">
+                              <ManageTests
+                                 assignment={this.state.current_assignment}
+                                 user={this.selectedUser()}
+                              />
+                           </div> 
                         )
                      }} />
             </div>
