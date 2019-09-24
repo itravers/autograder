@@ -82,14 +82,14 @@ class IndexView extends Component {
             let active_users = [];
 
             //add current user
-            active_users.push(this.props.current_user);
+            active_users.push(this.props.current_user); 
 
             //filter course users based on access rights
             for (let user of result) {
                const privilege = this.props.models.course.getCoursePrivileges(user.course_role);
                if (privilege.can_submit_assignment === true && privilege.can_grade_assignment === false) {
 
-                  //request returns course users, which are different than vanilla users.  Coruse users have
+                  //request returns course users, which are different than vanilla users.  Course users have
                   //user_id whereas vanilla has just id.  So we need to make a copy to make everything work out 
                   //okay.
                   user.id = user.user_id;
@@ -120,11 +120,14 @@ class IndexView extends Component {
       let links_by_name = {};
       
       // add a tab to manage test cases if current user has permission
-      const test_id = -1; 
-      const test_url = "/assignment/tests"; 
-      const test_name = "Manage Tests"; 
-      const test_tab = {id: test_id, url: test_url, name: test_name, css: "nav-link"};
-      links.push(test_tab); 
+      const user = this.props.current_user; 
+      if(user.is_admin == true || user.is_instructor == true) {
+         const test_id = -1; 
+         const test_url = "/assignment/tests"; 
+         const test_name = "Manage Tests"; 
+         const test_tab = {id: test_id, url: test_url, name: test_name, css: "nav-link"};
+         links.push(test_tab); 
+      }
 
       // add tabs for each file 
       const files = this.state.files;
