@@ -51,6 +51,46 @@ class TestCasesDb {
    }
 
    /**
+    * Updates a test case's fields.
+    * @param {Number} assignment_id The assignment's ID number (integer).
+    * @param {Number} test_id The test's ID number (integer). 
+    * @param {String} test_name The test case's name. 
+    * @param {String} test_input What the input should be when running this test.
+    * @param {String} test_desc A description of the test case. 
+    * @returns {Promise} Resolves with the number of tests affected (1) if successful;
+    *    rejects if there's an error. 
+    */
+
+   editTest(assignment_id, test_id, test_name, test_input, test_desc)
+   {
+      const sql = " UPDATE assignment_tests " +
+      " SET test_name = $test_name, test_input = $test_input, test_description = $test_desc " +
+      " WHERE id = $test_id AND assignment_id = $a_id";
+      const params = { 
+         $a_id: assignment_id,
+         $test_id: test_id, 
+         $test_name: test_name,
+         $test_input: test_input, 
+         $test_desc: test_desc
+      };
+      return new Promise((resolve, reject) => {
+
+         //AC: placing db callback function into its own variable changes 
+         //*this* from local object to result of sqlite3 db call.
+         var local_callback = function (err) {
+            if (err === null) {
+               resolve(this.changes);
+            }
+            else {
+               console.log(err);
+               reject(err);
+            }
+         };
+         this.db.run(sql, params, local_callback);
+      });
+   }
+
+   /**
     * Returns all tests cases associated with a particular assignment.
     * @param {Number} assignment_id The assignment's ID number (integer). 
     * @returns {Promise} Resolves with all test cases if successful; rejects if no 

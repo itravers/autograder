@@ -114,6 +114,9 @@ router.get('/assignment/:assignment_id/testCases', (req, res) => assignmentRoute
 // create a test case for the given assignment 
 router.post('/assignment/:assignment_id/testCases', (req, res) => assignmentRoute.createTestCase(req, res, db, acl));
 
+// edits a test case for the given assignment 
+router.put('/assignment/:assignment_id/testCases', (req, res) => assignmentRoute.editTestCase(req, res, db, acl)); 
+
 // gets user's test results for this assignment, if the user has permission
 // to view them 
 router.get('/assignment/:assignment_id/user/:user_id/testResults', (req, res) => assignmentRoute.getTestResults(req, res, db, acl)); 

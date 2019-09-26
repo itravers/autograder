@@ -141,6 +141,37 @@ exports.createTestCase = function(req, res, db, acl) {
       );
 }
 
+/**
+ * Edits a test case. 
+ * @param {Object} req HTTP request object. 
+ * @param {Object} res HTTP response object. 
+ * @param {Object} db Database connection. 
+ * @param {Object} acl Object containing AccessControlList methods.
+ * @returns {Object} JSON response with test case's ID if successful, or
+ *    with error message if unsuccessful for any reason.
+ */
+exports.editTestCase = function(req, res, db, acl) {
+   let session = req.session;
+   const a_id = req.params.assignment_id;
+   const test_id = req.body.test_id; 
+   const test_name = req.body.test_name; 
+   const test_input = req.body.test_input; 
+   const test_desc = req.body.test_description;
+
+   // does the current user have permission to manage test cases 
+   // for this assignment? (are they an admin?)
+   acl.isAdmin(session)
+
+      // update the test's information in the database
+      .then(() => db.Assignments.TestCases.editTest(a_id, test_id, test_name, test_input, test_desc))
+      .then(
+         result => res.json({ response: result })
+      )
+      .catch(err =>
+         res.json({ response: err })
+      );
+}
+
  /**
   * Deletes a file from an assignment. :aid is the assignment ID that this file will belong to.   
   * The file ID to delete should be in req.body.id.
