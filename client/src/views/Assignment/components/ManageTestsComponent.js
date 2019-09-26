@@ -16,24 +16,26 @@ class ManageTestsComponent extends Component {
          selected_test_index: 0,
          selected_test: {},
          test_result: "",
-         is_running_test: false
+         is_submitting_changes: false
       };
 
       this.getTestCases = this.getTestCases.bind(this);
       this.testCaseSelected = this.testCaseSelected.bind(this);
+      this.testNameChanged = this.testNameChanged.bind(this); 
+      this.testDescChanged = this.testDescChanged.bind(this); 
       this.testInputChanged = this.testInputChanged.bind(this);
       this.handleFormSubmit = this.handleFormSubmit.bind(this);
    }
 
    handleFormSubmit(evt) {
       evt.preventDefault();
-      this.setState({ is_running_test: true }, () => {
+      this.setState({ is_submitting_changes: true }, () => {
          this.props.models.assignment.compile(this.props.assignment.id, this.state.selected_test.test_input, this.state.selected_test.test_name)
             .then(result => {
-               this.setState({ test_result: result, is_running_test: false });
+               this.setState({ test_result: result, is_submitting_changes: false });
             })
             .catch(result => {
-               this.setState({ test_result: result, is_running_test: false });
+               this.setState({ test_result: result, is_submitting_changes: false });
             });
       });
 
@@ -62,6 +64,14 @@ class ManageTestsComponent extends Component {
         this.setState({
             selected_test: test
         });
+    }
+
+    testDescChanged(evt) {
+      let test = Object.assign({}, this.state.selected_test);
+      test.test_description = evt.target.value;
+      this.setState({
+          selected_test: test
+      });
     }
 
    testInputChanged(evt) {
@@ -104,12 +114,12 @@ render() {
     let test_result_classes = "row";
       if (this.state.test_result === "") {
          test_result_classes += " d-none";
+      }*/
+      let submit_text = "submitting changes...";
+      if (this.state.is_submitting_changes === false) {
+         submit_text = "";
       }
-      let running_text = "running test...";
-      if (this.state.is_running_test === false) {
-         running_text = "";
-      }
-      */
+      
       return (
          <div className="container">
             <form onSubmit={this.handleFormSubmit}>
@@ -134,10 +144,20 @@ render() {
                         onChange={this.testNameChanged}
                     />
                 </div>
+                <div className="form-group">
+                   <label htmlFor="TestCaseDescription"> Test Description</label>
+                   <textarea  
+                     id="TestCasesDescription"
+                     rows="3"
+                     className="form-control"
+                     value={this.state.selected_test.test_description}
+                     onchange={this.testDescChanged} 
+                     />
+                </div>
                <div className="form-group">
-                  <label htmlFor="TestCaseDescription">{this.state.selected_test.test_description}</label>
+                  <label htmlFor="TestCaseInput">Test Input</label>
                   <textarea
-                     id="TestCaseDescription"
+                     id="TestCaseInput"
                      rows="5"
                      className="form-control"
                      value={this.state.selected_test.test_input}
@@ -145,8 +165,8 @@ render() {
                </div>
                <button
                   type="Submit"
-                  disabled={this.state.is_running_test}
-                  className="btn btn-outline-primary">Run Test</button> <br />
+                  disabled={this.state.is_submitting_changes}
+                  className="btn btn-outline-primary">Submit Changes</button> <br />
             </form>
          </div >
       );

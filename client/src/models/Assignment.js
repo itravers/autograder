@@ -72,6 +72,22 @@ class Assignment {
       });
    }
 
+   editTestCase(assignment_id, test_id, test_name, test_input, test_desc) {
+      return new Promise((resolve, reject) => {
+         let call = WebRequest.makePut;
+         const path = this.config.endpoints.assignment.test_cases; 
+         const endpoint = this.config.constructRoute(path, [assignment_id]);
+         call(endpoint, { test_id: test_id, test_name: test_name, test_input: test_input, test_description: test_desc }, (result) => {
+            if (result !== null && result !== undefined && result.data.response !== undefined) {
+               resolve(result.data.response);
+            }
+            else {
+               reject(result);
+            }
+         });
+      });
+   }
+
    getTestResults(assignment_id, user_id) {
       return new Promise((resolve, reject) => {
          let call = WebRequest.makeUrlRequest;
