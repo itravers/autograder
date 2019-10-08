@@ -1,6 +1,7 @@
 import Create from './Create'
 import Login from './Login'
 import Logout from './Logout'
+import GithubLogin from './GithubLogin'
 
 const routes = [
    {
@@ -16,6 +17,11 @@ const routes = [
    {
       path: "/account/logout",
       component: Logout,
+      strict_match: false
+   },
+   {
+      path:"/account/githublogin",
+      component: GithubLogin,
       strict_match: false
    }
 ];

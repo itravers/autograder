@@ -179,8 +179,42 @@ router.get('/user/logout', (req, res) => userRoute.logout(req, res));
 // creates new user
 router.post('/user/create', (req, res) => userRoute.createUser(req, res, db)); 
 
+
+
+
+// Github OAuth
+// Declare the redirect route
+
+let oauth_config = ini.parse(fs.readFileSync('./oauth_config.ini', 'utf-8'));
+const axios = require('axios');
+app.get('/oauth/redirect', (req, res) => {
+   // The req.query object has the query params that
+   // were sent to this route. We want the `code` param
+   const requestToken = req.query.code;
+   axios({
+     // make a POST request
+     method: 'post',
+     // to the Github authentication API, with the client ID, client secret
+     // and request token
+     url: `https://github.com/login/oauth/access_token?client_id=${oauth_config.client_id}&client_secret=${oauth_config.client_secret}&code=${requestToken}`,
+     // Set the content type header, so that we get the response in JSOn
+     headers: {
+          accept: 'application/json'
+     }
+   }).then((response) => {
+     // Once we get the response, extract the access token from
+     // the response body
+     const accessToken = response.data.access_token;
+     // redirect the user to the welcome page, along with the access token
+     //res.redirect(`/api?access_token=${accessToken}`)
+     res.redirect(`http://localhost:3000/account/githublogin?access_token=${accessToken}`);
+   })
+ });
+
 // REGISTER OUR ROUTES -------------------------------
 // all of our routes will be prefixed with /api
+
+
 app.use('/api', router);
 
 // START THE SERVER
