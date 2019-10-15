@@ -3,8 +3,8 @@ import { connect } from "react-redux";
 import {updateUser} from '../../actions/index';
 import { BrowserRouter as Router, Route, Link, Redirect } from 'react-router-dom';
 import {axios} from 'axios';
-//include '../../oauthconfig.json';
-
+// import {oauthconfig} from '../../oauthconfig.json';
+var oauthconfig = require('../../oauthconfig.json');
 
 
 const mapStateToProps = state => {
@@ -27,16 +27,18 @@ class GithubLoginView extends Component {
            email: "",
            password: "",
            invalid_login: false,
-           redirect_path: "https://github.com/login/oauth/authorize?client_id=" + {client_id_temp}
+           redirect_path: "https://github.com/login/oauth/authorize?client_id=" + oauthconfig.client_id + "&redirect_uri=http://localhost:8080/oauth/redirect"
         };
         
      }
      
     render() {
-    
+      
+      //const client_id = oauthconfig.client_id;
+     
       const query = window.location.search.substring(1);
       const token = query.split('access_token=')[1];
-      const email_val = "";
+      var email_val = "";
 
       const axios = require('axios');
       axios({
