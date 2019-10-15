@@ -184,7 +184,6 @@ router.post('/user/create', (req, res) => userRoute.createUser(req, res, db));
 
 // Github OAuth
 // Declare the redirect route
-
 let oauth_config = ini.parse(fs.readFileSync('./oauth_config.ini', 'utf-8'));
 const axios = require('axios');
 app.get('/oauth/redirect', (req, res) => {
@@ -201,13 +200,17 @@ app.get('/oauth/redirect', (req, res) => {
      headers: {
           accept: 'application/json'
      }
-   }).then((response) => {
+   })
+   .then((response) => {
      // Once we get the response, extract the access token from
      // the response body
      const accessToken = response.data.access_token;
      // redirect the user to the welcome page, along with the access token
      //res.redirect(`/api?access_token=${accessToken}`)
      res.redirect(`http://localhost:3000/account/githublogin?access_token=${accessToken}`);
+   })
+   .catch((err) => {
+      console.log(err); 
    })
  });
 
