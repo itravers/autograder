@@ -391,6 +391,9 @@ ASALocalRun/
 # MFractors (Xamarin productivity tool) working folder 
 .mfractor/
 
+# OAuth config
+server/oauth_config.ini
+
 
 
 /data/temp/*
