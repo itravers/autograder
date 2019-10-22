@@ -31,8 +31,6 @@
     res.json({ response: "missing required parameters" });
  }
 
-<<<<<<< Updated upstream
-=======
 /**
  * Returns information on currently logged-in user from Github.
  * @param {Object} req HTTP request object. 
@@ -72,7 +70,6 @@ exports.githubUser = function(req, res) {
    });
 }
 
->>>>>>> Stashed changes
 /** 
  * Returns information on currently logged in user.
  * @param {Object} req HTTP request object. 
