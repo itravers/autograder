@@ -173,6 +173,12 @@ router.get('/user/login', (req, res) => userRoute.info(req, res));
 // logs in a user with given credentials 
 router.post('/user/login', (req, res) => userRoute.login(req, res, db)); 
 
+<<<<<<< Updated upstream
+=======
+// returns information on currently logged-in user from Github
+router.get('/user/githubUser', (req, res) => userRoute.githubUser(req, res)); 
+
+>>>>>>> Stashed changes
 // logs out user 
 router.get('/user/logout', (req, res) => userRoute.logout(req, res)); 
 
@@ -206,8 +212,14 @@ app.get('/oauth/redirect', (req, res) => {
      // the response body
      const accessToken = response.data.access_token;
      // redirect the user to the welcome page, along with the access token
+<<<<<<< Updated upstream
      //res.redirect(`/api?access_token=${accessToken}`)
      res.redirect(`http://localhost:3000/account/githublogin?access_token=${accessToken}`);
+=======
+     //res.redirect(`http://localhost:3000/account/githublogin?access_token=${accessToken}`);
+     const redirectLink = 'http://localhost:8080/api/user/githubUser?access_token=' + accessToken;
+      res.redirect(redirectLink); 
+>>>>>>> Stashed changes
    })
    .catch((err) => {
       console.log(err); 

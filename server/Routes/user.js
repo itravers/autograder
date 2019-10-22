@@ -1,3 +1,5 @@
+ const axios = require('axios'); 
+ 
  /** 
   * Creates new user.
   * @param {Object} req HTTP request object. 
@@ -29,6 +31,48 @@
     res.json({ response: "missing required parameters" });
  }
 
+<<<<<<< Updated upstream
+=======
+/**
+ * Returns information on currently logged-in user from Github.
+ * @param {Object} req HTTP request object. 
+ * @param {Object} res HTTP response object. 
+ * @returns {Object} JSON response containing information on logged-in Github user. 
+ */
+exports.githubUser = function(req, res) {
+   // Get the token from the "access_token" query param, passed from
+   // client 
+   const token = req.query.access_token; 
+   //const token = query.split('access_token=')[1]; 
+   //const token = req.params.access_token;
+
+   // Call the user info API using the fetch browser library 
+   /*
+   fetch('//api.github.com/user', {
+      headers: {
+         // Include the token in the Authorization header 
+         Authorization: 'token ' + token
+      }
+   })
+   */
+  axios({
+     method: 'get', 
+     url: 'https://api.github.com/user', 
+     headers: {
+        Authorization: 'token ' + token
+     }
+  })
+
+   // Parse the response as JSON and return
+   .then(user => {
+      res.json({ response: user});
+   })
+   .catch(err => {
+      res.json({response: err}); 
+   });
+}
+
+>>>>>>> Stashed changes
 /** 
  * Returns information on currently logged in user.
  * @param {Object} req HTTP request object. 
