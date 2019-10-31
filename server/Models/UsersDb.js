@@ -49,6 +49,35 @@ class UsersDb {
     */
    create(user) {
       const sql = "INSERT INTO users " +
+         " (email, first_name) " +
+         " VALUES ($login, $name)";
+
+      //add base options
+      const params = { $login: user.login, $name: user.name };
+      
+      return new Promise((resolve, reject) => {
+
+         //AC: placing db callback function into its own variable changes 
+         //*this* from local object to result of sqlite3 db call.
+         var local_callback = function (err) {
+            if (err === null) {
+               resolve(this.lastID);
+            }
+            else {
+               console.log(err);
+               reject(err);
+            }
+         };
+         this.db.run(sql, params, local_callback);
+      });
+   }
+   /**
+    * Creates a new user under the database system without GitHub. 
+    * @param {Object} user The user to create. 
+    * @returns {Promise} Resolves with the new user's ID if successful; rejects with error otherwise. 
+    */
+   oldCreate(user) {
+      const sql = "INSERT INTO users " +
          " (email, first_name, last_name, password) " +
          " VALUES ($email, $first_name, $last_name, $password)";
 
@@ -74,6 +103,7 @@ class UsersDb {
          this.db.run(sql, params, local_callback);
       });
    }
+   
 
    /**
     * Returns true if the user exists in the system.

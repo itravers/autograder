@@ -182,9 +182,6 @@ router.get('/user/logout', (req, res) => userRoute.logout(req, res));
 // creates new user
 router.post('/user/create', (req, res) => userRoute.createUser(req, res, db)); 
 
-
-
-
 // Github OAuth
 // Declare the redirect route
 var oauth_config = require('./oauthconfig.json');

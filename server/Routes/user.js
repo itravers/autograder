@@ -1,14 +1,45 @@
  const axios = require('axios'); 
  
+ /**
+  * Creates new user. 
+  * @param {Object} req HTTP request object. 
+  * @param {Object} res HTTP response object. 
+  * @param {Object} db Database connection. 
+  * @returns {Object} JSON response with the newly created user object, or 
+  *   with an error message if unsuccessful.
+  */
+ exports.createUser = function(req, res, db) {
+    const user = { name: req.body.name, login: req.body.login };
+    if(user.login !== undefined && user.login.length > 0)
+    {
+      if(user.name == undefined || user.name.length == 0)
+      {
+         // if the github user has no name, set their "name" to 
+         // their login 
+         user.name = user.login; 
+      }
+       db.Users.create(user)
+       .then(result => {
+          user.id = result; 
+          res.json({ response: user });
+       })
+       .catch(err => {
+          res.json({ response: err });
+       });
+       return; 
+    }
+    res.json({ response: "missing required parameters" });
+ }
+
  /** 
-  * Creates new user.
+  * Creates new user under the database system without GitHub.  
   * @param {Object} req HTTP request object. 
   * @param {Object} res HTTP response object. 
   * @param {Object} db Database connection. 
   * @returns {Object} JSON response with the newly created user object, or 
   *   with an error message if unsuccessful. 
   */
- exports.createUser = function(req, res, db) {
+ exports.oldCreateUser = function(req, res, db) {
     const user = { first_name: req.body.first_name, last_name: req.body.last_name, email: req.body.email, password: req.body.password };
     if (user.first_name !== undefined && user.first_name.length > 0) {
        if (user.last_name !== undefined && user.last_name.length > 0) {
@@ -29,7 +60,7 @@
        }
     }
     res.json({ response: "missing required parameters" });
- }
+ } 
 
 /**
  * Returns information on currently logged-in user from Github.
