@@ -187,7 +187,7 @@ router.post('/user/create', (req, res) => userRoute.createUser(req, res, db));
 
 // Github OAuth
 // Declare the redirect route
-let oauth_config = ini.parse(fs.readFileSync('./oauth_config.ini', 'utf-8'));
+var oauth_config = require('./oauthconfig.json');
 const axios = require('axios');
 app.get('/oauth/redirect', (req, res) => {
    // The req.query object has the query params that
