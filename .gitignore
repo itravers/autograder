@@ -394,3 +394,5 @@ ASALocalRun/
 /data/temp/*
 /data/session
 /server/config.mail.ini
+/client/src/oauthconfig.json
+/server/oauthconfig.json
