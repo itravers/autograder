@@ -174,7 +174,7 @@ router.get('/user/login', (req, res) => userRoute.info(req, res));
 router.post('/user/login', (req, res) => userRoute.login(req, res, db)); 
 
 // returns information on currently logged-in user from Github
-router.get('/user/githubUser', (req, res) => userRoute.githubUser(req, res)); 
+router.get('/user/githubUser', (req, res) => userRoute.githubUser(req, res, db)); 
 
 // logs out user 
 router.get('/user/logout', (req, res) => userRoute.logout(req, res)); 
@@ -206,13 +206,36 @@ app.get('/oauth/redirect', (req, res) => {
      // the response body
      const accessToken = response.data.access_token;
      // redirect the user to the welcome page, along with the access token
-     //res.redirect(`http://localhost:3000/account/githublogin?access_token=${accessToken}`);
-     const redirectLink = 'http://localhost:8080/api/user/githubUser?access_token=' + accessToken;
-      res.redirect(redirectLink); 
+     //res.redirect(`http://localhost:3000/account/githubUser?access_token=${accessToken}`);
+      const loginLink = 'http://localhost:8080/api/user/login?access_token=' + accessToken;
+      //res.redirect(redirectLink); 
+   
+      axios({
+         method: 'post',
+         url: loginLink,
+         headers: {
+            accept: 'application/json'
+         }
+      })
+      .then(user => {
+         // FOR TESTING
+         console.log(user); 
+      })
+      .catch(err => {
+         // FOR TESTING
+         console.log(err); 
+      })
    })
    .catch((err) => {
       console.log(err); 
    })
+   /*
+   .then(() => {
+      console.log('hooray???'); 
+   })
+   .catch((err) => {
+      console.log(err); 
+   })*/
  });
 
 // REGISTER OUR ROUTES -------------------------------

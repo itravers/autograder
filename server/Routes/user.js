@@ -64,14 +64,12 @@
 
 /**
  * Returns information on currently logged-in user from Github.
- * @param {Object} req HTTP request object. 
- * @param {Object} res HTTP response object. 
+ * @param {String} token Access token for GitHub.
  * @returns {Object} JSON response containing information on logged-in Github user. 
  */
-exports.githubUser = function(req, res) {
+githubUser = function(token) {
    // Get the token from the "access_token" query param, passed from
-   // client 
-   const token = req.query.access_token; 
+   // client  
    //const token = query.split('access_token=')[1]; 
    //const token = req.params.access_token;
 
@@ -84,22 +82,22 @@ exports.githubUser = function(req, res) {
       }
    })
    */
-  axios({
-     method: 'get', 
-     url: 'https://api.github.com/user', 
-     headers: {
-        Authorization: 'token ' + token
-     }
-  })
-
-   // Parse the response as JSON and return
-   .then(user => {
-      res.json({ response: user});
-   })
-   .catch(err => {
-      res.json({response: err}); 
+  return new Promise((resolve, reject) => {
+      axios({
+         method: 'get', 
+         url: 'https://api.github.com/user', 
+         headers: {
+            Authorization: 'token ' + token
+         }
+      })
+      .then(response => {
+         resolve(response.data); 
+      })
+      .catch(err => {
+         reject(err); 
+      })
    });
-}
+};
 
 /** 
  * Returns information on currently logged in user.
@@ -118,7 +116,7 @@ exports.info = function(req, res) {
  * @param {Object} db Database connection. 
  * @returns {Object} JSON response with information on logged-in user if successful, 
  *    or with error message if authentication fails. 
- */
+ *
 exports.login = function(req, res, db){
    db.Users.authenticate(req.body.email, req.body.password)
    .then(result => {
@@ -128,6 +126,47 @@ exports.login = function(req, res, db){
    })
    .catch(err => {
       res.json({ response: err });
+   });
+} */
+
+/** 
+ * Returns information on currently logged-in user from GitHub. 
+ * Overloaded to create endpoint. 
+ * @param {Object} req HTTP request object. 
+ * @param {Object} res HTTP response object. 
+ * @param {Object} db Database connection. 
+ * @returns {Object} JSON response containing information on logged-in GitHub user. 
+ */
+exports.login = function(req, res, db) {
+   // Get the token from the "access_token" query param, passed from
+   // client 
+   const token = req.query.access_token; 
+   
+   // Call function that fetches user from GitHub API
+   githubUser(token)
+   .then(user => {
+      // If the current Github user doesn't exist in the database, create user 
+      db.Users.exists(user.login)
+      .then(() => {
+         // move on to verifying the given login 
+      })
+      .catch(() => {
+         // User doesn't exist in DB, so create an entry for them 
+         db.Users.create(user)
+         .then(result => {
+            user.id = result; 
+         })
+         .catch(err => {
+            reject(err);
+         });
+      })
+
+      // Now that GitHub user exists in DB, log them into session and return
+      req.session.user = user; 
+      res.json({response: user}); 
+   })
+   .catch(err => {
+      res.json({response: err});
    });
 }
  
