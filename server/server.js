@@ -219,7 +219,8 @@ app.get('/oauth/redirect', (req, res) => {
       })
       .then(result => {
          // FOR TESTING
-         console.log(result.data.response); 
+         //console.log(result.data.response); 
+         res.redirect(`http://localhost:3000/assignment`);
       })
       .catch(err => {
          // TODO: handle errors 

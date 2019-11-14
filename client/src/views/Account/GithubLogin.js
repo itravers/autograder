@@ -26,18 +26,44 @@ class GithubLoginView extends Component {
            invalid_login: false,
            redirect_path: "https://github.com/login/oauth/authorize?client_id=" + oauthconfig.client_id + "&redirect_uri=http://localhost:8080/oauth/redirect"
         };
+        //this.login = this.login.bind(this);
         
      }
-     
+
+     /*login() {
+      
+      this.props.models.user.currentUser()
+         .then((user) => {
+            if (this.props.current_user.id !== undefined && this.props.current_user.id > 0)
+            {
+               return this.props.updateUser(user);
+            }
+            else{
+               
+            }  
+         })
+         .catch((err) => {
+            this.setState({ invalid_login: true });
+         });
+   }
+     */
     render() {
 
       if(this.props.current_user.id !== undefined && this.props.current_user.id > 0)
       {
-         return(<Redirect to="/assignment" />);
+
+         this.props.models.user.currentUser()
+         .then((user) => {
+            if (this.props.current_user.id !== undefined && this.props.current_user.id > 0)
+            {
+               this.props.updateUser(user);
+               return(<Redirect to="/assignment" />);
+            }})
       }
       else
       {
          return(<a href = {this.state.redirect_path}> Login with Github </a>);
+
       }
       
   }
