@@ -217,25 +217,17 @@ app.get('/oauth/redirect', (req, res) => {
             accept: 'application/json'
          }
       })
-      .then(user => {
+      .then(result => {
          // FOR TESTING
-         console.log(user); 
+         console.log(result.data.response); 
       })
       .catch(err => {
-         // FOR TESTING
-         console.log(err); 
+         // TODO: handle errors 
       })
    })
    .catch((err) => {
-      console.log(err); 
+      // TODO: handle errors  
    })
-   /*
-   .then(() => {
-      console.log('hooray???'); 
-   })
-   .catch((err) => {
-      console.log(err); 
-   })*/
  });
 
 // REGISTER OUR ROUTES -------------------------------

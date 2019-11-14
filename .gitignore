@@ -396,5 +396,5 @@ ASALocalRun/
 /server/config.mail.ini
 /client/src/oauthconfig.json
 /server/oauthconfig.json
-client/src/oauthconfig.json
-server/oauthconfig.json
+/client/src/oauthconfig.json
+/server/oauthconfig.json

@@ -49,11 +49,11 @@ class UsersDb {
     */
    create(user) {
       const sql = "INSERT INTO users " +
-         " (email, first_name) " +
-         " VALUES ($login, $name)";
+         " (id, email, first_name) " +
+         " VALUES ($id, $login, $name)";
 
       //add base options
-      const params = { $login: user.login, $name: user.name };
+      const params = { $id: user.id, $login: user.login, $name: user.name };
       
       return new Promise((resolve, reject) => {
 

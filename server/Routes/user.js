@@ -147,23 +147,19 @@ exports.login = function(req, res, db) {
    .then(user => {
       // If the current Github user doesn't exist in the database, create user 
       db.Users.exists(user.login)
-      .then(() => {
-         // move on to verifying the given login 
-      })
       .catch(() => {
          // User doesn't exist in DB, so create an entry for them 
          db.Users.create(user)
-         .then(result => {
-            user.id = result; 
-         })
          .catch(err => {
-            reject(err);
+            res.json({response: err});
          });
       })
 
       // Now that GitHub user exists in DB, log them into session and return
-      req.session.user = user; 
-      res.json({response: user}); 
+      .then(() => {
+         req.session.user = user; 
+         res.json({response: user}); 
+      })
    })
    .catch(err => {
       res.json({response: err});
