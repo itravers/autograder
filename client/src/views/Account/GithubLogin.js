@@ -24,7 +24,7 @@ class GithubLoginView extends Component {
         this.state = {
            email: "",
            invalid_login: false,
-           redirect_path: "https://github.com/login/oauth/authorize?client_id=" + oauthconfig.client_id + "&redirect_uri=http://localhost:8080/oauth/redirect"
+           redirect_path: "https://github.com/login/oauth/authorize?client_id=" + oauthconfig.client_id + "&redirect_uri=http://localhost:8080/api/user/oauth/"
         };
         //this.login = this.login.bind(this);
         
@@ -47,23 +47,27 @@ class GithubLoginView extends Component {
          });
    }
      */
-    render() {
+   login() {
+      return(<Redirect to={this.redirect_path} />);
+   }
 
+    render() {
+      this.props.models.user.currentUser()
+         .then((user) => {
+            this.props.updateUser(user);
+            //this.props.current_user = user;
+         })
+         .catch((err) => {
+            this.setState({ invalid_login: true });
+         });
       if(this.props.current_user.id !== undefined && this.props.current_user.id > 0)
       {
-
-         this.props.models.user.currentUser()
-         .then((user) => {
-            if (this.props.current_user.id !== undefined && this.props.current_user.id > 0)
-            {
-               this.props.updateUser(user);
-               return(<Redirect to="/assignment" />);
-            }})
+         return(<Redirect to="/assignment" />);
       }
       else
       {
          return(<a href = {this.state.redirect_path}> Login with Github </a>);
-
+         //return(<button id="SubmitButton" className="btn btn-outline-primary mb-2 mr-sm-2" onclick={this.login}>Log In</button>);
       }
       
   }

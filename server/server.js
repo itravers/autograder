@@ -11,6 +11,7 @@
 var express = require('express');        // call express
 var app = express();                 // define our app using express
 var bodyParser = require('body-parser');
+const axios = require('axios');
 const fs = require('fs');
 const fileUpload = require('express-fileupload');
 const ini = require('ini');
@@ -19,6 +20,7 @@ const FileManager = require('./FileManager.js');
 const Database = require('./Models/Database.js');
 const AccessControlList = require('./Models/AccessControlList.js');
 var Compiler = require('./Models/Windows_Metal_MSVC_Compiler.js');
+var OAuthConfig = require('./oauthconfig.json');
 
 var FileStore = require('session-file-store')(session);
 
@@ -32,6 +34,9 @@ config.database.connection_string = config.database.db_path + config.database.db
 let file_manager = FileManager.FileManager(config.temp_path, config.uploads_path);
 let db = Database.createDatabase(config.database.connection_string, config.database.secret_hash, config.database.crypto_method);
 let acl = AccessControlList.createACL(db);
+
+
+
 
 //let mail_config = ini.parse(fs.readFileSync('./config.mail.ini', 'utf-8'));
 //let mail_api_key = mail_config.api_key;
@@ -182,58 +187,12 @@ router.get('/user/logout', (req, res) => userRoute.logout(req, res));
 // creates new user
 router.post('/user/create', (req, res) => userRoute.createUser(req, res, db)); 
 
-// Github OAuth
-// Declare the redirect route
-var oauth_config = require('./oauthconfig.json');
-const axios = require('axios');
-app.get('/oauth/redirect', (req, res) => {
-   // The req.query object has the query params that
-   // were sent to this route. We want the `code` param
-   const requestToken = req.query.code;
-   axios({
-     // make a POST request
-     method: 'post',
-     // to the Github authentication API, with the client ID, client secret
-     // and request token
-     url: `https://github.com/login/oauth/access_token?client_id=${oauth_config.client_id}&client_secret=${oauth_config.client_secret}&code=${requestToken}`,
-     // Set the content type header, so that we get the response in JSOn
-     headers: {
-          accept: 'application/json'
-     }
-   })
-   .then((response) => {
-     // Once we get the response, extract the access token from
-     // the response body
-     const accessToken = response.data.access_token;
-     // redirect the user to the welcome page, along with the access token
-     //res.redirect(`http://localhost:3000/account/githubUser?access_token=${accessToken}`);
-      const loginLink = 'http://localhost:8080/api/user/login?access_token=' + accessToken;
-      //res.redirect(redirectLink); 
-   
-      axios({
-         method: 'post',
-         url: loginLink,
-         headers: {
-            accept: 'application/json'
-         }
-      })
-      .then(result => {
-         // FOR TESTING
-         //console.log(result.data.response); 
-         res.redirect(`http://localhost:3000/assignment`);
-      })
-      .catch(err => {
-         // TODO: handle errors 
-      })
-   })
-   .catch((err) => {
-      // TODO: handle errors  
-   })
- });
+// logs in current GitHub user
+// TODO: change to post or make it otherwise standard-compliant 
+router.get('/user/oauth', (req, res) => userRoute.oauth(req, res, db, OAuthConfig));
 
 // REGISTER OUR ROUTES -------------------------------
 // all of our routes will be prefixed with /api
-
 
 app.use('/api', router);
 
