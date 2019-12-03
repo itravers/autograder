@@ -35,9 +35,6 @@ let file_manager = FileManager.FileManager(config.temp_path, config.uploads_path
 let db = Database.createDatabase(config.database.connection_string, config.database.secret_hash, config.database.crypto_method);
 let acl = AccessControlList.createACL(db);
 
-
-
-
 //let mail_config = ini.parse(fs.readFileSync('./config.mail.ini', 'utf-8'));
 //let mail_api_key = mail_config.api_key;
 
@@ -88,8 +85,6 @@ app.use((req, res, next) => {
    res.header('Access-Control-Allow-Credentials', true);
    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, HEAD, OPTIONS');
    res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, Cache-Control, Pragma');
-
-
 
    // intercept OPTIONS method
    if (req.method === 'OPTIONS') {
