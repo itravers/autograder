@@ -9,6 +9,7 @@ class Assignment {
       this.getTestCases = this.getTestCases.bind(this);
       this.run = this.run.bind(this);
       this.compile = this.compile.bind(this);
+      this.submitAssignment = this.submitAssignment.bind(this);
    }
 
    removeFile(file, assignment_id) {
@@ -118,6 +119,24 @@ class Assignment {
       });
    }
 
+   submitAssignment(assignment_id, user_id) {
+      return new Promise((resolve, reject) => {
+         let call = WebRequest.makePost;
+         if (this.cache_results === true) {
+            call = WebRequest.makeCacheableUrlRequest;
+         }
+         const path = this.config.endpoints.assignment.submit_assignment;
+         const endpoint = this.config.constructRoute(path, [assignment_id, user_id]); 
+         call(endpoint, (result) => {
+            if (result !== null && result !== undefined && Object.keys(result.data.response).length > 0) {
+               resolve(result.data.response);
+            }
+            else {
+               reject(result);
+            }
+         });
+      });
+   }
 }
 
 export { Assignment };

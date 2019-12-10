@@ -16,6 +16,10 @@ class SourceViewComponent extends Component {
       }
       return (
          <div style={{ textAlign: "left" }}>
+         <div>
+            <p style={{fontSize: "14px", color: "grey", marginLeft: "8px"}}><br/>Last modified: {source_file.date_created}</p>
+            <hr></hr>
+         </div>
             <SyntaxHighlighter
                language="cpp"
                style={vs}

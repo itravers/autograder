@@ -178,6 +178,30 @@ exports.createTestCase = function(req, res, db, acl) {
       });
 }
 
+/**
+  * Marks assignment as submitted. :aid is the assignment ID.   
+  * The assignment ID to modify should be in req.body.id.
+  * @param {Object} req HTTP request object. 
+  * @param {Object} res HTTP response object. 
+  * @param {Object} db Database connection.
+  * @param {Object} acl Object containing AccessControlList methods.
+  * @returns {Object} JSON containing the deleted file's ID, or a 500 status code.
+  */
+ exports.submitAssignment = function(req, res, db) {
+   let session = req.session;
+   const current_user = req.params.user_id;
+   const assignment_id = req.params.assignment_id;
+
+   db.AssignmentFiles.submitAssignment(assignment_id, current_user)
+      .then(() => {
+         return res.json({ response: assignment_id }); 
+      })
+      .catch(err => {
+         console.log(err);
+         return res.status(500).send("Error");
+      });
+}
+
 /** 
  * Get test cases for the given assignment.
  * @param {Object} req HTTP request object. 

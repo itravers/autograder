@@ -23,6 +23,7 @@ class TestCasesComponent extends Component {
       this.testCaseSelected = this.testCaseSelected.bind(this);
       this.testInputChanged = this.testInputChanged.bind(this);
       this.handleFormSubmit = this.handleFormSubmit.bind(this);
+      this.assignmentSubmit = this.assignmentSubmit.bind(this);
    }
 
    handleFormSubmit(evt) {
@@ -91,6 +92,16 @@ class TestCasesComponent extends Component {
          });
    }
 
+   assignmentSubmit(assignment_id = null)
+   {
+      const user_id = this.props.current_user.id;
+      if (assignment_id === null)
+      {
+         assignment_id = this.props.assignment.id;
+      }
+      this.props.models.assignment.submitAssignment(this.props.assignment.id, user_id);
+   }
+
    render() {
       let test_result_classes = "row";
       if (this.state.test_result === "") {
@@ -128,6 +139,13 @@ class TestCasesComponent extends Component {
                   type="Submit"
                   disabled={this.state.is_running_test}
                   className="btn btn-outline-primary">Run Test</button> <br />
+               <br />
+               <button
+                  type="Submit"
+                  disabled={this.state.is_running_test}
+                  onClick={this.assignmentSubmit}
+                  className="btn btn-outline-primary">Submit for Instructor Review</button> <br />
+               <br />
                <span>{running_text}</span>
             </form>
             <div className={test_result_classes}>
