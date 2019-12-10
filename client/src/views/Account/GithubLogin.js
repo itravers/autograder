@@ -20,57 +20,45 @@ class GithubLoginView extends Component {
   constructor(props) {
         super(props);
 
-       
         this.state = {
            email: "",
-           invalid_login: false,
+           invalid_login: true,
            redirect_path: "https://github.com/login/oauth/authorize?client_id=" + oauthconfig.client_id + "&redirect_uri=http://localhost:8080/api/user/oauth/"
         };
-        //this.login = this.login.bind(this);
-        
      }
 
-     /*login() {
-      
+   componentDidMount(){
       this.props.models.user.currentUser()
          .then((user) => {
-            if (this.props.current_user.id !== undefined && this.props.current_user.id > 0)
+            if (user.id !== undefined && user.id > 0)
             {
-               return this.props.updateUser(user);
+               this.props.updateUser(user);
+               this.setState({invalid_login: false}); 
             }
-            else{
-               
-            }  
          })
-         .catch((err) => {
+         .catch(() => {
             this.setState({ invalid_login: true });
          });
-   }
-     */
-   login() {
-      return(<Redirect to={this.redirect_path} />);
    }
 
-    render() {
-      this.props.models.user.currentUser()
-         .then((user) => {
-            this.props.updateUser(user);
-            //this.props.current_user = user;
-         })
-         .catch((err) => {
-            this.setState({ invalid_login: true });
-         });
-      if(this.props.current_user.id !== undefined && this.props.current_user.id > 0)
+   // prompts user to log in with GitHub if not already logged in.
+   // redirects to user's assignment page otherwise 
+   loginPage(invalid_login)
+   {
+    if(invalid_login == false)
       {
          return(<Redirect to="/assignment" />);
       }
       else
       {
-         return(<a href = {this.state.redirect_path}> Login with Github </a>);
-         //return(<button id="SubmitButton" className="btn btn-outline-primary mb-2 mr-sm-2" onclick={this.login}>Log In</button>);
+         return(<a href= {this.state.redirect_path} className = "btn btn-primary"> Login with Github </a>);
       }
-      
-  }
+   }
+
+   render() {
+      const invalid_login = this.state.invalid_login; 
+      return(this.loginPage(invalid_login)); 
+   }
 }
   
   const GithubLogin = connect(mapStateToProps, mapDispatchToProps)(GithubLoginView);

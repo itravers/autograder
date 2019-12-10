@@ -131,7 +131,7 @@ exports.logout = function(req, res) {
       .then(user => validateUser(user, db))
       .then(user => {
          req.session.user = user; 
-         res.redirect(`http://localhost:3000/account/githublogin`);
+         res.redirect(`http://localhost:3000/account/login`);
       })
       .catch(err => {
          res.json({response: err});

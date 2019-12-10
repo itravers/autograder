@@ -12,7 +12,7 @@ class UsersDb {
       this.db = db_connection;
       this.crypto_method = crypto_method;
 
-      this.authenticate = this.authenticate.bind(this);
+      //this.authenticate = this.authenticate.bind(this);
       this.create = this.create.bind(this);
       this.exists = this.exists.bind(this);
       this.hash_password = this.hash_password.bind(this);
@@ -20,16 +20,17 @@ class UsersDb {
    }
 
 
+   /*
    /**
-    * Attempts to authenticate the supplied email / password combo.  
-    * @param {String} email The supplied email. 
+    * Attempts to authenticate the supplied login / password combo.  
+    * @param {String} login The supplied login. 
     * @param {String} password The suppllied password. 
     * @returns {Promise} Resolves with user if valid; rejects with -1 otherwise. 
-    */
-   authenticate(email, password) {
-      const sql = "SELECT * FROM users WHERE email = $email AND password = $password LIMIT 1";
-      password = this.hash_password(password, email);
-      const params = { $email: email, $password: password };
+    *
+   authenticate(login, password) {
+      const sql = "SELECT * FROM users WHERE login = $login AND password = $password LIMIT 1";
+      password = this.hash_password(password, login);
+      const params = { $login: login, $password: password };
       return new Promise((resolve, reject) => {
          this.db.get(sql, params, (err, row) => {
             if (err === null && row !== undefined) {
@@ -41,6 +42,7 @@ class UsersDb {
          });
       });
    }
+   */
 
    /**
     * Creates a new user.
@@ -49,7 +51,7 @@ class UsersDb {
     */
    create(user) {
       const sql = "INSERT INTO users " +
-         " (id, email, first_name) " +
+         " (id, login, name) " +
          " VALUES ($id, $login, $name)";
 
       //add base options
@@ -111,8 +113,8 @@ class UsersDb {
     * @returns {Promise} Resolves with true if the user exists, and false if not. 
     */
    exists(user_name){
-      const sql = "SELECT * FROM users WHERE email = $email LIMIT 1";
-      const params = { $email: user_name};
+      const sql = "SELECT * FROM users WHERE login = $login LIMIT 1";
+      const params = { $login: user_name};
       return new Promise((resolve, reject) => {
          this.db.get(sql, params, (err, row) => {
             if (err === null && row !== undefined) {
@@ -141,13 +143,13 @@ class UsersDb {
 
    /** 
     * Selects information from users table for requested user.
-    * @param {String} email The requested user's email.
+    * @param {String} login The requested user's login.
     * @returns {Promise} Resolves with the user if the user exists and there are no errors;
     *    rejects otherwise. 
     */
-   userRow(email) {
-      const sql = "SELECT * FROM users WHERE email = $email LIMIT 1"; 
-      const params = {$email: email};
+   userRow(login) {
+      const sql = "SELECT * FROM users WHERE login = $login LIMIT 1"; 
+      const params = {$login: login};
       return new Promise((resolve, reject) => {
          this.db.get(sql, params, (err, row) => {
             if(err === null && row !== undefined) {

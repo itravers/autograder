@@ -11,7 +11,7 @@ const routes = [
    },
    {
       path: "/account/login",
-      component: Login,
+      component: GithubLogin,
       strict_match: false
    },
    {
@@ -19,11 +19,6 @@ const routes = [
       component: Logout,
       strict_match: false
    },
-   {
-      path:"/account/githublogin",
-      component: GithubLogin,
-      strict_match: false
-   }
 ];
 
 export default routes;
