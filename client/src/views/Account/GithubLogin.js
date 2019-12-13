@@ -21,8 +21,8 @@ class GithubLoginView extends Component {
         super(props);
 
         this.state = {
-           email: "",
-           invalid_login: true,
+           has_courses: false, 
+           valid_login: false, 
            redirect_path: "https://github.com/login/oauth/authorize?client_id=" + oauthconfig.client_id + "&redirect_uri=http://localhost:8080/api/user/oauth/"
         };
      }
@@ -32,32 +32,51 @@ class GithubLoginView extends Component {
          .then((user) => {
             if (user.id !== undefined && user.id > 0)
             {
-               this.props.updateUser(user);
-               this.setState({invalid_login: false}); 
+               this.props.updateUser(user); 
             }
          })
+         .then(() => this.props.models.course.getCoursesForUser(this.props.current_user.id))
+         .then((courses) => {
+            if (courses && courses.length)
+            {
+               // user is enrolled in courses 
+               this.setState({has_courses: true}); 
+            }
+            else
+            {
+               this.setState({has_courses: false}); 
+            }
+         })
+         .then(() => {
+            // all done updating state, ready for login 
+            this.setState({valid_login: true}); 
+         })
          .catch(() => {
-            this.setState({ invalid_login: true });
+            this.setState({valid_login: false}); 
          });
    }
 
-   // prompts user to log in with GitHub if not already logged in.
-   // redirects to user's course page otherwise 
-   loginPage(invalid_login)
-   {
-    if(invalid_login == false)
+   render() {
+      // generate appropriate page based on whether a user is logged in-- 
+      // show login button if not already logged in, or show the user's course/assignment 
+      // page once logged in 
+      if(this.state.valid_login === true) 
       {
-         return(<Redirect to="/course" />);
+         if(this.state.has_courses === true) 
+         {
+            // user has a course, so redirect to assignment page
+            return(<Redirect to="/assignment" />);
+         }
+         else
+         {
+            // user not enrolled in any courses-- let them choose one first 
+            return(<Redirect to="/course" />);
+         }
       }
       else
       {
          return(<a href= {this.state.redirect_path} className = "btn btn-primary"> Login with Github </a>);
       }
-   }
-
-   render() {
-      const invalid_login = this.state.invalid_login; 
-      return(this.loginPage(invalid_login)); 
    }
 }
   
