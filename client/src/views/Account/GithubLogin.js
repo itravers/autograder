@@ -42,12 +42,12 @@ class GithubLoginView extends Component {
    }
 
    // prompts user to log in with GitHub if not already logged in.
-   // redirects to user's assignment page otherwise 
+   // redirects to user's course page otherwise 
    loginPage(invalid_login)
    {
     if(invalid_login == false)
       {
-         return(<Redirect to="/assignment" />);
+         return(<Redirect to="/course" />);
       }
       else
       {
