@@ -105,6 +105,11 @@ class UsersDb {
    }
 }
 
+/**	
+ * Contains methods to interact with user records in database.	
+ * @typedef {Object} UsersDb	
+ */
+
 /**
  * Creates a new UsersDb.
  * @param {Object} db_connection Database connection.
