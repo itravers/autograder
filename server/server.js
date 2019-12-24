@@ -124,9 +124,7 @@ router.get('/assignment/:aid/user/:uid/file', (req, res) => assignmentRoute.assi
 // :uid is the ID of the user who has the assignment. 
 router.post('/assignment/:aid/file', (req, res) => assignmentRoute.uploadFile(req, res, db, acl)); 
 
-/**
- * The file ID to delete should be in req.body.id.
- */
+// Deletes a file. The file ID to delete should be in req.body.id.
 router.delete('/assignment/:aid/file', (req, res) => assignmentRoute.deleteFile(req, res, db, acl)); 
 
 //Returns all available courses
@@ -147,10 +145,8 @@ router.get('/course/:id/assignments/inactive', (req, res) => courseRoute.inactiv
 // Returns all courses that the currently logged in user is taking
 router.get('/course/enrolled', (req, res) => courseRoute.enrollments(req, res, db));
 
-/**
- * Returns a detailed roster for this course if the user has 
- * instructor rights
- */
+
+// Returns a detailed roster for this course if the user has instructor rights
 router.get('/course/:course_id/user', (req, res) => courseRoute.roster(req, res, db, acl)); 
 
 // Removes the user specified in req.body from the selected course
@@ -164,7 +160,8 @@ router.post('/course/:course_id/user', (req, res) => courseRoute.addUser(req, re
 // Alters user's course role
 router.put('/course/:course_id/user', (req, res) => courseRoute.editRole(req, res, db, acl)); 
 
-// Allows bulk user creation and addition to course.  TODO: needs testing
+// Allows bulk user creation and addition to course. 
+// TODO: change to work with new GitHub login
 router.post('/course/:course_id/addRoster', (req, res) => courseRoute.addRoster(req, res, db, acl)); 
 
 // returns information on currently logged in user
@@ -184,7 +181,7 @@ router.post('/user/create', (req, res) => userRoute.createUser(req, res, db));
 
 // logs in current GitHub user
 // TODO: change to post or make it otherwise standard-compliant 
-router.get('/user/oauth', (req, res) => userRoute.oauth(req, res, db, OAuthConfig));
+router.post('/user/oauth', (req, res) => userRoute.oauth(req, res, db, OAuthConfig));
 
 // REGISTER OUR ROUTES -------------------------------
 // all of our routes will be prefixed with /api

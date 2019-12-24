@@ -34,6 +34,11 @@ class GithubLoginView extends Component {
             {
                this.props.updateUser(user); 
             }
+            else
+            {
+               this.setState({valid_login: false});
+               return Promise.reject('no user logged in'); 
+            }
          })
          .then(() => this.props.models.course.getCoursesForUser(this.props.current_user.id))
          .then((courses) => {
@@ -48,7 +53,7 @@ class GithubLoginView extends Component {
             }
          })
          .then(() => {
-            // all done updating state, ready for login 
+            // done updating state, ready for login 
             this.setState({valid_login: true}); 
          })
          .catch(() => {
@@ -58,8 +63,8 @@ class GithubLoginView extends Component {
 
    render() {
       // generate appropriate page based on whether a user is logged in-- 
-      // show login button if not already logged in, or show the user's course/assignment 
-      // page once logged in 
+      // show login button if not already logged in, or show the user's 
+      // course/assignment page once logged in 
       if(this.state.valid_login === true) 
       {
          if(this.state.has_courses === true) 
