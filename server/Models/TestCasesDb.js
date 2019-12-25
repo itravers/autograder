@@ -23,16 +23,27 @@ class TestCasesDb {
     * @returns {Promise} Resolves with the new test case's ID if successful;
     *    rejects if there's an error. 
     */
-   createTest(assignment_id, test_name, test_input, test_desc) {
-      const sql = "INSERT INTO assignment_tests " +
-         " (assignment_id, test_name, test_input, test_description) " +
-         " VALUES ($assignment_id, $test_name, $test_input, $test_desc) ";
-      const params = {
+   createTest(assignment_id, test_name, test_input, test_description) {
+      let sql = "INSERT INTO assignment_tests "; 
+      let columns = "(assignment_id, test_input"; 
+      let values = "VALUES ($assignment_id, $test_input";
+      let params = {
          $assignment_id: assignment_id,
-         $test_name: test_name,
-         $test_input: test_input,
-         $test_desc: test_desc
-      };
+         $test_input: test_input
+      }
+      if(test_name !== undefined && test_name.length > 0) {
+         columns += ", test_name";
+         values += ", $test_name"; 
+         params.$test_name = test_name; 
+      }
+      if(test_description !== undefined && test_description.length > 0) {
+         columns += ", test_description";
+         values += ", $test_description";
+         params.$test_description = test_description; 
+      }
+      columns += ") "; 
+      values += ") "; 
+      sql += columns + values; 
       return new Promise((resolve, reject) => {
 
          //AC: placing db callback function into its own variable changes 
@@ -61,18 +72,27 @@ class TestCasesDb {
     *    rejects if there's an error. 
     */
 
-   editTest(assignment_id, test_id, test_name, test_input, test_desc)
+   editTest(assignment_id, test_id, test_name, test_input, test_description)
    {
-      const sql = " UPDATE assignment_tests " +
-      " SET test_name = $test_name, test_input = $test_input, test_description = $test_desc " +
-      " WHERE id = $test_id AND assignment_id = $a_id";
-      const params = { 
+      let sql = " UPDATE assignment_tests "; 
+      let set = "SET test_input = $test_input";
+      let params = { 
          $a_id: assignment_id,
          $test_id: test_id, 
-         $test_name: test_name,
          $test_input: test_input, 
-         $test_desc: test_desc
       };
+      if(test_name !== undefined)
+      {
+         set += ", test_name = $test_name"; 
+         params.$test_name = test_name;
+      } 
+      if(test_description !== undefined)
+      {
+         set += ", test_description = $test_description"; 
+         params.$test_description = test_description; 
+      }
+      sql += set + " WHERE id = $test_id AND assignment_id = $a_id"; 
+      
       return new Promise((resolve, reject) => {
 
          //AC: placing db callback function into its own variable changes 
@@ -113,24 +133,24 @@ class TestCasesDb {
    }
 
    /** 
-    * Ensures that the test input is unique for the given assignment.
+    * Ensures that the test ID is unique for the given assignment.
     * @param {Number} assignment_id The assignment's ID number (integer).
-    * @param {String} test_input The input for the test case.
+    * @param {String} test_id The ID of the test case.
     * @returns {Promise} Resolves with true if the combination of these arguments is unique in the database;
     *    rejects with false otherwise. 
     */
-   isUnique(assignment_id, test_input) {
+   isUnique(assignment_id, test_id) {
       return new Promise((resolve, reject) => {
          const sql = "SELECT * FROM assignment_tests "
-            + "WHERE assignment_id = $id "
-            + "AND test_input = $input ";
-         this.db.get(sql, { $id: assignment_id, $input: test_input }, (err, row) => {
+            + "WHERE assignment_id = $assignment_id "
+            + "AND id = $test_id";
+         this.db.get(sql, { $assignment_id: assignment_id, $test_id: test_id }, (err, row) => {
             if (err === null && row !== undefined) {
                reject(false);
                return;
             }
             else if (err !== null) {
-               console.log(err);
+               reject(err); 
             }
             resolve(true);
          });

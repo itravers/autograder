@@ -109,6 +109,30 @@ exports.compileAndRun = function(req, res, db, config, acl, Compiler) {
       });
 }
 
+
+/**
+ * Edits an existing test case or creates a new one based on the test case input
+ * given. 
+ * @param {Object} req HTTP request object. 
+ * @param {Object} res HTTP response object. 
+ * @param {Object} db Database connection. 
+ * @param {Object} acl Object containing AccessControlList methods.
+ * @returns {Object} JSON response with test case's ID if successful, or
+ *    with error message if unsuccessful for any reason.
+ *
+exports.addToTestCases = function(req, res, db, acl) {
+   const test_input = req.body.test_input; 
+   db.Assignments.TestCases.isUnique(a_id, test_input)
+   .then(result => {
+      if(result === true) {
+         exports.createTestCase(req, res, db, acl); 
+      }
+      else {
+         exports.editTestCase(req, res, db, acl); 
+      }
+   })
+}*/
+
 /**
  * Creates a test case. 
  * @param {Object} req HTTP request object. 
@@ -120,56 +144,40 @@ exports.compileAndRun = function(req, res, db, config, acl, Compiler) {
  */
 exports.createTestCase = function(req, res, db, acl) {
    let session = req.session;
-   const test_name = req.body.test_name; 
-   const test_input = req.body.test_input; 
-   const test_desc = req.body.test_desc;
-
-   // does the current user have permission to create test cases 
-   // for this assignment? (are they an admin?)
-   acl.isAdmin(session)
-
-      // does this test case already exist for this assignment?
-      .then(() => db.Assignments.TestCases.isUnique(req.params.assignment_id, test_input))
-
-      // if the test case doesn't exist yet, add it to the database
-      .then(() => db.Assignments.TestCases.createTest(req.params.assignment_id, test_name, test_input, test_desc))
-      .then(
-         result => res.json({ response: result })
-      )
-      .catch(err =>
-         res.json({ response: err })
-      );
-}
-
-/**
- * Edits a test case. 
- * @param {Object} req HTTP request object. 
- * @param {Object} res HTTP response object. 
- * @param {Object} db Database connection. 
- * @param {Object} acl Object containing AccessControlList methods.
- * @returns {Object} JSON response with test case's ID if successful, or
- *    with error message if unsuccessful for any reason.
- */
-exports.editTestCase = function(req, res, db, acl) {
-   let session = req.session;
+   
    const a_id = req.params.assignment_id;
    const test_id = req.body.test_id; 
    const test_name = req.body.test_name; 
    const test_input = req.body.test_input; 
-   const test_desc = req.body.test_description;
+   const test_description = req.body.test_description;
 
-   // does the current user have permission to manage test cases 
-   // for this assignment? (are they an admin?)
-   acl.isAdmin(session)
+   // get course id for this assignment to check if user can edit this 
+   // assignment's test cases
+   db.Assignments.assignmentInfo(a_id)
+      .then((result) => acl.canModifyCourse(session.user, result.course_id))
+      .catch(() => {
+         res.json({response: 'cannot modify course'}); 
+      })
+      // does this test case already exist for this assignment?
+      .then(() => db.Assignments.TestCases.isUnique(a_id, test_id))
 
-      // update the test's information in the database
-      .then(() => db.Assignments.TestCases.editTest(a_id, test_id, test_name, test_input, test_desc))
+      // if the test case doesn't exist yet, add it to the database
+      .then(() =>  db.Assignments.TestCases.createTest(a_id, test_name, test_input, test_description))
       .then(
          result => res.json({ response: result })
       )
-      .catch(err =>
-         res.json({ response: err })
-      );
+      .catch(err => {
+         // if err === false, this catch came from "isUnique()"-- then the test 
+         // case already exists and we should modify it 
+         if(err === false)
+         {
+            exports.editTestCase(req, res, db, acl); 
+         }
+         else
+         {
+            res.json({response: err});
+         }
+      });
 }
 
  /**
@@ -207,6 +215,38 @@ exports.editTestCase = function(req, res, db, acl) {
       .catch((error) => {
          return res.status(500).send("Error");
       });
+}
+
+/**
+ * Edits a test case. 
+ * @param {Object} req HTTP request object. 
+ * @param {Object} res HTTP response object. 
+ * @param {Object} db Database connection. 
+ * @param {Object} acl Object containing AccessControlList methods.
+ * @returns {Object} JSON response with number of rows edited if successful, or
+ *    with error message if unsuccessful for any reason.
+ */
+exports.editTestCase = function(req, res, db, acl) {
+   let session = req.session; 
+   const a_id = req.params.assignment_id;
+   const test_id = req.body.test_id; 
+   const test_name = req.body.test_name; 
+   const test_input = req.body.test_input; 
+   const test_desc = req.body.test_description;
+
+   // get course id for this assignment to check if user can edit this 
+   // assignment's test cases
+   db.Assignments.assignmentInfo(a_id)
+      .then((result) => acl.canModifyCourse(session.user, result.course_id))
+
+      // update the test's information in the database
+      .then(() => db.Assignments.TestCases.editTest(a_id, test_id, test_name, test_input, test_desc))
+      .then(
+         result => res.json({ response: result })
+      )
+      .catch(err =>
+         res.json({ response: err })
+      );
 }
 
 /** 

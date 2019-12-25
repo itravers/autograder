@@ -14,25 +14,24 @@ class ManageTestsComponent extends Component {
          test_cases: [],
          test_names: [],
          selected_test_index: 0,
-         selected_test: {},
+         selected_test: { test_name: "" }, 
          test_result: "",
          is_submitting_changes: false
       };
 
       this.getTestCases = this.getTestCases.bind(this);
+      this.testCaseChanged = this.testCaseChanged.bind(this); 
       this.testCaseSelected = this.testCaseSelected.bind(this);
-      this.testNameChanged = this.testNameChanged.bind(this); 
-      this.testDescChanged = this.testDescChanged.bind(this); 
-      this.testInputChanged = this.testInputChanged.bind(this);
       this.handleFormSubmit = this.handleFormSubmit.bind(this);
    }
 
    handleFormSubmit(evt) {
       evt.preventDefault();
       this.setState({ is_submitting_changes: true }, () => {
-         this.props.models.assignment.compile(this.props.assignment.id, this.state.selected_test.test_input, this.state.selected_test.test_name)
+         this.props.models.assignment.createTestCase(this.props.assignment.id, this.state.selected_test.id, this.state.selected_test.test_name, this.state.selected_test.test_input, this.state.selected_test.test_description)
             .then(result => {
-               this.setState({ test_result: result, is_submitting_changes: false });
+               this.setState({ is_submitting_changes: false });
+               this.getTestCases();
             })
             .catch(result => {
                this.setState({ test_result: result, is_submitting_changes: false });
@@ -58,28 +57,13 @@ class ManageTestsComponent extends Component {
       });
    }
 
-    testNameChanged(evt) {
-        let test = Object.assign({}, this.state.selected_test);
-        test.test_name = evt.target.value;
-        this.setState({
-            selected_test: test
-        });
-    }
-
-    testDescChanged(evt) {
+   testCaseChanged(evt) {
       let test = Object.assign({}, this.state.selected_test);
-      test.test_description = evt.target.value;
-      this.setState({
-          selected_test: test
-      });
-    }
-
-   testInputChanged(evt) {
-      let test = Object.assign({}, this.state.selected_test);
-      test.test_input = evt.target.value;
+      let name = evt.target.name;  
+      test[name] = evt.target.value; 
       this.setState({
          selected_test: test
-      });
+      }); 
    }
 
    getTestCases(assignment_id = null) {
@@ -90,6 +74,7 @@ class ManageTestsComponent extends Component {
          .then(result => {
             //add option for custom test
             result.push({
+               id: -1, 
                test_name: "Custom Test",
                test_input: "",
                test_description: "Write a custom test for your software"
@@ -110,11 +95,6 @@ class ManageTestsComponent extends Component {
    }
 
 render() {
-    /*  
-    let test_result_classes = "row";
-      if (this.state.test_result === "") {
-         test_result_classes += " d-none";
-      }*/
       let submit_text = "submitting changes...";
       if (this.state.is_submitting_changes === false) {
          submit_text = "";
@@ -138,35 +118,41 @@ render() {
                 <div className="form-group">
                     <label htmlFor="TestCaseName">Test Name</label>
                     <input 
+                        id="TestCaseName"
+                        name="test_name"
                         type="text"
                         className="form-control"
                         value={this.state.selected_test.test_name}
-                        onChange={this.testNameChanged}
+                        onChange={this.testCaseChanged}
                     />
                 </div>
                 <div className="form-group">
-                   <label htmlFor="TestCaseDescription"> Test Description</label>
-                   <textarea  
-                     id="TestCasesDescription"
-                     rows="3"
+                  <label htmlFor="TestCaseDesc">Test Description</label>
+                  <textarea
+                     id="TestCaseDesc"
+                     name="test_description"
+                     rows="5"
                      className="form-control"
                      value={this.state.selected_test.test_description}
-                     onchange={this.testDescChanged} 
-                     />
-                </div>
+                     onChange={this.testCaseChanged} />
+               </div>
                <div className="form-group">
                   <label htmlFor="TestCaseInput">Test Input</label>
                   <textarea
                      id="TestCaseInput"
+                     name="test_input"
                      rows="5"
                      className="form-control"
                      value={this.state.selected_test.test_input}
-                     onChange={this.testInputChanged} />
+                     onChange={this.testCaseChanged}
+                     required="required" />
                </div>
                <button
                   type="Submit"
                   disabled={this.state.is_submitting_changes}
-                  className="btn btn-outline-primary">Submit Changes</button> <br />
+                  className="btn btn-outline-primary">Submit Changes</button>
+                  <br />
+                  <span>{submit_text}</span> 
             </form>
          </div >
       );
