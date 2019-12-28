@@ -45,6 +45,7 @@ class IndexView extends Component {
          links: this.base_links,
          files: [],
          file_data: {},
+         can_modify_assignment: false, 
          current_assignment: { id: -1 },
          selected_user: this.props.current_user,
          selected_user_index: 0,
@@ -97,6 +98,17 @@ class IndexView extends Component {
 
                   active_users.push(user);
                }
+               if (user.user_id === self.props.current_user.id)
+               {
+                  // add our own course privileges to roster  
+                  active_users[0].course_role = user.course_role; 
+                  if(privilege.can_modify_course === true)
+                  {
+                     self.setState({can_modify_assignment: true}, () => {
+                        self.updateTabs();
+                     })
+                  }
+               }
             }
             self.setState({ student_roster: active_users });
          })
@@ -116,19 +128,26 @@ class IndexView extends Component {
       }
    }
 
-   updateTabs() {
-      let links = [...this.base_links];
-      let links_by_name = {};
+   addManageTestsTab() {
+      let links = this.state.links; 
       
       // add a tab to manage test cases if current user has permission
-      const user = this.props.current_user; 
-      if(user.is_admin == true || user.is_instructor == true) {
+      if(this.state.can_modify_assignment === true) {
          const test_id = -1; 
          const test_url = "/assignment/tests"; 
          const test_name = "Manage Tests"; 
          const test_tab = {id: test_id, url: test_url, name: test_name, css: "nav-link"};
-         links.push(test_tab); 
+
+         // insert tab immediately after base links 
+         const index = this.base_links.length; 
+         links.splice(index, 0, test_tab); 
       }
+      this.setState({links: links}); 
+   }
+
+   updateTabs() {
+      let links = [...this.base_links];
+      let links_by_name = {};
 
       // add tabs for each file 
       const files = this.state.files;
@@ -141,7 +160,9 @@ class IndexView extends Component {
       for (let key of Object.keys(links_by_name)) {
          links.push(links_by_name[key]);
       }
-      this.setState({ links: links });
+      this.setState({ links: links }, () => {
+         this.addManageTestsTab();
+      });
    }
 
    updateFiles(files) {

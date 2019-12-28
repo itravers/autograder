@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import { connect } from "react-redux";
 import { ArrayIndexSelect } from '../../components/Selectors.js';
+import { Redirect } from 'react-router'; 
 
 const mapStateToProps = state => {
    return { current_user: state.current_user, models: state.models };
@@ -11,6 +12,7 @@ class ManageTestsComponent extends Component {
       super(props);
 
       this.state = {
+         can_edit_tests: false, 
          test_cases: [],
          test_names: [],
          selected_test_index: 0,
@@ -41,7 +43,14 @@ class ManageTestsComponent extends Component {
    }
 
    componentDidMount() {
-      this.getTestCases();
+      const privilege = this.props.models.course.getCoursePrivileges(this.props.current_user.course_role);
+      if(privilege.can_modify_course === true) {
+         this.setState({can_edit_tests: true}); 
+         this.getTestCases();
+      }
+      else {
+         this.setState({can_edit_tests: false}); 
+      }
    }
 
    componentWillReceiveProps(new_props) {
@@ -98,6 +107,10 @@ render() {
       let submit_text = "submitting changes...";
       if (this.state.is_submitting_changes === false) {
          submit_text = "";
+      }
+
+      if (this.state.can_edit_tests === false) {
+         return(<Redirect to="/assignment" />);
       }
       
       return (
