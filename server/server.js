@@ -180,8 +180,7 @@ router.get('/user/logout', (req, res) => userRoute.logout(req, res));
 router.post('/user/create', (req, res) => userRoute.createUser(req, res, db)); 
 
 // logs in current GitHub user
-// TODO: change to post or make it otherwise standard-compliant 
-router.post('/user/oauth', (req, res) => userRoute.oauth(req, res, db, OAuthConfig));
+router.get('/user/oauth', (req, res) => userRoute.oauth(req, res, db, OAuthConfig));
 
 // REGISTER OUR ROUTES -------------------------------
 // all of our routes will be prefixed with /api
