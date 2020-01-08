@@ -18,7 +18,7 @@ const session = require('express-session');
 const FileManager = require('./FileManager.js');
 const Database = require('./Models/Database.js');
 const AccessControlList = require('./Models/AccessControlList.js');
-var Compiler = require('./Models/Windows_Metal_MSVC_Compiler.js');
+var Compiler = require('./Models/Compiler.js');
 
 var FileStore = require('session-file-store')(session);
 
@@ -62,14 +62,6 @@ var port = process.env.PORT || 8080;        // set our port
 
 if (config.mode === "debug") {
    console.log("running in debug mode.");
-}
-
-if (config.compile_platform === "unix") {
-   Compiler = require('./Models/Mac_Metal_Clang_Compiler.js');
-}
-else if (config.compile_platform === "windows") {
-   //Compiler = require('./Models/Windows_Metal_MSVC_Compiler.js');
-   Compiler = require('./Models/Windows_Docker_MSVC_Compiler.js');
 }
 
 app.use((req, res, next) => {
