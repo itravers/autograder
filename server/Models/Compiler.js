@@ -142,7 +142,10 @@ class Compiler {
          //create BATCH file
          const absolute_path = path.resolve(this.student_workspace);
          const image_name = "cpp_" + this.assignment_id + "_" + this.student_id;
-         const exe_command = "docker run --rm " + image_name + " timeout " + this.timeout + " -c './output < stdin.txt'";
+
+         //docker timeout is in seconds whereas nodejs timeout is in milliseconds
+         const docker_timeout = this.timeout / 1000;
+         const exe_command = "docker run --rm " + image_name + " timeout " + docker_timeout + " sh -c './run.sh'";
 
          exec(exe_command, { timeout: this.timeout }, (err, stdout, stderr) => {
             if (!err) {
