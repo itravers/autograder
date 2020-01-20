@@ -40,13 +40,13 @@ class AssignmentsDb {
 
 
     /**
-    * Marks assignment as locked
+    * Toggles assignment's lock status
     * @param {Number} assignment_id The assignment's ID number (integer).
     * @returns {Promise} Resolves with change of is_locked value if successful; 
     *    rejects if there is an error. 
     */
    lockAssignment(assignment_id) {
-      const sql = "UPDATE assignments SET is_locked = 1 WHERE id = $assignment_id";
+      const sql = "UPDATE assignments SET is_locked = NOT is_locked WHERE id = $assignment_id";
       return new Promise((resolve, reject) => {
          var local_callback = function(err) {
             if (err === null)

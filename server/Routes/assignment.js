@@ -203,13 +203,13 @@ exports.createTestCase = function(req, res, db, acl) {
 }
 
 /**
-  * Marks assignment as locked. :aid is the assignment ID.   
+  * Toggles assignment's locked status. :aid is the assignment ID.   
   * The assignment ID to modify should be in req.body.id.
   * @param {Object} req HTTP request object. 
   * @param {Object} res HTTP response object. 
   * @param {Object} db Database connection.
   * @param {Object} acl Object containing AccessControlList methods.
-  * @returns {Object} JSON containing the locked assignment's ID, or a 500 status code.
+  * @returns {Object} JSON containing the locked/unlocked assignment's ID, or a 500 status code.
   */
  exports.lockAssignment = function(req, res, db) {
    let session = req.session;
@@ -217,7 +217,7 @@ exports.createTestCase = function(req, res, db, acl) {
 
    db.Assignments.lockAssignment(assignment_id)
       .then(() => {
-         return res.json({ response: assignment_id }); 
+         return res.json({ assignment: assignment_id }); 
       })
       .catch(err => {
          console.log(err);
