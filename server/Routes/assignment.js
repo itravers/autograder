@@ -213,7 +213,6 @@ exports.createTestCase = function(req, res, db, acl) {
   */
  exports.lockAssignment = function(req, res, db) {
    let session = req.session;
-   const current_user = req.params.user_id;
    const assignment_id = req.params.assignment_id;
 
    db.Assignments.lockAssignment(assignment_id)
