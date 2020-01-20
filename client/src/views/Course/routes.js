@@ -1,5 +1,6 @@
 import Index from './Index'
 import Manage from './Manage'
+import AssignmentsList from './AssignmentsList';
 
 const routes = [
    {
@@ -10,6 +11,11 @@ const routes = [
    {
       path: "/course/manage/:id",
       component: Manage,
+      strict_match: true
+   },
+   {
+      path: "/course/:id/assignments",
+      component: AssignmentsList,
       strict_match: true
    }
 ];

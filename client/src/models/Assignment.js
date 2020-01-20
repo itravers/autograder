@@ -10,6 +10,7 @@ class Assignment {
       this.run = this.run.bind(this);
       this.compile = this.compile.bind(this);
       this.submitAssignment = this.submitAssignment.bind(this);
+      this.lockAssignment = this.lockAssignment.bind(this);
    }
 
    removeFile(file, assignment_id) {
@@ -127,6 +128,25 @@ class Assignment {
          }
          const path = this.config.endpoints.assignment.submit_assignment;
          const endpoint = this.config.constructRoute(path, [assignment_id, user_id]); 
+         call(endpoint, (result) => {
+            if (result !== null && result !== undefined && Object.keys(result.data.response).length > 0) {
+               resolve(result.data.response);
+            }
+            else {
+               reject(result);
+            }
+         });
+      });
+   }
+
+   lockAssignment(assignment_id) {
+      return new Promise((resolve, reject) => {
+         let call = WebRequest.makePost;
+         if (this.cache_results === true) {
+            call = WebRequest.makeCacheableUrlRequest;
+         }
+         const path = this.config.endpoints.assignment.lock_assignment;
+         const endpoint = this.config.constructRoute(path, [assignment_id]);
          call(endpoint, (result) => {
             if (result !== null && result !== undefined && Object.keys(result.data.response).length > 0) {
                resolve(result.data.response);
