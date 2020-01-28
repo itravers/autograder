@@ -49,6 +49,16 @@ class ResultsComponent extends Component {
       let results_counter = 0;
       let first_active_id = -1;
 
+      if (Object.keys(results).length === 0)
+      {
+         return (
+            <div>
+               <br/>
+               <h6 style={{fontWeight: "bold"}}>No results to display</h6>
+               <div><hr></hr></div>
+            </div>)
+      }
+      else {
       return (
          <div className="row" style={{ paddingTop: "1.1rem" }}>
             <div className="col-3">
@@ -122,7 +132,7 @@ class ResultsComponent extends Component {
                </div>
             </div>
          </div>
-      );
+      )};
    }
 }
 
