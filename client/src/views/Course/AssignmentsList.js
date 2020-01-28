@@ -2,13 +2,14 @@ import React, { Component } from 'react';
 import { connect } from "react-redux";
 import { sortBy } from 'lodash';
 import UserList from './../components/UserList'
+import { BrowserRouter as Router, Route, Link, Redirect } from 'react-router-dom';
 
 
 const mapStateToProps = state => {
    return { current_user: state.current_user, models: state.models };
 };
 
-class AssignmentsList extends Component {
+class AssignmentsListView extends Component {
 
    constructor(props) {
       super(props);
@@ -16,7 +17,9 @@ class AssignmentsList extends Component {
       this.state = {
          courses: [],
          selected_course: Number(this.props.match.params.id),
-         course_assignments: [],
+         current_course_role: -1,
+         selected_assignment: -1,
+         course_assignments: []
       };
 
       this.updateSelectedCourse = this.updateSelectedCourse.bind(this);
@@ -24,27 +27,32 @@ class AssignmentsList extends Component {
       this.getAssignmentsForCourse = this.getAssignmentsForCourse.bind(this);
       this.getCourses = this.getCourses.bind(this);
       this.lockAssignment = this.lockAssignment.bind(this);
+      this.viewAssignment = this.viewAssignment.bind(this);
    }
 
    componentDidMount() {
       this.getCourses(this.props.current_user);
+      this.getAssignmentsForCourse();
    }
 
    componentWillReceiveProps(new_props) {
-      this.getCourses(new_props.current_user);
+      this.getCourses();
+      this.getAssignmentsForCourse();
    }
 
    getCourses() {
       this.props.models.course.getCoursesForUser()
          .then((result) => {
             let courses_taught = [];
+            let user_course_role = this.state.current_course_role;
             for (let course of result) {
                const course_role = this.props.models.course.getCoursePrivileges(course.course_role);
                if (course_role.can_modify_course === true) {
                   courses_taught.push(course);
+                  user_course_role = course.course_role;
                }
             }
-            this.setState({ courses: courses_taught });
+            this.setState({ courses: courses_taught, current_course_role: user_course_role });
          })
          .catch(err => { });
    }
@@ -61,31 +69,43 @@ class AssignmentsList extends Component {
 
    lockAssignment(evt) {
       const index = Number(evt.target.dataset.id);
-      const assignment = this.state.assignments_list[index];
-      this.props.models.assignment.lockAssignment(assignment.assignment_id);
+      const assignment = this.state.course_assignments[index];
+      this.props.models.assignment.lockAssignment(assignment.id);
+      this.getAssignmentsForCourse();
+   }
+
+   viewAssignment(evt) {
+      const index = Number(evt.target.dataset.id);
+      const assignment = this.state.course_assignments[index];
+      this.setState({selected_assignment: assignment.id});
    }
 
    getAssignmentsForCourse() {
-      this.props.models.course.getActiveAssignmentsForCourse(this.state.selected_course.course_id)
-      .then((result) => {
-         let assignments_list = [];
-         for (let assignment of result) {
-            const course_role = this.props.models.course.getCoursePrivileges(this.state.selected_course.course_role);
-            if (course_role.can_modify_course === true) {
-               assignments_list.push(assignment);
+      var state = this.state;
+      var props = this.props;
+      props.models.course.getActiveAssignmentsForCourse(state.selected_course)
+         .then((result) => {
+            let assignments_list = [];
+            for (let assignment of result) {
+               const course_role = props.models.course.getCoursePrivileges(state.current_course_role);
+               if (course_role.can_modify_course === true) {
+                  assignments_list.push(assignment);
+               }
             }
-         }
-         this.setState({ course_assignments: assignments_list });
-      })
-      .catch(err => { });
+            this.setState({ course_assignments: assignments_list });
+         })
+         .catch(err => { });
    }
 
    render() {
       const self = this;
       const headers = ['Assignment', 'Locked'];
-      const assignment_headers = ['assignment_name', 'is_locked'];
-      const assignment_buttons = [{text: "Lock", click: this.lockAssignment}, {text: "View", click: this.viewAssignment}];
-      const current_course = this.state.selected_course.course_id;
+      const assignment_headers = ['name', 'is_locked'];
+      const assignment_buttons = [{ text: "Lock/Unlock", click: this.lockAssignment }, { text: "View", click: this.viewAssignment }];
+      if (self.state.selected_assignment !== -1)
+      {
+         return(<Redirect to= {"/assignment/" + self.state.selected_assignment} />);
+      }
       return (
          <article className="container">
             <select value={this.state.selected_course.course_id} onChange={this.updateSelectedCourse}>
@@ -107,6 +127,6 @@ class AssignmentsList extends Component {
    }
 }
 
-const Assignments = connect(mapStateToProps)(AssignmentsList);
-export { Assignments };
-export default Assignments;
+const AssignmentsList = connect(mapStateToProps)(AssignmentsListView);
+export { AssignmentsList };
+export default AssignmentsList;
