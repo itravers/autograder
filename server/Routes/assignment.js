@@ -63,8 +63,7 @@ exports.compileAndRun = function(req, res, db, config, acl, Compiler) {
    let session = req.session;
    const current_user = session.user;
    const assignment_id = req.params.assignment_id;
-   const tools_command = config.compiler.tools_path + "\\" + config.compiler.tools_batch;
-   const compile_cmd = config.compiler.compile_command;
+   const dockerfile_path = "Models/compilers/cpp_clang";
    const stdin = req.body.stdin;
    const test_name = req.body.test_name;
 
@@ -81,8 +80,7 @@ exports.compileAndRun = function(req, res, db, config, acl, Compiler) {
             config.temp_path,
             req.params.assignment_id,
             current_user.id,
-            tools_command,
-            compile_cmd,
+            dockerfile_path,
             stdin
          );
          return compiler.begin();
