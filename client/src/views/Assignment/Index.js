@@ -166,7 +166,7 @@ class IndexView extends Component {
             <React.Fragment>
                Student: <select value={this.state.selected_user_index} onChange={this.updateSelectedStudent}>
                   {this.state.student_roster.map((value, index) =>
-                     <option key={index} value={index}>{value.last_name + ", " + value.first_name}</option>
+                     <option key={index} value={index}>{value.name}</option>
                   )}
                </select>
             </React.Fragment>

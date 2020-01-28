@@ -11,6 +11,7 @@
 var express = require('express');        // call express
 var app = express();                 // define our app using express
 var bodyParser = require('body-parser');
+const axios = require('axios');
 const fs = require('fs');
 const fileUpload = require('express-fileupload');
 const ini = require('ini');
@@ -18,6 +19,7 @@ const session = require('express-session');
 const FileManager = require('./FileManager.js');
 const Database = require('./Models/Database.js');
 const AccessControlList = require('./Models/AccessControlList.js');
+var OAuthConfig = require('./oauthconfig.json');
 var Compiler = require('./Models/Compiler.js');
 
 var FileStore = require('session-file-store')(session);
@@ -76,8 +78,6 @@ app.use((req, res, next) => {
    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, HEAD, OPTIONS');
    res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, Cache-Control, Pragma');
 
-
-
    // intercept OPTIONS method
    if (req.method === 'OPTIONS') {
       res.sendStatus(204);
@@ -116,9 +116,7 @@ router.get('/assignment/:aid/user/:uid/file', (req, res) => assignmentRoute.assi
 // :uid is the ID of the user who has the assignment. 
 router.post('/assignment/:aid/file', (req, res) => assignmentRoute.uploadFile(req, res, db, acl)); 
 
-/**
- * The file ID to delete should be in req.body.id.
- */
+// Deletes a file. The file ID to delete should be in req.body.id.
 router.delete('/assignment/:aid/file', (req, res) => assignmentRoute.deleteFile(req, res, db, acl)); 
 
 //Returns all available courses
@@ -139,10 +137,8 @@ router.get('/course/:id/assignments/inactive', (req, res) => courseRoute.inactiv
 // Returns all courses that the currently logged in user is taking
 router.get('/course/enrolled', (req, res) => courseRoute.enrollments(req, res, db));
 
-/**
- * Returns a detailed roster for this course if the user has 
- * instructor rights
- */
+
+// Returns a detailed roster for this course if the user has instructor rights
 router.get('/course/:course_id/user', (req, res) => courseRoute.roster(req, res, db, acl)); 
 
 // Removes the user specified in req.body from the selected course
@@ -156,7 +152,8 @@ router.post('/course/:course_id/user', (req, res) => courseRoute.addUser(req, re
 // Alters user's course role
 router.put('/course/:course_id/user', (req, res) => courseRoute.editRole(req, res, db, acl)); 
 
-// Allows bulk user creation and addition to course.  TODO: needs testing
+// Allows bulk user creation and addition to course. 
+// TODO: change to work with new GitHub login
 router.post('/course/:course_id/addRoster', (req, res) => courseRoute.addRoster(req, res, db, acl)); 
 
 // returns information on currently logged in user
@@ -165,14 +162,21 @@ router.get('/user/login', (req, res) => userRoute.info(req, res));
 // logs in a user with given credentials 
 router.post('/user/login', (req, res) => userRoute.login(req, res, db)); 
 
+// returns information on currently logged-in user from Github
+router.get('/user/githubUser', (req, res) => userRoute.githubUser(req, res, db)); 
+
 // logs out user 
 router.get('/user/logout', (req, res) => userRoute.logout(req, res)); 
 
 // creates new user
 router.post('/user/create', (req, res) => userRoute.createUser(req, res, db)); 
 
+// logs in current GitHub user
+router.get('/user/oauth', (req, res) => userRoute.oauth(req, res, db, OAuthConfig));
+
 // REGISTER OUR ROUTES -------------------------------
 // all of our routes will be prefixed with /api
+
 app.use('/api', router);
 
 // START THE SERVER
