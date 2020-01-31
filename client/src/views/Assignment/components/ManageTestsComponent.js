@@ -109,7 +109,8 @@ render() {
          submit_text = "";
       }
 
-      if (this.state.can_edit_tests === false) {
+      if(this.props.modify_permissions === false)
+      {
          return(<Redirect to="/assignment" />);
       }
       

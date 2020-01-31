@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import { connect } from "react-redux";
 import { BrowserRouter as Router, Route, NavLink, Redirect, withRouter } from 'react-router-dom';
 import CourseAssignmentSelector from '../components/CourseAssignmentSelector';
+import './index.css'; 
 
 //components
 import AddFiles from './components/AddFilesComponent';
@@ -45,7 +46,7 @@ class IndexView extends Component {
          links: this.base_links,
          files: [],
          file_data: {},
-         can_modify_assignment: false, 
+         has_modify_permissions: false, 
          current_assignment: { id: -1 },
          selected_user: this.props.current_user,
          selected_user_index: 0,
@@ -104,7 +105,7 @@ class IndexView extends Component {
                   active_users[0].course_role = user.course_role; 
                   if(privilege.can_modify_course === true)
                   {
-                     self.setState({can_modify_assignment: true}, () => {
+                     self.setState({has_modify_permissions: true}, () => {
                         self.updateTabs();
                      })
                   }
@@ -128,19 +129,24 @@ class IndexView extends Component {
       }
    }
 
-   addManageTestsTab() {
+   addInstructorTabs() {
       let links = this.state.links; 
       
       // add a tab to manage test cases if current user has permission
-      if(this.state.can_modify_assignment === true) {
+      if(this.state.has_modify_permissions === true) {
          const test_id = -1; 
          const test_url = "/assignment/tests"; 
          const test_name = "Manage Tests"; 
-         const test_tab = {id: test_id, url: test_url, name: test_name, css: "nav-link"};
+         const test_tab = {id: test_id, url: test_url, name: test_name, css: "nav-link instructor"};
+         
+         const results_id = -1; 
+         const results_url = "/assignment/all-results"; 
+         const results_name = "Student Results"; 
+         const results_tab = {id: results_id, url: results_url, name: results_name, css: "nav-link instructor"}; 
 
-         // insert tab immediately after base links 
-         const index = this.base_links.length; 
-         links.splice(index, 0, test_tab); 
+         // insert instructor tabs after all other tabs 
+         links.push(test_tab); 
+         links.push (results_tab); 
       }
       this.setState({links: links}); 
    }
@@ -161,7 +167,7 @@ class IndexView extends Component {
          links.push(links_by_name[key]);
       }
       this.setState({ links: links }, () => {
-         this.addManageTestsTab();
+         this.addInstructorTabs();
       });
    }
 
@@ -233,7 +239,7 @@ class IndexView extends Component {
                      {Object.keys(links).map((key) => {
                         const item = links[key];
                         const active_tab = this.state.active_tab;
-                        let style = "nav-link";
+                        let style = item.css; 
                         return (
                            <li key={item.url} className="nav-item">
                               <NavLink
@@ -312,6 +318,7 @@ class IndexView extends Component {
                               <ManageTests
                                  assignment={this.state.current_assignment}
                                  user={this.selectedUser()}
+                                 modify_permissions={this.state.has_modify_permissions}
                               />
                            </div> 
                         )

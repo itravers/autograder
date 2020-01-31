@@ -109,30 +109,6 @@ exports.compileAndRun = function(req, res, db, config, acl, Compiler) {
       });
 }
 
-
-/**
- * Edits an existing test case or creates a new one based on the test case input
- * given. 
- * @param {Object} req HTTP request object. 
- * @param {Object} res HTTP response object. 
- * @param {Object} db Database connection. 
- * @param {Object} acl Object containing AccessControlList methods.
- * @returns {Object} JSON response with test case's ID if successful, or
- *    with error message if unsuccessful for any reason.
- *
-exports.addToTestCases = function(req, res, db, acl) {
-   const test_input = req.body.test_input; 
-   db.Assignments.TestCases.isUnique(a_id, test_input)
-   .then(result => {
-      if(result === true) {
-         exports.createTestCase(req, res, db, acl); 
-      }
-      else {
-         exports.editTestCase(req, res, db, acl); 
-      }
-   })
-}*/
-
 /**
  * Creates a test case. 
  * @param {Object} req HTTP request object. 
