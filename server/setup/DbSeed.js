@@ -11,22 +11,20 @@ class DbSeed{
    setupUsers(){
       const dummy_users = [
          {
-            email: "bob@admin.com",
-            first_name: "Bob",
-            last_name: "Smith",
+            login: "bob@admin.com",
+            name: "Bob Smith",
             password: "password",
             is_admin: true
          },
          {
-            email: "sam@student.com",
-            first_name: "Sam",
-            last_name: "Stevens",
+            login: "sam@student.com",
+            name: "Sam Stevens",
             password: "password",
             is_admin: false
          }
       ];
       for(const user of dummy_users){
-         this.db.createUser(user.email, user.first_name, user.last_name, user.password);
+         this.db.createUser(user.login, user.name, user.password);
       }
    }
 }

@@ -10,10 +10,10 @@
 convertUser = function(user, db)
 {
   return new Promise((resolve, reject) => {
-     db.Users.exists(user.email)
+     db.Users.exists(user.login)
      .then(() => {
         // select existing user's ID 
-        db.Users.userRow(user.email)
+        db.Users.userRow(user.login)
         .then((result) => {
            user.id = result.id;
            delete user.password; 
@@ -27,7 +27,7 @@ convertUser = function(user, db)
         // create user in DB 
         if ((user.first_name !== undefined) && (user.first_name.length > 0)
          && (user.last_name !== undefined) && (user.last_name.length > 0)
-         && (user.email !== undefined) && (user.email.length > 0)
+         && (user.login !== undefined) && (user.login.length > 0)
          && (user.password !== undefined) && (user.password.length > 0)) {
             db.Users.create(user)
                .then(result => {
@@ -76,7 +76,7 @@ exports.addRoster = function(req, res, db, acl) {
                })
                .catch(err => {
                   let err_message = {
-                     email: user.email, 
+                     login: user.login, 
                      error: err
                   };
                   output_roster.push(err_message); 
