@@ -62,14 +62,14 @@ class AssignmentFilesDb {
    }
 
    /**
-    * Marks assignment as submitted
+    * Marks assignment as submitted if it is not locked
     * @param {Number} assignment_id The assignment's ID number (integer).
     * @param {Number} user_id The specified user's ID number (integer). 
     * @returns {Promise} Resolves with change of is_submitted value if successful; 
     *    rejects if there is an error. 
     */
    submitAssignment(assignment_id, user_id) {
-      const sql = "UPDATE assignment_files SET is_submitted = 1 WHERE assignment_id = $assignment_id AND owner_id = $user_id AND is_deleted = 0";
+      const sql = "UPDATE assignment_files SET is_submitted = 1 WHERE assignment_id = $assignment_id AND owner_id = $user_id AND is_deleted = 0 AND assignment_id IN (SELECT a.id FROM assignments a WHERE a.is_locked = 0)";
       return new Promise((resolve, reject) => {
          var local_callback = function(err) {
             if (err === null)

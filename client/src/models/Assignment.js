@@ -157,6 +157,26 @@ class Assignment {
          });
       });
    }
+
+   isLocked(assignment_id) {
+      return new Promise((resolve, reject) => {
+         let call = WebRequest.makeUrlRequest;
+         if (this.cache_results === true) {
+            call = WebRequest.makeCacheableUrlRequest;
+         }
+         const path = this.config.endpoints.assignment.is_locked;
+         const endpoint = this.config.constructRoute(path, [assignment_id]); 
+         call(endpoint, (result) => {
+            if (result !== null && result !== undefined) {
+               resolve(result.data.response);
+            }
+            else {
+               reject(result);
+            }
+
+         });
+      });
+   }
 }
 
 export { Assignment };

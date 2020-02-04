@@ -112,10 +112,13 @@ router.get('/', (req, res) => {
 router.get('/assignment/:assignment_id/testCases', (req, res) => assignmentRoute.getTestCases(req, res, db)); 
 
 // mark an assignment as submitted
-router.post('/assignment/:assignment_id/user/:user_id/submitAssignment', (req,res) => assignmentRoute.submitAssignment(req,res,db));
+router.post('/assignment/:assignment_id/user/:user_id/submitAssignment', (req,res) => assignmentRoute.submitAssignment(req,res,db, acl));
 
 // toggle an assignment's locked status
-router.post('/assignment/:assignment_id/lockAssignment', (req,res) => assignmentRoute.lockAssignment(req,res,db));
+router.post('/assignment/:assignment_id/lockAssignment', (req,res) => assignmentRoute.lockAssignment(req,res,db, acl));
+
+//get an assignment's locked status
+router.get('/assignment/:assignment_id/isLocked', (req,res) => assignmentRoute.isLocked(req,res,db));
 
 // create a test case for the given assignment 
 router.post('/assignment/:assignment_id/testCases', (req, res) => assignmentRoute.createTestCase(req, res, db, acl));

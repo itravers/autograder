@@ -63,6 +63,28 @@ class AssignmentsDb {
          this.db.run(sql,{$assignment_id: assignment_id}, local_callback );
       });
    }
+
+/**
+    * Checks assignment's locked status
+    * @param {Number} assignment_id The assignment's ID number (integer).
+    * @returns {Promise} Resolves with result of is_locked value if successful; 
+    *    rejects if there is an error. 
+    */
+   isLocked(assignment_id) {
+      const sql = "SELECT is_locked FROM assignments WHERE id = $assignment_id";
+      const params = { $assignment_id: assignment_id };
+      return new Promise((resolve, reject) => {
+         this.db.get(sql, params, (err, row) => {
+            if (err === null && row !== undefined) {
+               resolve(row);
+            }
+            else {
+               reject(err);
+            }
+         });
+     });
+   }
+
 }
 
 /**
