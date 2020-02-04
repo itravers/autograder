@@ -3,32 +3,33 @@ const { exec, execFile, spawn, onExit } = require('child_process');
 const path = require("path");
 
 /**
- * Constructor for Windows MSVC compiler.
+ * Constructor for all compilers using Docker. 
  * @param {Object} db Database connection.
  * @param {String} workspace_path Path to directory containing files to compile and run. 
  * @param {Number} assignment_id This code's assignment's ID number (integer). 
- * @param {Number} student_id ID number of the user to whom this code belongs.  
- * @param {String} tools_setup_cmd Command for setting up build tools. 
+ * @param {Number} student_id ID number of the user to whom this code belongs.
+ * @param {String} docker_image_path Path to docker file to be used to compile and run the code
  * @param {String} compile_cmd Command for compiling this code. 
  * @param {String} stdin Input stream to be entered into code. 
+ * @param {Number} [timeout=15000] 
  */
 class Compiler {
-   constructor(db, workspace_path, assignment_id, student_id, tools_setup_cmd, compile_cmd, stdin) {
+   constructor(db, workspace_path, assignment_id, student_id, dockerfile_path, stdin, timeout = 15000) {
       this.db = db;
       this.workspace_path = workspace_path;
       this.assignment_id = assignment_id;
       this.student_id = student_id;
-      this.tools_setup_cmd = tools_setup_cmd;
-      this.compile_cmd = compile_cmd;
+      this.dockerfile_path = dockerfile_path;
       this.assignment_workspace = this.workspace_path + "/" + assignment_id;
       this.student_workspace = this.assignment_workspace + "/" + student_id;
       this.stdin = stdin;
+      this.timeout = timeout;
 
       this.begin = this.begin.bind(this);
       this.loadFiles = this.loadFiles.bind(this);
-      this.compileFiles = this.compileFiles.bind(this);
-      this.runFiles = this.runFiles.bind(this);
-      this.canRunFiles = this.runFiles.bind(this); 
+      this.buildDockerContainer = this.buildDockerContainer.bind(this); 
+      this.runDockerContainer = this.runDockerContainer.bind(this);
+      this.canRunFiles = this.canRunFiles.bind(this); 
    }
 
    /**
@@ -40,8 +41,8 @@ class Compiler {
    begin() {
       return new Promise((resolve, reject) => {
          this.loadFiles()
-            .then(files => this.compileFiles())
-            .then(result => this.runFiles())
+            .then(result => this.buildDockerContainer())
+            .then(result => this.runDockerContainer())
             .then(result => {
                resolve(result);
             })
@@ -52,7 +53,7 @@ class Compiler {
    }
 
    /**
-    * Step #1: Load files stored in DB onto local file system. 
+    * Step #1: Load files stored in DB onto local file system
     * @returns {Promise} Resolves with all files in addition to stdin.txt if 
     *    files were successfully loaded onto local file system. Rejects with
     *    error otherwise. 
@@ -69,7 +70,13 @@ class Compiler {
                }
 
                //add stdin as a file
-               files.push({file_name: "stdin.txt", contents: this.stdin});
+               files.push({ file_name: "stdin.txt", contents: this.stdin });
+
+               //add dockerfile
+               files.push({ file_name: "Dockerfile", contents: fs.readFileSync(this.dockerfile_path + "/Dockerfile")});
+
+               //add docker run command (to be used inside of docker container to run program)
+               files.push({ file_name: "run.sh", contents: fs.readFileSync(this.dockerfile_path + "/run.sh")});
 
                //and throw them into a temp workspace
                let write_counter = 0;
@@ -103,30 +110,19 @@ class Compiler {
    }
 
    /**
-    * Step #2: compile files after loading from the DB.
-    * @returns {Promise} Resolves with output from compiler if successful; 
-    *    rejects with error otherwise. 
+    * Builds docker container where code will be compiled and run.
+    * @returns {Promise} Resolves with output from building docker container if successful.
+    *    Rejects with error otherwise. 
     */
-   compileFiles() {
+   buildDockerContainer() {
       return new Promise((resolve, reject) => {
-         //create BATCH file
+
          const absolute_path = path.resolve(this.student_workspace);
-         const bat_path = absolute_path + "/compile.bat";
-         const bat_commands = "@ECHO OFF\r\n" + 
-         "CALL " + this.tools_setup_cmd + "\r\n" + //AC Note: had to remove escaped quotes on work PC.  Needed for home PC?
-            "CD \"" + absolute_path + "\"\r\n" +
-            this.compile_cmd;
-         
-         fs.writeFile(bat_path, bat_commands, { encoding: "utf8" }, (err) => {
+         const image_name = "cpp_" + this.assignment_id + "_" + this.student_id;
+         const exe_command = "docker build " + absolute_path + " -t " + image_name;
+         exec(exe_command, { timeout: this.timeout }, (err, stdout, stderr) => {
             if (!err) {
-               exec(bat_path, (err, stdout, stderr) => {
-                  if (!err) {
-                     resolve(stdout);
-                  }
-                  else {
-                     reject(err);
-                  }
-               });
+               resolve(stdout);
             }
             else {
                reject(err);
@@ -136,32 +132,27 @@ class Compiler {
    }
 
    /**
-    * Step #3: Run compiled program.
-    * @returns {Promise} If program took stdin as input and ran successfully, 
-    *    Promise resolves with output from running program. Otherwise, Promise 
-    *    rejects with error encountered. 
+    * Runs docker container with untrusted code. 
+    * @returns {Promise} Resolves with the result of running container with 
+    *    untrusted code if successful. Rejects with error otherwise. 
     */
-   runFiles() {
+   runDockerContainer() {
       return new Promise((resolve, reject) => {
-         const exe_path = this.student_workspace + "/main.exe";         
 
          //create BATCH file
          const absolute_path = path.resolve(this.student_workspace);
-         const bat_path = absolute_path + "/run.bat";
-         const bat_commands = "@ECHO OFF\r\n" +
-            "CD \"" + absolute_path + "\"\r\n" +
-            "main.exe < stdin.txt";
-         
-         fs.writeFile(bat_path, bat_commands, { encoding: "utf8" }, (err) => {
+         const image_name = "cpp_" + this.assignment_id + "_" + this.student_id;
+
+         //docker timeout is in seconds whereas nodejs timeout is in milliseconds
+         const docker_timeout = this.timeout / 1000;
+         const exe_command = "docker run --rm " + image_name + " timeout " + docker_timeout + " sh -c './run.sh'";
+
+         exec(exe_command, { timeout: this.timeout }, (err, stdout, stderr) => {
             if (!err) {
-               exec(bat_path, {timeout: 15000}, (err, stdout, stderr) => {
-                  if (!err) {
-                     resolve(stdout);
-                  }
-                  else {
-                     reject(err);
-                  }
-               })
+               resolve(stdout);
+            }
+            else {
+               reject(err);
             }
          });
       });
@@ -170,28 +161,32 @@ class Compiler {
    /**
     * If we're just testing the same program against multiple tests, it's wasteful to always
     * compile.  This function tells us if we can run an existing program without a compile
-    * by checking to see if the necessary files already exist (i.e. main.exe)
+    * by checking to see if the necessasry files already exist (i.e. main.exe)
     * @returns {Promise} Resolves with true if the necessary files to run this program already 
     *    exist. Otherwise, if the necessary files don't already exist, we can't run this 
     *    program, so it rejects with error. 
     */
-   canRunFiles(){
+   canRunFiles() {
       return new Promise((resolve, reject) => {
-         const exe_path = this.student_workspace + "/main.exe";  
-         fs.access(exe_path, fs.constants.F_OK, (err) =>{
-            if(!err){
+
+         reject(false);
+
+         //TODO: docker container breaks this functionality.  Need to rewrite.
+         const exe_path = this.student_workspace + "/main.exe";
+         fs.access(exe_path, fs.constants.F_OK, (err) => {
+            if (!err) {
                //create new testing file
                const file_path = this.student_workspace + "/stdin.txt";
                fs.writeFile(file_path, this.stdin, { encoding: "utf8" }, (err) => {
-                  if(!err){
+                  if (!err) {
                      resolve(true);
                   }
-                  else{
+                  else {
                      reject(err);
                   }
                });
             }
-            else{
+            else {
                reject("main.exe does not exist");
             }
          });
@@ -200,7 +195,7 @@ class Compiler {
 }
 
 /**
- * Contains methods for compiling and running C++ code in Windows using MSVC.
+ * Contains methods for compiling and running C++ code in Windows using Docker.
  * @typedef {Object} Compiler 
  */
 
@@ -209,12 +204,12 @@ class Compiler {
  * @param {Object} db Database connection.
  * @param {String} workspace_path Path to directory containing files to compile and run. 
  * @param {Number} assignment_id This code's assignment's ID number (integer). 
- * @param {Number} student_id ID number of the logged-in user who is running this code. 
+ * @param {Number} student_id ID number of the user to whom this code belongs.
  * @param {String} tools_setup_cmd Command for setting up build tools. 
  * @param {String} compile_cmd Command for compiling this code. 
  * @param {String} stdin Input stream to be entered into code. 
- * @returns {Compiler} Windows MSVC compiler. 
+ * @returns {Compiler} Windows MSVC compiler using Docker.
  */
-exports.createCompiler = function (db, workspace_path, assignment_id, student_id, tools_setup_cmd, compile_cmd, stdin) {
-   return new Compiler(db, workspace_path, assignment_id, student_id, tools_setup_cmd, compile_cmd, stdin);
+exports.createCompiler = function (db, workspace_path, assignment_id, student_id, dockerfile_path, stdin) {
+   return new Compiler(db, workspace_path, assignment_id, student_id, dockerfile_path, stdin);
 }

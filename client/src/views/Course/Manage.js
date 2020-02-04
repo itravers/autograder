@@ -168,8 +168,10 @@ class ManageView extends Component {
 
    render() {
       const self = this;
-      const headers = ['First Name', 'Last Name', 'Email'];
-      const student_headers = ['first_name', 'last_name', 'email'];
+      //const headers = ['First Name', 'Last Name', 'Email'];
+      //const student_headers = ['first_name', 'last_name', 'email'];
+      const headers = ['Name', 'Login'];
+      const student_headers = ['name', 'login']; 
       const ta_buttons = [{text: "Remove", click: this.removeTa}];
       const student_buttons = [{text: "Make TA", click: this.addTa}, {text: "Unapprove", click: this.unapproveStudent}];
       const pending_buttons = [{text: "Approve", click: this.approveStudent}];

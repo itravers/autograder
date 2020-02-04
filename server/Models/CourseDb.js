@@ -202,11 +202,11 @@ class CoursesDb {
     */
    courseUsers(course_id) {
       return new Promise((resolve, reject) => {
-         let sql = "SELECT u.first_name, u.last_name, u.email, cu.* "
+         let sql = "SELECT u.name, u.login, cu.* "
             + " FROM course_users cu "
             + " INNER JOIN users u ON cu.user_id = u.id "
             + " WHERE course_id = $course_id "
-            + " ORDER BY u.last_name, u.first_name";
+            + " ORDER BY u.name";
          this.db.all(sql, { $course_id: course_id }, (err, rows) => {
             if (err === null && rows !== undefined) {
                resolve(rows);
