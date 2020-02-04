@@ -10,6 +10,7 @@ import Source from './components/SourceViewComponent';
 import TestCases from './components/TestCasesComponent';
 import ManageTests from './components/ManageTestsComponent';
 import Results from './components/ResultsComponent';
+import AllResults from './components/AllResultsComponent'
 
 const mapStateToProps = state => {
    return { current_user: state.current_user, models: state.models };
@@ -318,6 +319,20 @@ class IndexView extends Component {
                               <ManageTests
                                  assignment={this.state.current_assignment}
                                  user={this.selectedUser()}
+                                 modify_permissions={this.state.has_modify_permissions}
+                              />
+                           </div> 
+                        )
+                     }} />
+               <Route path="/assignment/all-results"
+                  render={
+                     (props) => {
+                        return (
+                           <div className="container">
+                              <AllResults
+                                 assignment={this.state.current_assignment}
+                                 user={this.selectedUser()}
+                                 student_roster={this.state.student_roster}
                                  modify_permissions={this.state.has_modify_permissions}
                               />
                            </div> 
