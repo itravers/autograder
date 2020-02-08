@@ -22,8 +22,8 @@ class AllResultsComponent extends Component {
    }
 
    componentDidMount() {
-      this.getTestNames(this.props.assignment.id); 
-      this.getClassResults(this.props.student_roster); 
+      this.getTestNames(this.props.assignment.id)
+      .then(() =>  this.getClassResults(this.props.student_roster)); 
    }
 
    componentWillReceiveProps(new_props) {
@@ -33,17 +33,23 @@ class AllResultsComponent extends Component {
    }
 
    getTestNames() {
-      if (this.props.assignment.id > 0) {
-         this.props.models.assignment.getTestCases(this.props.assignment.id)
-         .then((results) => {
-            let names = []; 
-            for (const result of results) {
-               names.push(result.test_name); 
-            }
-            this.setState({test_names: names}); 
-         })
-         .catch((err) => console.log(err)); 
-      }
+      return new Promise((resolve, reject) => {
+         if (this.props.assignment.id > 0) {
+            this.props.models.assignment.getTestCases(this.props.assignment.id)
+            .then((results) => {
+               let names = []; 
+               for (const result of results) {
+                  names.push(result.test_name); 
+               }
+               this.setState({test_names: names});
+               resolve();  
+            })
+            .catch((err) => {
+               reject(err);
+               console.log(err)
+            }); 
+         }
+      })
    }
 
    getTestResults(user_id) {
@@ -57,6 +63,12 @@ class AllResultsComponent extends Component {
                         formatted_results[result.test_name] = [];
                      }
                      formatted_results[result.test_name].push(result);
+                  }
+                  for(const name of this.state.test_names)
+                  {
+                     if(formatted_results[name] === undefined || formatted_results[name].length === 0) {
+                        formatted_results[name] = [{test_result: ""}]; 
+                     }
                   }
                   //this.setState({ results: formatted_results });
                   resolve(formatted_results); 
