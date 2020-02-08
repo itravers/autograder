@@ -13,21 +13,22 @@ class AllResultsComponent extends Component {
 
       this.state = {
          test_names: [], 
-         results: {}
+         test_results: []
       };
 
       this.getTestNames = this.getTestNames.bind(this); 
       this.getTestResults = this.getTestResults.bind(this);
+      this.getClassResults = this.getClassResults.bind(this); 
    }
 
    componentDidMount() {
       this.getTestNames(this.props.assignment.id); 
-      //this.getTestResults(this.props.user.id);
+      this.getClassResults(this.props.student_roster); 
    }
 
    componentWillReceiveProps(new_props) {
       if (new_props.user !== null && new_props.user !== undefined && new_props.user.id > 0) {
-         this.getTestResults(new_props.user.id);
+         this.getClassResults(new_props.student_roster);
       }
    }
 
@@ -46,20 +47,47 @@ class AllResultsComponent extends Component {
    }
 
    getTestResults(user_id) {
-      if (this.props.assignment.id > 0) {
-         this.props.models.assignment.getTestResults(this.props.assignment.id, user_id)
-            .then((results) => {
-               let formatted_results = {};
-               for (const result of results) {
-                  if (formatted_results[result.test_name] === undefined) {
-                     formatted_results[result.test_name] = [];
+      return new Promise((resolve, reject) => {
+         let formatted_results = {}; 
+         if (this.props.assignment.id > 0) {
+            this.props.models.assignment.getTestResults(this.props.assignment.id, user_id)
+               .then((results) => {
+                  for (const result of results) {
+                     if (formatted_results[result.test_name] === undefined) {
+                        formatted_results[result.test_name] = [];
+                     }
+                     formatted_results[result.test_name].push(result);
                   }
-                  formatted_results[result.test_name].push(result);
-               }
-               this.setState({ results: formatted_results });
-            })
-            .catch((err) => console.log(err));
-      }
+                  //this.setState({ results: formatted_results });
+                  resolve(formatted_results); 
+               })
+               .catch((err) => console.log(err));
+         }
+      });
+   }
+
+   async getClassResults(student_roster) {
+      let class_results = []; 
+      // get test results for each student in class 
+      //var x = new Promise((resolve, reject) => {
+         for(const student of student_roster) {
+            // create object to hold necessary data, including an object where 
+            // key = test name and value = Array of test results for that test case 
+            let student_row = {id: student.id, name: student.name, results: {}};
+            /*this.getTestResults(student.id)
+            .then(result => {
+               student_row.results = result; 
+               class_results.push(student_row);
+            })*/
+            
+            student_row.results = await this.getTestResults(student.id); 
+            class_results.push(student_row); 
+         }
+         //resolve(); 
+      //});
+      //x.then(() => {
+         this.setState({ test_results: class_results }); 
+      //});
    }
 
    render() {
@@ -68,8 +96,8 @@ class AllResultsComponent extends Component {
         return(<Redirect to="/assignment" />);
       }
     
-      const headers = this.state.headers; 
-      const results = this.state.results;
+      const headers = this.state.test_names; 
+      const data = this.state.test_results;
       let results_counter = 0;
       let first_active_id = -1;
 
@@ -80,13 +108,22 @@ class AllResultsComponent extends Component {
                   <thead>
                      <tr>
                         <th scope="col"></th>
-                        <th scope="col">ADD TEST CASE NAMES AS COLUMNS</th> 
+                        {headers.map((item, index) =>
+                           <th key={index} scope="col">{item}</th>
+                        )}
                      </tr>
                   </thead>
                   <tbody> 
-                     <tr>
-                        <td> hi </td>
-                     </tr>
+                     {data.map((item, index) =>
+                        <tr key={index}>
+                           <td>
+                           {item.name}
+                           </td>
+                           {headers.map((test_name, index) =>
+                              <td key={index}>{item.results[test_name][0]["test_result"]}</td>
+                           )}
+                        </tr>
+                     )}
                   </tbody>
                </table> 
            </article>
