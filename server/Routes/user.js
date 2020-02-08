@@ -133,8 +133,9 @@ validateUser = function(user, db) {
             reject(false);
          });
       })
-      .then(() => {
-         resolve(user);
+      .then(() => db.Users.userRow(user.login))
+      .then(result => {
+         resolve(result);
       })
    });
 }

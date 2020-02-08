@@ -70,7 +70,6 @@ class AllResultsComponent extends Component {
                         formatted_results[name] = [{test_result: ""}]; 
                      }
                   }
-                  //this.setState({ results: formatted_results });
                   resolve(formatted_results); 
                })
                .catch((err) => console.log(err));
@@ -81,25 +80,14 @@ class AllResultsComponent extends Component {
    async getClassResults(student_roster) {
       let class_results = []; 
       // get test results for each student in class 
-      //var x = new Promise((resolve, reject) => {
          for(const student of student_roster) {
             // create object to hold necessary data, including an object where 
             // key = test name and value = Array of test results for that test case 
             let student_row = {id: student.id, name: student.name, results: {}};
-            /*this.getTestResults(student.id)
-            .then(result => {
-               student_row.results = result; 
-               class_results.push(student_row);
-            })*/
-            
             student_row.results = await this.getTestResults(student.id); 
             class_results.push(student_row); 
          }
-         //resolve(); 
-      //});
-      //x.then(() => {
          this.setState({ test_results: class_results }); 
-      //});
    }
 
    render() {
@@ -110,8 +98,6 @@ class AllResultsComponent extends Component {
     
       const headers = this.state.test_names; 
       const data = this.state.test_results;
-      let results_counter = 0;
-      let first_active_id = -1;
 
       return (
         <article className="container">
@@ -140,83 +126,7 @@ class AllResultsComponent extends Component {
                </table> 
            </article>
         </article> 
-
       );
-      /*
-      return (
-         <div className="row" style={{ paddingTop: "1.1rem" }}>
-            <div className="col-3">
-               <div className="nav flex-column nav-pills" id="v-pills-tab" role="tablist" aria-orientation="vertical">
-                  {Object.keys(results).map((index) => {
-                     const first_item = results[index][0];
-                     const item_id = "v-pills-" + first_item.id + "-tab";
-                     const item_href = "#v-pills-" + first_item.id;
-                     const item_controls = "v-pills" + first_item.id;
-                     let class_name = "nav-link";
-                     let is_selected = "false";
-                     if (results_counter === 0) {
-                        class_name += " active";
-                        is_selected = "true";
-                        first_active_id = first_item.id;
-                     }
-                     results_counter++;
-                     return (
-                        <a
-                           key={first_item.id}
-                           className={class_name}
-                           id={item_id}
-                           data-toggle="pill"
-                           href={item_href}
-                           role="tab"
-                           aria-controls={item_controls}
-                           aria-selected={is_selected}
-                        >{first_item.test_name}</a>
-                     )
-                  })
-                  }
-               </div>
-            </div>
-
-            <div className="col-9">
-               <div className="tab-content" id="v-pills-tabContent">
-               {Object.keys(results).map((index) => {
-                     const first_item = results[index][0];
-                     const item_id = "v-pills-" + first_item.id;
-                     const tab_name = "v-pills-" + first_item.id + "-tab";
-                     let class_name = "tab-pane fade";
-                     if (first_item.id === first_active_id) {
-                        class_name += " show active";
-                     }
-                     return (
-                        <div
-                           key={first_item.id}
-                           className={class_name}
-                           id={item_id}
-                           role="tabpanel"
-                           aria-labelledby={tab_name}
-                        >                          
-                           <div>
-                              <h6 style={{fontWeight: "bold"}}>Date run:</h6>
-                              {first_item.date_run}
-                           </div>
-                           <div><hr></hr></div>
-                           <div>
-                              <h6 style={{fontWeight: "bold"}}>Inputs:</h6>
-                              <pre>{first_item.test_input}</pre>
-                           </div>
-                           <div><hr></hr></div>
-                           <div>
-                              <h6 style={{fontWeight: "bold"}}>Test results:</h6>
-                              {first_item.test_result}
-                           </div>
-                        </div>
-                     )
-                  })
-                  }
-               </div>
-            </div>
-         </div>
-      );*/
    }
 }
 
