@@ -46,7 +46,7 @@ class AllResultsComponent extends Component {
             })
             .catch((err) => {
                reject(err);
-               console.log(err)
+               console.log(err);
             }); 
          }
       })
@@ -72,7 +72,10 @@ class AllResultsComponent extends Component {
                   }
                   resolve(formatted_results); 
                })
-               .catch((err) => console.log(err));
+               .catch((err) => {
+                  console.log(err);
+                  reject(err); 
+               });
          }
       });
    }
@@ -96,8 +99,14 @@ class AllResultsComponent extends Component {
         return(<Redirect to="/assignment" />);
       }
     
+      // array of test names --> table columns
       const headers = this.state.test_names; 
+      // array of students, where each student has test results associated with 
+      // them --> one table row per student 
       const data = this.state.test_results;
+      // json property containing the actual output in a test result object
+      const json_result_field = "test_result"; 
+      
 
       return (
         <article className="container">
@@ -118,7 +127,7 @@ class AllResultsComponent extends Component {
                            {item.name}
                            </td>
                            {headers.map((test_name, index) =>
-                              <td key={index}>{item.results[test_name][0]["test_result"]}</td>
+                              <td key={index}>{item.results[test_name][0][json_result_field]}</td>
                            )}
                         </tr>
                      )}
