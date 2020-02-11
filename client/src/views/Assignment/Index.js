@@ -10,7 +10,7 @@ import Source from './components/SourceViewComponent';
 import TestCases from './components/TestCasesComponent';
 import ManageTests from './components/ManageTestsComponent';
 import Results from './components/ResultsComponent';
-import AllResults from './components/AllResultsComponent'
+import BulkResults from './components/BulkResultsComponent'
 
 const mapStateToProps = state => {
    return { current_user: state.current_user, models: state.models };
@@ -141,7 +141,7 @@ class IndexView extends Component {
          const test_tab = {id: test_id, url: test_url, name: test_name, css: "nav-link instructor"};
          
          const results_id = -1; 
-         const results_url = "/assignment/all-results"; 
+         const results_url = "/assignment/bulk-results"; 
          const results_name = "Student Results"; 
          const results_tab = {id: results_id, url: results_url, name: results_name, css: "nav-link instructor"}; 
 
@@ -324,12 +324,12 @@ class IndexView extends Component {
                            </div> 
                         )
                      }} />
-               <Route path="/assignment/all-results"
+               <Route path="/assignment/bulk-results"
                   render={
                      (props) => {
                         return (
                            <div className="container">
-                              <AllResults
+                              <BulkResults
                                  assignment={this.state.current_assignment}
                                  user={this.selectedUser()}
                                  student_roster={this.state.student_roster}

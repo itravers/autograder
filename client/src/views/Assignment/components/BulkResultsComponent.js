@@ -6,7 +6,7 @@ const mapStateToProps = state => {
    return { current_user: state.current_user, models: state.models };
 };
 
-class AllResultsComponent extends Component {
+class BulkResultsComponent extends Component {
 
    constructor(props) {
       super(props);
@@ -139,6 +139,6 @@ class AllResultsComponent extends Component {
    }
 }
 
-const AllResults = connect(mapStateToProps)(AllResultsComponent);
-export { AllResults };
-export default AllResults;
+const BulkResults = connect(mapStateToProps)(BulkResultsComponent);
+export { BulkResults };
+export default BulkResults;
