@@ -44,21 +44,20 @@ class AssignmentsListView extends Component {
       this.props.models.course.getCoursesForUser()
          .then((result) => {
             let courses_taught = [];
-            let user_course_role = this.state.current_course_role;
             for (let course of result) {
                const course_role = this.props.models.course.getCoursePrivileges(course.course_role);
-               if (course_role.can_modify_course === true) {
+               if (course_role.can_modify_course === true || course_role.can_grade_assignment === true || course_role.can_submit_assignment === true) {
                   courses_taught.push(course);
-                  user_course_role = course.course_role;
                }
             }
-            this.setState({ courses: courses_taught, current_course_role: user_course_role });
+            this.setState({ courses: courses_taught });
          })
          .catch(err => { });
    }
 
    updateSelectedCourse(evt) {
-      this.setState({ selected_course: this.state.courses[evt.target.value] }, () => {
+      this.props.history.push(`/course/${evt.target.value}/assignments`);
+      this.setState({ selected_course: this.state.courses[evt.target.selectedIndex].id }, () => {
          this.getAssignmentsForCourse();
       });
    }
@@ -108,7 +107,7 @@ class AssignmentsListView extends Component {
       }
       return (
          <article className="container">
-            <select value={this.state.selected_course.course_id} onChange={this.updateSelectedCourse}>
+            <select value={this.state.selected_course} onChange={this.updateSelectedCourse}>
                {this.state.courses.map((value, index) =>
                   <option
                      key={index}

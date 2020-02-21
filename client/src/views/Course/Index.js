@@ -120,6 +120,7 @@ class IndexView extends Component {
                      }, []).map((value, index) => {
                         const course_roles = self.props.models.course.getCoursePrivileges(enrolled_courses[value.id].course_role);
                         const is_instructor = course_roles.can_modify_course;
+                        const is_grader = course_roles.can_grade_assignment; 
                         const can_submit = course_roles.can_submit_assignment;
                         return (
                            <tr key={value.id}>
@@ -128,7 +129,7 @@ class IndexView extends Component {
                                  &nbsp;
                                  {this.renderModifyLink(is_instructor, value.id)}
                                  &nbsp;
-                                 {this.renderAssignmentsLink(can_submit, value.id)}
+                                 {this.renderAssignmentsLink((can_submit || is_grader || is_instructor), value.id)}
                               </td>
                               <td>
                                  {value.name}
