@@ -19,9 +19,15 @@ const session = require('express-session');
 const FileManager = require('./FileManager.js');
 const Database = require('./Models/Database.js');
 const AccessControlList = require('./Models/AccessControlList.js');
+<<<<<<< HEAD
 var FolderSetup = require('./setup.js');
 var OAuthConfig = require('./oauthconfig.json');
 var Compiler = require('./Models/Compiler.js');
+=======
+var OAuthConfig = require('./oauthconfig.json');
+var Compiler = require('./Models/Compiler.js');
+var FolderSetup = require('./setup.js');
+>>>>>>> assignments
 
 var FileStore = require('session-file-store')(session);
 
@@ -102,6 +108,15 @@ router.get('/', (req, res) => {
 
 // get test cases for the given assignment 
 router.get('/assignment/:assignment_id/testCases', (req, res) => assignmentRoute.getTestCases(req, res, db)); 
+
+// mark an assignment as submitted
+router.post('/assignment/:assignment_id/user/:user_id/submitAssignment', (req,res) => assignmentRoute.submitAssignment(req,res,db, acl));
+
+// toggle an assignment's locked status
+router.post('/assignment/:assignment_id/lockAssignment', (req,res) => assignmentRoute.lockAssignment(req,res,db, acl));
+
+//get an assignment's locked status
+router.get('/assignment/:assignment_id/isLocked', (req,res) => assignmentRoute.isLocked(req,res,db));
 
 // create a test case for the given assignment 
 router.post('/assignment/:assignment_id/testCases', (req, res) => assignmentRoute.createTestCase(req, res, db, acl));

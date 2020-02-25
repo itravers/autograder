@@ -223,6 +223,101 @@ exports.editTestCase = function(req, res, db, acl) {
       );
 }
 
+   /**
+  * Marks assignment as submitted. :aid is the assignment ID.   
+  * The assignment ID to modify should be in req.body.id.
+  * @param {Object} req HTTP request object. 
+  * @param {Object} res HTTP response object. 
+  * @param {Object} db Database connection.
+  * @param {Object} acl Object containing AccessControlList methods.
+  * @returns {Object} JSON containing the modified assignment's ID, or a 500 status code.
+  */
+ exports.submitAssignment = function(req, res, db, acl) {
+   let session = req.session;
+   const current_user = session.user;
+   const assignment_id = req.params.assignment_id;
+
+   //do we have an active user?
+   acl.isLoggedIn(session)
+
+      //and this user can access the current assignment
+      .then(() => acl.userHasAssignment(current_user, assignment_id))
+
+      //then make the call
+      .then(() => {
+
+         db.AssignmentFiles.submitAssignment(assignment_id, current_user.id)
+            .then(() => {
+               return res.json({ response: assignment_id }); 
+            })
+            .catch(err => {
+               console.log(err);
+               return res.status(500).send("Error");
+            });           
+         })
+         .catch((error) => {
+            return res.status(500).send("Error");
+         });
+}
+
+/**
+  * Toggles assignment's locked status. :aid is the assignment ID.   
+  * The assignment ID to modify should be in req.body.id.
+  * @param {Object} req HTTP request object. 
+  * @param {Object} res HTTP response object. 
+  * @param {Object} db Database connection.
+  * @param {Object} acl Object containing AccessControlList methods.
+  * @returns {Object} JSON containing the locked/unlocked assignment's ID, or a 500 status code.
+  */
+ exports.lockAssignment = function(req, res, db, acl) {
+   let session = req.session;
+   const assignment_id = req.params.assignment_id;
+
+   //do we have an active user?
+   acl.isLoggedIn(session)
+
+      //and this user is admin
+      .then(() => acl.isAdmin(session))
+
+      //then make the call
+      .then(() => {
+          db.Assignments.lockAssignment(assignment_id)
+            .then(() => {
+            return res.json({ assignment: assignment_id }); 
+         })
+         .catch(err => {
+            console.log(err);
+            return res.status(500).send("Error");
+         });
+      })
+      .catch((error) => {
+         return res.status(500).send("Error");
+      });
+}
+
+/**
+  * Checks assignment's locked status. :aid is the assignment ID.   
+  * The assignment ID to check should be in req.body.id.
+  * @param {Object} req HTTP request object. 
+  * @param {Object} res HTTP response object. 
+  * @param {Object} db Database connection.
+  * @returns {Object} JSON containing the locked/unlocked assignment's ID, or a 500 status code.
+  */
+ exports.isLocked = function(req, res, db) {
+   let session = req.session;
+   const assignment_id = req.params.assignment_id;
+
+   db.Assignments.isLocked(assignment_id)
+      .then(() => {
+         return res.json({ assignment: assignment_id }); 
+      })
+      .catch(err => {
+         console.log(err);
+         return res.status(500).send("Error");
+      });
+}
+
+
 /** 
  * Get test cases for the given assignment.
  * @param {Object} req HTTP request object. 

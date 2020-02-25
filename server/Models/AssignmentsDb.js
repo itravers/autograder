@@ -10,6 +10,7 @@ class AssignmentsDb {
       this.db = db_connection;
 
       this.hasUser = this.hasUser.bind(this);
+      this.lockAssignment = this.lockAssignment.bind(this);
    }
 
    /**
@@ -37,6 +38,7 @@ class AssignmentsDb {
       });
    }
 
+<<<<<<< HEAD
    /**
     * Returns the row in the assignments table corresponding to the given 
     * assignment. 
@@ -59,6 +61,55 @@ class AssignmentsDb {
          });
       });
    }
+=======
+
+    /**
+    * Toggles assignment's lock status
+    * @param {Number} assignment_id The assignment's ID number (integer).
+    * @returns {Promise} Resolves with change of is_locked value if successful; 
+    *    rejects if there is an error. 
+    */
+   lockAssignment(assignment_id) {
+      const sql = "UPDATE assignments SET is_locked = NOT is_locked WHERE id = $assignment_id";
+      return new Promise((resolve, reject) => {
+         var local_callback = function(err) {
+            if (err === null)
+            {
+               resolve(this.changes);
+               return;
+            }
+            else{
+               console.log(err);
+               reject(err);
+               return;
+            }
+         };
+         this.db.run(sql,{$assignment_id: assignment_id}, local_callback );
+      });
+   }
+
+/**
+    * Checks assignment's locked status
+    * @param {Number} assignment_id The assignment's ID number (integer).
+    * @returns {Promise} Resolves with result of is_locked value if successful; 
+    *    rejects if there is an error. 
+    */
+   isLocked(assignment_id) {
+      const sql = "SELECT is_locked FROM assignments WHERE id = $assignment_id";
+      const params = { $assignment_id: assignment_id };
+      return new Promise((resolve, reject) => {
+         this.db.get(sql, params, (err, row) => {
+            if (err === null && row !== undefined) {
+               resolve(row);
+            }
+            else {
+               reject(err);
+            }
+         });
+     });
+   }
+
+>>>>>>> assignments
 }
 
 /**

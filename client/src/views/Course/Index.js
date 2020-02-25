@@ -20,6 +20,7 @@ class IndexView extends Component {
       this.getCourses = this.getCourses.bind(this);
       this.courseButtonClick = this.courseButtonClick.bind(this);
       this.renderModifyLink = this.renderModifyLink.bind(this);
+      this.renderAssignmentsLink = this.renderAssignmentsLink.bind(this);
    }
 
    componentDidMount() {
@@ -81,6 +82,17 @@ class IndexView extends Component {
       }
    }
 
+   renderAssignmentsLink(should_render, course_id) {
+      if (should_render === true) {
+         return (
+            <Link to={"/course/" + course_id + "/assignments/"} className="btn btn-primary" style={{ color: "#FFFFFF" }}>Assignments</Link>
+         );
+      }
+      else {
+         return (<span></span>)
+      }
+   }
+
    render() {
       const all_courses = this.state.all_courses;
       const enrolled_courses = this.state.enrolled_courses;
@@ -107,12 +119,17 @@ class IndexView extends Component {
                         return result;
                      }, []).map((value, index) => {
                         const course_roles = self.props.models.course.getCoursePrivileges(enrolled_courses[value.id].course_role);
+                        const is_instructor = course_roles.can_modify_course;
+                        const is_grader = course_roles.can_grade_assignment; 
+                        const can_submit = course_roles.can_submit_assignment;
                         return (
                            <tr key={value.id}>
                               <td>
                                  <button className="btn btn-primary" data-id={value.id} onClick={self.courseButtonClick}>Remove</button>
                                  &nbsp;
-                                 {this.renderModifyLink(true, value.id)}
+                                 {this.renderModifyLink(is_instructor, value.id)}
+                                 &nbsp;
+                                 {this.renderAssignmentsLink((can_submit || is_grader || is_instructor), value.id)}
                               </td>
                               <td>
                                  {value.name}
