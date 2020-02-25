@@ -111,10 +111,9 @@ exports.logout = function(req, res) {
          res.json({response: err});
       })
    })
-   /*
    .catch(err => {
       res.json({response: err}); 
-   })*/
+   })
 }
 
 /** 
