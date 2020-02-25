@@ -103,6 +103,7 @@ exports.logout = function(req, res) {
      const accessToken = response.data.access_token;
       getGithubUser(accessToken)
       .then(user => validateUser(user, db))
+      .then(user => db.Users.userRow(user.login))
       .then(user => {
          req.session.user = user; 
          res.redirect(`http://localhost:3000/account/login`);

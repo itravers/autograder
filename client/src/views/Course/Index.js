@@ -74,7 +74,7 @@ class IndexView extends Component {
    renderModifyLink(should_render, course_id) {
       if (should_render === true) {
          return (
-            <Link to={"/course/manage/" + course_id} className="btn btn-primary" style={{ color: "#FFFFFF" }}>Manage</Link>
+            <Link to={"/course/" + course_id + "/manage"} className="btn btn-primary" style={{ color: "#FFFFFF" }}>Manage</Link>
          );
       }
       else {
@@ -119,7 +119,7 @@ class IndexView extends Component {
                         return result;
                      }, []).map((value, index) => {
                         const course_roles = self.props.models.course.getCoursePrivileges(enrolled_courses[value.id].course_role);
-                        const is_instructor = course_roles.can_modify_course;
+                        const is_instructor = course_roles.can_modify_course && Boolean(self.props.current_user.is_instructor);
                         const is_grader = course_roles.can_grade_assignment; 
                         const can_submit = course_roles.can_submit_assignment;
                         return (
