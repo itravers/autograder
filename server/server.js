@@ -175,7 +175,7 @@ router.post('/course/:course_id/addRoster', (req, res) => courseRoute.addRoster(
 router.get('/user/login', (req, res) => userRoute.info(req, res)); 
 
 // logs in a user with given credentials 
-router.post('/user/login', (req, res) => userRoute.login(req, res, db)); 
+router.post('/user/login', (req, res) => userRoute.oldLogin(req, res, db)); 
 
 // returns information on currently logged-in user from Github
 router.get('/user/githubUser', (req, res) => userRoute.githubUser(req, res, db)); 
@@ -188,6 +188,10 @@ router.post('/user/create', (req, res) => userRoute.createUser(req, res, db));
 
 // logs in current GitHub user
 router.get('/user/oauth', (req, res) => userRoute.oauth(req, res, db, OAuthConfig));
+
+// creates new user
+router.post('/user/oldCreate', (req, res) => userRoute.oldCreateUser(req, res, db)); 
+
 
 // REGISTER OUR ROUTES -------------------------------
 // all of our routes will be prefixed with /api

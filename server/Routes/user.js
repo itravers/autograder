@@ -117,6 +117,58 @@ exports.logout = function(req, res) {
    })*/
 }
 
+/** 
+  * Creates new user under previous system without GitHub. 
+  * @param {Object} req HTTP request object. 
+  * @param {Object} res HTTP response object. 
+  * @param {Object} db Database connection. 
+  * @returns {Object} JSON response with the newly created user object, or 
+  *   with an error message if unsuccessful. 
+  */
+ exports.oldCreateUser = function(req, res, db) {
+   const user = { first_name: req.body.first_name, last_name: req.body.last_name, login: req.body.email, password: req.body.password };
+   if (user.first_name !== undefined && user.first_name.length > 0) {
+      if (user.last_name !== undefined && user.last_name.length > 0) {
+         if (user.login !== undefined && user.login.length > 0) {
+            if (user.password !== undefined && user.password.length > 0) {
+               user.name = user.first_name + " " + user.last_name; 
+               db.Users.oldCreate(user)
+                 .then(result => {
+                     user.id = result;
+                     delete user.password;
+                     res.json({ response: user });
+                 })
+                 .catch(err => {
+                    res.json({ response: err });
+                 });
+              return; 
+            }
+         }
+      }
+   }
+   res.json({ response: "missing required parameters" });
+}
+
+/**  
+ * Logs in a user with given credentials under old, pre-GitHub system.
+ * @param {Object} req HTTP request object. 
+ * @param {Object} res HTTP response object. 
+ * @param {Object} db Database connection. 
+ * @returns {Object} JSON response with information on logged-in user if successful, 
+ *    or with error message if authentication fails. 
+ */
+exports.oldLogin = function(req, res, db){
+   db.Users.authenticate(req.body.email, req.body.password)
+   .then(result => {
+      delete result.password;
+      req.session.user = result;
+      res.json({ response: result });
+   })
+   .catch(err => {
+      res.json({ response: err });
+   });
+}
+
 
 /**
  * Checks if a GitHub user exists in the DB. If not, adds the user 
