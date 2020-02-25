@@ -62,6 +62,36 @@ class TestCasesDb {
    }
 
    /**
+    * Checks if a given assignment for a given user has tests run with outdated versions of files for that assignment and user.
+    * @param {Number} assignment_id The assignment's ID number (integer). 
+    * @param {Number} user_id The user's ID number (integer). 
+    * @returns {Promise} Resolves with test results that were run with outdated versions of files if successful;
+    *    rejects if there's an error. 
+    */
+
+   dateMismatch(assignment_id, user_id) {
+      const sql = "SELECT t.id " +
+               "FROM test_results t " +
+               "ON t.assignment_id = $assignment_id " +
+               "AND t.user_id = $user_id " + 
+               "AND t.date_run < " +
+               "(SELECT max(date_created) FROM assignment_files a WHERE a.owner_id = $user_id AND a.assignment_id = $assignment_id)";
+
+      const params = { $assignment_id: assignment_id, $user_id: user_id };
+      return new Promise((resolve, reject) => {
+         this.db.all(sql, params, (err, rows) => {
+            if (err === null && rows !== undefined) {
+               resolve(rows);
+            }
+            else {
+               console.log(err);
+               reject(err); 
+            }
+         });
+      });
+   }
+
+   /**
     * Updates a test case's fields.
     * @param {Number} assignment_id The assignment's ID number (integer).
     * @param {Number} test_id The test's ID number (integer). 

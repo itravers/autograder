@@ -11,6 +11,7 @@ class Assignment {
       this.compile = this.compile.bind(this);
       this.submitAssignment = this.submitAssignment.bind(this);
       this.lockAssignment = this.lockAssignment.bind(this);
+      this.dateMismatch = this.compile.bind(this);
    }
 
    removeFile(file, assignment_id) {
@@ -209,6 +210,7 @@ class Assignment {
          });
       });
    }
+
 }
 
 export { Assignment };

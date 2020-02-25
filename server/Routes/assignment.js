@@ -154,6 +154,42 @@ exports.createTestCase = function(req, res, db, acl) {
       });
 }
 
+/**
+ * Checks if a given assignment for a given user has tests run with outdated versions of files for that assignment and user.
+ * @param {Object} req HTTP request object. 
+ * @param {Object} res HTTP response object. 
+ * @param {Object} db Database connection. 
+ * @param {Object} acl Object containing AccessControlList methods.
+ * @returns {Object} JSON response with test case's ID if successful, or
+ *    with error message if unsuccessful for any reason.
+ */
+exports.dateMismatch = function(req, res, db, acl) {
+   let session = req.session;
+   const current_user = session.user;
+   const assignment_id = req.params.assginment_id;
+   const user_id = req.params.user_id;
+
+   // if user is logged in
+   acl.isLoggedIn(session)
+
+      //and this user can grade
+      .then(() => acl.canGradeAssignment(current_user, assignment_id))
+
+      //then make the call
+      .then(() => {
+         db.Assignments.TestCases.dateMismatch(assignment_id, user_id)
+            .then(result => {
+               res.json({ response: result });
+            })
+            .catch(err => {
+               res.json({ response: err });
+            });
+         })
+      .catch((error) => {
+         return res.status(500).send(error);
+      });
+}
+
  /**
   * Deletes a file from an assignment. :aid is the assignment ID that this file will belong to.   
   * The file ID to delete should be in req.body.id.
