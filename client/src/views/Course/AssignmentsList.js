@@ -17,7 +17,7 @@ class AssignmentsListView extends Component {
       this.state = {
          courses: [],
          selected_course: Number(this.props.match.params.id),
-         current_course_role: -1,
+         current_course_roles: -1,
          selected_assignment: -1,
          course_assignments: []
       };
@@ -26,34 +26,49 @@ class AssignmentsListView extends Component {
       this.formatCourseName = this.formatCourseName.bind(this);
       this.getAssignmentsForCourse = this.getAssignmentsForCourse.bind(this);
       this.getCourses = this.getCourses.bind(this);
+      this.getCourseRole = this.getCourseRole.bind(this); 
       this.lockAssignment = this.lockAssignment.bind(this);
       this.viewAssignment = this.viewAssignment.bind(this);
    }
 
    componentDidMount() {
-      this.getCourses(this.props.current_user);
+      this.getCourses(this.props.current_user)
+      .then(() => this.getCourseRole()); 
       this.getAssignmentsForCourse();
    }
 
+   // sets state to the list of all courses that user is enrolled or teaching in 
    getCourses() {
-      this.props.models.course.getCoursesForUser()
-         .then((result) => {
-            let courses_taught = [];
-            for (let course of result) {
-               const course_role = this.props.models.course.getCoursePrivileges(course.course_role);
-               if (course_role.can_modify_course === true || course_role.can_grade_assignment === true || course_role.can_submit_assignment === true) {
-                  courses_taught.push(course);
+      let self = this; 
+      return new Promise(function(resolve, reject) {
+         self.props.models.course.getCoursesForUser()
+            .then((result) => {
+               let courses = [];
+               for (let course of result) {
+                  const course_role = self.props.models.course.getCoursePrivileges(course.course_role);
+                  if (course_role.can_modify_course === true || course_role.can_grade_assignment === true || course_role.can_submit_assignment === true) {
+                     courses.push(course);
+                  }
                }
-            }
-            this.setState({ courses: courses_taught });
-         })
-         .catch(err => { });
+               self.setState({ courses: courses  });
+               resolve(); 
+            })
+            .catch(err => { reject(); });
+      });
+   }
+
+   // sets state to the user's course privileges for currently selected course 
+   getCourseRole() {
+      let role_number = this.state.courses.find(x => x.id = this.state.selected_course).course_role; 
+      const privileges = this.props.models.course.getCoursePrivileges(role_number);
+      this.setState({current_course_roles: privileges}); 
    }
 
    updateSelectedCourse(evt) {
-      this.setState({ selected_course: this.state.courses[evt.target.selectedIndex].id },
-         this.getAssignmentsForCourse
-      );
+      this.setState({ selected_course: this.state.courses[evt.target.selectedIndex].id }, () => {
+         this.getAssignmentsForCourse(); 
+         this.getCourseRole(); 
+      });
       this.props.history.push(`/course/${evt.target.value}/assignments`);
    }
 
@@ -81,7 +96,7 @@ class AssignmentsListView extends Component {
          .then((result) => {
             let assignments_list = [];
             for (let assignment of result) {
-               const course_role = props.models.course.getCoursePrivileges(state.current_course_role);
+               const course_role = props.models.course.getCoursePrivileges(state.current_course_roles);
                if (course_role.can_modify_course === true || course_role.can_grade_assignment === true || course_role.can_submit_assignment === true) {
                   assignments_list.push(assignment);
                }
