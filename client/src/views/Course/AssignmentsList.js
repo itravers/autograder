@@ -101,7 +101,6 @@ class AssignmentsListView extends Component {
          .then((result) => {
             let assignments_list = [];
             for (let assignment of result) {
-               //const course_role = props.models.course.getCoursePrivileges(state.current_course_roles);
                const course_role = state.current_course_roles; 
                if (course_role.can_modify_course === true || course_role.can_grade_assignment === true || course_role.can_submit_assignment === true) {
                   assignments_list.push(assignment);
@@ -116,7 +115,6 @@ class AssignmentsListView extends Component {
       const self = this;
       const headers = ['Assignment', 'Locked'];
       const assignment_headers = ['name', 'is_locked'];
-      //const assignment_buttons = [{ text: "Lock/Unlock", click: this.lockAssignment }, { text: "View", click: this.viewAssignment }];
       const assignment_buttons = [{ text: "View", click: this.viewAssignment }];
       const can_lock_assignment = self.props.current_user.is_admin || self.props.current_user.is_instructor;
       if(self.state.current_course_roles.can_modify_course === true && can_lock_assignment)
