@@ -19,15 +19,9 @@ const session = require('express-session');
 const FileManager = require('./FileManager.js');
 const Database = require('./Models/Database.js');
 const AccessControlList = require('./Models/AccessControlList.js');
-<<<<<<< HEAD
 var FolderSetup = require('./setup.js');
 var OAuthConfig = require('./oauthconfig.json');
 var Compiler = require('./Models/Compiler.js');
-=======
-var OAuthConfig = require('./oauthconfig.json');
-var Compiler = require('./Models/Compiler.js');
-var FolderSetup = require('./setup.js');
->>>>>>> assignments
 
 var FileStore = require('session-file-store')(session);
 

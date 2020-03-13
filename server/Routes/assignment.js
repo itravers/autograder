@@ -166,8 +166,9 @@ exports.createTestCase = function(req, res, db, acl) {
 exports.dateMismatch = function(req, res, db, acl) {
    let session = req.session;
    const current_user = session.user;
-   const assignment_id = req.params.assginment_id;
-   const user_id = req.params.user_id;
+   const assignment_id = req.params.aid;
+   const user_id = req.params.uid;
+   const test_name = req.params.test;
 
    // if user is logged in
    acl.isLoggedIn(session)
@@ -177,7 +178,7 @@ exports.dateMismatch = function(req, res, db, acl) {
 
       //then make the call
       .then(() => {
-         db.Assignments.TestCases.dateMismatch(assignment_id, user_id)
+         db.Assignments.TestCases.dateMismatch(assignment_id, user_id, test_name)
             .then(result => {
                res.json({ response: result });
             })

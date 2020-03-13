@@ -11,7 +11,7 @@ class Assignment {
       this.compile = this.compile.bind(this);
       this.submitAssignment = this.submitAssignment.bind(this);
       this.lockAssignment = this.lockAssignment.bind(this);
-      this.dateMismatch = this.compile.bind(this);
+      this.dateMismatch = this.dateMismatch.bind(this);
    }
 
    removeFile(file, assignment_id) {
@@ -114,6 +114,26 @@ class Assignment {
             call = WebRequest.makeCacheableUrlRequest;
          }
          const path = this.config.endpoints.assignment.test_results;
+         const endpoint = this.config.constructRoute(path, [assignment_id, user_id]); 
+         call(endpoint, (result) => {
+            if (result !== null && result !== undefined) {
+               resolve(result.data.response);
+            }
+            else {
+               reject(result);
+            }
+
+         });
+      });
+   }
+
+   dateMismatch(assignment_id, user_id) {
+      return new Promise((resolve, reject) => {
+         let call = WebRequest.makeUrlRequest;
+         if (this.cache_results === true) {
+            call = WebRequest.makeCacheableUrlRequest;
+         }
+         const path = this.config.endpoints.assignment.date_mismatch;
          const endpoint = this.config.constructRoute(path, [assignment_id, user_id]); 
          call(endpoint, (result) => {
             if (result !== null && result !== undefined) {

@@ -62,25 +62,27 @@ class TestCasesDb {
    }
 
    /**
-    * Checks if a given assignment for a given user has tests run with outdated versions of files for that assignment and user.
+    * Checks if a given assignment for a given user has tests run with outdated versions of files for that assignment, test name, and user.
     * @param {Number} assignment_id The assignment's ID number (integer). 
     * @param {Number} user_id The user's ID number (integer). 
+    * @param {String} test_name The test name.
     * @returns {Promise} Resolves with test results that were run with outdated versions of files if successful;
     *    rejects if there's an error. 
     */
 
-   dateMismatch(assignment_id, user_id) {
+   dateMismatch(assignment_id, user_id, test_name) {
       const sql = "SELECT t.id " +
                "FROM test_results t " +
-               "ON t.assignment_id = $assignment_id " +
+               "WHERE t.assignment_id = $assignment_id " +
                "AND t.user_id = $user_id " + 
-               "AND t.date_run < " +
+               "AND (SELECT max(date_run) FROM test_results t WHERE t.user_id= $user_id AND t.assignment_id = $assignment_id AND t.test_name = $test_name) <" +
                "(SELECT max(date_created) FROM assignment_files a WHERE a.owner_id = $user_id AND a.assignment_id = $assignment_id)";
 
-      const params = { $assignment_id: assignment_id, $user_id: user_id };
+      const params = { $assignment_id: assignment_id, $user_id: user_id, $test_name: test_name };
       return new Promise((resolve, reject) => {
          this.db.all(sql, params, (err, rows) => {
-            if (err === null && rows !== undefined) {
+            if (err === null && rows.length > 0) {
+               this.dateMismatchUpdate(assignment_id, user_id);
                resolve(rows);
             }
             else {
@@ -88,6 +90,37 @@ class TestCasesDb {
                reject(err); 
             }
          });
+      });
+   }
+
+/**
+    * Updates given assignment's test results with mismatch value
+    * @param {Number} assignment_id The assignment's ID number (integer). 
+    * @param {Number} user_id The user's ID number (integer). 
+    * @returns {Promise} Resolves with test results that were updated if successful;
+    *    rejects if there's an error. 
+    */
+
+   dateMismatchUpdate(assignment_id, user_id) {   
+      const sql = "UPDATE test_results SET has_mismatch = true WHERE user_id = $user_id AND assignment_id = $assignment_id";
+      const params = {
+         $user_id: user_id,
+         $assignment_id: assignment_id,
+      };
+      return new Promise((resolve, reject) => {
+
+         //AC: placing db callback function into its own variable changes 
+         //*this* from local AssignmentFilesDb object to result of sqlite3 db call.
+         var local_callback = function (err) {
+            if (err === null) {
+               resolve(this.changes);
+            }
+            else {
+               console.log(err);
+               reject(err); 
+            }
+         };
+         this.db.run(sql, params, local_callback);
       });
    }
 
