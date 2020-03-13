@@ -74,7 +74,7 @@ class IndexView extends Component {
    renderModifyLink(should_render, course_id) {
       if (should_render === true) {
          return (
-            <Link to={"/course/manage/" + course_id} className="btn btn-primary" style={{ color: "#FFFFFF" }}>Manage</Link>
+            <Link to={"/course/" + course_id + "/manage"} className="btn btn-primary" style={{ color: "#FFFFFF" }}>Manage</Link>
          );
       }
       else {
@@ -119,8 +119,14 @@ class IndexView extends Component {
                         return result;
                      }, []).map((value, index) => {
                         const course_roles = self.props.models.course.getCoursePrivileges(enrolled_courses[value.id].course_role);
-                        const is_instructor = course_roles.can_modify_course;
-                        const can_submit = course_roles.can_submit_assignment;
+                        const user_roles = {
+                           is_instructor: Boolean(self.props.current_user.is_instructor),
+                           is_admin: Boolean(self.props.current_user.is_admin), 
+                           is_account_pending: Boolean(self.props.current_user.is_account_pending)
+                        };
+                        const is_instructor = course_roles.can_modify_course && (user_roles.is_instructor || user_roles.is_admin) && !user_roles.is_account_pending;
+                        const is_grader = course_roles.can_grade_assignment && !user_roles.is_account_pending; 
+                        const can_submit = course_roles.can_submit_assignment && !user_roles.is_account_pending;
                         return (
                            <tr key={value.id}>
                               <td>
@@ -128,7 +134,7 @@ class IndexView extends Component {
                                  &nbsp;
                                  {this.renderModifyLink(is_instructor, value.id)}
                                  &nbsp;
-                                 {this.renderAssignmentsLink(can_submit, value.id)}
+                                 {this.renderAssignmentsLink((can_submit || is_grader || is_instructor), value.id)}
                               </td>
                               <td>
                                  {value.name}

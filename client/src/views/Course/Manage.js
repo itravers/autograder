@@ -28,7 +28,7 @@ class ManageView extends Component {
       this.addTa = this.addTa.bind(this);
       this.removeTa = this.removeTa.bind(this);
       this.approveStudent = this.approveStudent.bind(this);
-      this.unapproveStudent = this.unapproveStudent.bind(this);
+      this.unapproveStudent = this.unapproveStudent.bind(this); 
    }
 
    componentDidMount() {
@@ -82,9 +82,8 @@ class ManageView extends Component {
    }
 
    updateSelectedCourse(evt) {
-      this.setState({ selected_course: this.state.courses[evt.target.value] }, () => {
-         this.getAssignmentsForCourse();
-      });
+      this.setState({ selected_course: this.state.courses[evt.target.selectedIndex].id }, this.getUsers);
+      this.props.history.push(`/course/${evt.target.value}/manage`);
    }
 
    formatCourseName(course) {
@@ -178,7 +177,7 @@ class ManageView extends Component {
       return (
          <article className="container">
             <h1>Manage My Courses</h1>
-            <select value={this.state.selected_course.course_id} onChange={this.updateSelectedCourse}>
+            <select value={this.state.selected_course} onChange={this.updateSelectedCourse}>
                {this.state.courses.map((value, index) =>
                   <option
                      key={index}
