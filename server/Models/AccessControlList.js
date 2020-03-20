@@ -42,8 +42,8 @@ class AccessControlList {
    canModifyCourse(user, course_id) {
       return new Promise((resolve, reject) => {
          this.db.Courses.canModify(course_id, user.id)
-         .then(result => resolve(result))
-         .catch(err => reject(err));
+         .then(result => resolve(true))
+         .catch(err => reject(false));
       });
    }
 

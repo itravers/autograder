@@ -108,6 +108,32 @@ exports.compileAndRun = function(req, res, db, config, acl, Compiler) {
 }
 
 /**
+ * Creates an assignment. 
+  * @param {Object} req HTTP request object. 
+  * @param {Object} res HTTP response object. 
+  * @param {Object} db Database connection. 
+  * @param {Object} acl Object containing AccessControlList methods. 
+  * @returns {Object} JSON response with assignment's ID if successful, or 
+  *   with error message if unsuccessful for any reason. 
+  */
+ exports.createAssignment = function(req, res, db, acl) {
+   let session = req.session; 
+   const course_id = req.body.course_id; 
+   const name = req.body.name; 
+
+   // does the current user have permission to create assignments for this course? 
+   acl.canModifyCourse(session.user, course_id)
+      // create the assignment in the database 
+      .then(() => db.Assignments.addAssignment(course_id, name))
+      .then(result => 
+         res.json({response: result })
+      )
+      .catch(err => 
+        res.json({response: err})
+      );
+}
+
+/**
  * Creates a test case. 
  * @param {Object} req HTTP request object. 
  * @param {Object} res HTTP response object. 

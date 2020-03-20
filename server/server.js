@@ -100,6 +100,9 @@ router.get('/', (req, res) => {
    res.json({ message: 'hooray! welcome to our api!' });
 });
 
+// creates a new assignment 
+router.post('/assignment', (req, res) => assignmentRoute.createAssignment(req, res, db, acl)); 
+
 // get test cases for the given assignment 
 router.get('/assignment/:assignment_id/testCases', (req, res) => assignmentRoute.getTestCases(req, res, db)); 
 
@@ -109,7 +112,7 @@ router.post('/assignment/:assignment_id/user/:user_id/submitAssignment', (req,re
 // toggle an assignment's locked status
 router.post('/assignment/:assignment_id/lockAssignment', (req,res) => assignmentRoute.lockAssignment(req,res,db, acl));
 
-//get an assignment's locked status
+// get an assignment's locked status
 router.get('/assignment/:assignment_id/isLocked', (req,res) => assignmentRoute.isLocked(req,res,db));
 
 // create a test case for the given assignment 
@@ -152,7 +155,6 @@ router.get('/course/:id/assignments/inactive', (req, res) => courseRoute.inactiv
 
 // Returns all courses that the currently logged in user is taking
 router.get('/course/enrolled', (req, res) => courseRoute.enrollments(req, res, db));
-
 
 // Returns a detailed roster for this course if the user has instructor rights
 router.get('/course/:course_id/user', (req, res) => courseRoute.roster(req, res, db, acl)); 

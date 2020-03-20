@@ -9,8 +9,37 @@ class AssignmentsDb {
    constructor(db_connection) {
       this.db = db_connection;
 
+      this.addAssignment = this.addAssignment.bind(this); 
       this.hasUser = this.hasUser.bind(this);
       this.lockAssignment = this.lockAssignment.bind(this);
+   }
+
+   /**
+    * Creates a new assignment. 
+    * @param {Number} course_id The course's ID that this assignment is for (integer). 
+    * @param {String} name The name of the new assignment. 
+    * @returns {Promise} Resolves with the new assignment's ID if successful; 
+    *    rejects otherwise. 
+    */
+   addAssignment(course_id, name) {
+      const sql = "INSERT INTO assignments(course_id, name) VALUES($course_id, $name)";
+      const params = {$course_id: course_id, $name: name}; 
+      return new Promise((resolve, reject) => {
+
+         // placing db callback function into its own variable changes 
+         //*this* from local object to result of sqlite3 db call --> can get 
+         // lastID from this 
+         var local_callback = function (err) {
+            if (err === null) {
+               resolve(this.lastID);
+            }
+            else {
+               console.log(err);
+               reject(err);
+            }
+         };
+         this.db.run(sql, params, local_callback);
+      }); 
    }
 
    /**
