@@ -5,12 +5,30 @@ class Assignment {
       this.config = site_config;
       this.cache_results = cache_results;
 
+      this.createAssignment = this.createAssignment.bind(this); 
       this.getFiles = this.getFiles.bind(this);
       this.getTestCases = this.getTestCases.bind(this);
       this.run = this.run.bind(this);
       this.compile = this.compile.bind(this);
       this.submitAssignment = this.submitAssignment.bind(this);
       this.lockAssignment = this.lockAssignment.bind(this);
+   }
+
+   createAssignment(course_id, name) {
+      return new Promise((resolve, reject) => {
+         let call = WebRequest.makePost;
+         const path = this.config.endpoints.assignment.create; 
+         const endpoint = this.config.constructRoute(path, [course_id]); 
+         call(endpoint, { course_id: course_id, name: name }, (result) => {
+            if (result !== null && result !== undefined) {
+               resolve(result.data.response);
+            }
+            else {
+               reject(result);
+            }
+
+         });
+      });
    }
 
    removeFile(file, assignment_id) {
