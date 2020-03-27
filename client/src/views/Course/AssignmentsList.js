@@ -3,7 +3,7 @@ import { connect } from "react-redux";
 import { sortBy } from 'lodash';
 import UserList from './../components/UserList'
 import { BrowserRouter as Router, Route, Link, Redirect } from 'react-router-dom';
-
+import CreateAssignment from "./components/CreateAssignment"
 
 const mapStateToProps = state => {
    return { current_user: state.current_user, models: state.models };
@@ -18,8 +18,11 @@ class AssignmentsListView extends Component {
          courses: [],
          selected_course: Number(this.props.match.params.id),
          current_course_roles: {},
+         can_view_instructor_links: false, 
          selected_assignment: -1,
-         course_assignments: []
+         course_assignments: [],
+         // state variable for testing pop-up window 
+         seen: false
       };
 
       this.updateSelectedCourse = this.updateSelectedCourse.bind(this);
@@ -29,12 +32,35 @@ class AssignmentsListView extends Component {
       this.getCourseRole = this.getCourseRole.bind(this); 
       this.lockAssignment = this.lockAssignment.bind(this);
       this.viewAssignment = this.viewAssignment.bind(this);
+      // function for testing pop-up window 
+      this.togglePop = this.togglePop.bind(this); 
+      this.createAssignment = this.createAssignment.bind(this); 
    }
 
    componentDidMount() {
       this.getCourses(this.props.current_user)
       .then(() => this.getCourseRole())
       .then(() => this.getAssignmentsForCourse());
+   }
+
+   // toggles state variable "seen"
+   togglePop = () => {
+      this.setState({
+         seen: !this.state.seen
+      });
+   }; 
+   
+   // TODO: replace hard-coded data with input arguments 
+   createAssignment() {
+      const course_id = 1; 
+      const name = "test 2 from client"; 
+      this.props.models.assignment.createAssignment(course_id, name)
+      .then(result => {
+         console.log(result); 
+      })
+      .catch(err => {
+         console.log(err); 
+      })
    }
 
    // sets state to the list of all courses that user is enrolled or teaching in 
@@ -65,6 +91,7 @@ class AssignmentsListView extends Component {
          let role_number = current_class.course_role; 
          const privileges = self.props.models.course.getCoursePrivileges(role_number);
          self.setState({current_course_roles: privileges});
+         self.setState({can_view_instructor_links: privileges.can_modify_course && (self.props.current_user.is_admin || self.props.current_user.is_instructor)});
          resolve(); 
       }); 
    }
@@ -116,8 +143,8 @@ class AssignmentsListView extends Component {
       const headers = ['Assignment', 'Locked'];
       const assignment_headers = ['name', 'is_locked'];
       const assignment_buttons = [{ text: "View", click: this.viewAssignment }];
-      const can_lock_assignment = self.props.current_user.is_admin || self.props.current_user.is_instructor;
-      if(self.state.current_course_roles.can_modify_course === true && can_lock_assignment)
+      //const can_lock_assignment = self.props.current_user.is_admin || self.props.current_user.is_instructor;
+      if(self.state.can_view_instructor_links)
       {
          assignment_buttons.push({ text: "Lock/Unlock", click: this.lockAssignment });
       }
@@ -137,10 +164,12 @@ class AssignmentsListView extends Component {
                   </option>
                )}
             </select>
+            {this.state.can_view_instructor_links ? <button onClick={this.togglePop}>+ Assignment</button> : null}
             <article>
                <h1>Assignments</h1>
                <UserList header={headers} raw_data={this.state.course_assignments} data_cols={assignment_headers} buttons={assignment_buttons} />
             </article>
+            {this.state.seen ? <CreateAssignment toggle={this.togglePop} /> : null}
          </article>
       );
    }
