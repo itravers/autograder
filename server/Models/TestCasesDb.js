@@ -50,6 +50,29 @@ class TestCasesDb {
       });
    }
 
+
+   /**
+    * Returns all students' tests results associated with a particular assignment.
+    * @param {Number} assignment_id The assignment's ID number (integer). 
+    * @returns {Promise} Resolves with all test cases if successful; rejects if no 
+    *    test results exist for this assignment or if there's an error. 
+    */
+   downloadResults(assignment_id) {
+      const sql = "SELECT u.name, t.test_name, t.test_input, t.test_result FROM users u, test_results t WHERE t.assignment_id = $aid and u.id = t.user_id";
+      const params = { $aid: assignment_id };
+      return new Promise((resolve, reject) => {
+         this.db.all(sql, params, (err, rows) => {
+            if (err === null && rows !== undefined) {
+               resolve(rows);
+            }
+            else {
+               console.log(err);
+               reject(err); 
+            }
+         });
+      });
+   }
+
    /**
     * Returns all tests cases associated with a particular assignment.
     * @param {Number} assignment_id The assignment's ID number (integer). 

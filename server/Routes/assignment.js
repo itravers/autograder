@@ -139,6 +139,43 @@ exports.createTestCase = function(req, res, db, acl) {
       );
 }
 
+
+/** 
+ * Download student files for the given assignment.
+ * @param {Object} req HTTP request object. 
+ * @param {Object} res HTTP response object. 
+ * @param {Object} db Database connection.
+ * @returns {Object} JSON containing test files for the assignment, or error message. 
+ */
+exports.downloadFiles = function(req, res, db) {
+   db.AssignmentFiles.downloadFiles(req.params.assignment_id)
+     .then(result => {
+        res.json({ response: result });
+     })
+     .catch(err => {
+        res.json({ response: err });
+     });
+}
+
+
+/** 
+ * Download student results for the given assignment.
+ * @param {Object} req HTTP request object. 
+ * @param {Object} res HTTP response object. 
+ * @param {Object} db Database connection.
+ * @returns {Object} JSON containing test results for the assignment, or error message. 
+ */
+exports.downloadResults = function(req, res, db) {
+   db.Assignments.TestCases.downloadResults(req.params.assignment_id)
+     .then(result => {
+        res.json({ response: result });
+     })
+     .catch(err => {
+        res.json({ response: err });
+     });
+}
+
+
  /**
   * Deletes a file from an assignment. :aid is the assignment ID that this file will belong to.   
   * The file ID to delete should be in req.body.id.

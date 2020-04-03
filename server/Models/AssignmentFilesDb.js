@@ -88,6 +88,28 @@ class AssignmentFilesDb {
    }
    
    /**
+    * Returns all students' files associated with a particular assignment.
+    * @param {Number} assignment_id The assignment's ID number (integer). 
+    * @returns {Promise} Resolves with all files if successful; rejects if no 
+    *    files exist for this assignment or if there's an error. 
+    */
+   downloadFiles(assignment_id) {
+      const sql = "SELECT u.name, a.file_name, a.contents FROM users u, assignment_files a WHERE a.assignment_id = $aid AND u.id = a.owner_id ";
+      const params = { $aid: assignment_id };
+      return new Promise((resolve, reject) => {
+         this.db.all(sql, params, (err, rows) => {
+            if (err === null && rows !== undefined) {
+               resolve(rows);
+            }
+            else {
+               console.log(err);
+               reject(err); 
+            }
+         });
+      });
+   }
+
+   /**
     * Returns all assignments for the specified user.
     * @param {Number} assignment_id The assignment's ID number (integer).
     * @param {Number} user_id The specified user's ID number (integer). 
