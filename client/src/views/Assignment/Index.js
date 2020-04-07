@@ -8,6 +8,7 @@ import AddFiles from './components/AddFilesComponent';
 import Source from './components/SourceViewComponent';
 import TestCases from './components/TestCasesComponent';
 import Results from './components/ResultsComponent';
+import Description from './components/DescriptionComponent'; 
 
 const mapStateToProps = state => {
    return { current_user: state.current_user, models: state.models };
@@ -25,6 +26,12 @@ class IndexView extends Component {
             id: -1,
             url: "/assignment/add-files",
             name: "Add File(s)",
+            css: "nav-link"
+         },
+         {
+            id: -1, 
+            url: "/assignment/description", 
+            name: "Description", 
             css: "nav-link"
          },
          {
@@ -248,6 +255,15 @@ class IndexView extends Component {
                            return (<Redirect to="/assignment/results" />)
                         }
 
+                     }} />
+                  <Route path="/assignment/description"
+                  render={
+                     (props) => {
+                        return (
+                           <div>
+                              <Description assignment={this.state.current_assignment} />
+                           </div>
+                        )
                      }} />
                <Route path="/assignment/run"
                   render={
