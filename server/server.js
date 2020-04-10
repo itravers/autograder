@@ -104,10 +104,10 @@ router.get('/', (req, res) => {
 router.get('/assignment/:assignment_id/testCases', (req, res) => assignmentRoute.getTestCases(req, res, db)); 
 
 // download student results for given assignment
-router.get('/assignment/:assignment_id/downloadResults', (req, res) => assignmentRoute.downloadResults(req, res, db)); 
+router.get('/assignment/:assignment_id/downloadResults', (req, res) => assignmentRoute.downloadResults(req, res, db, acl)); 
 
 // download student files for given assignment
-router.get('/assignment/:assignment_id/downloadFiles', (req, res) => assignmentRoute.downloadFiles(req, res, db)); 
+router.get('/assignment/:assignment_id/downloadFiles', (req, res) => assignmentRoute.downloadFiles(req, res, db, acl)); 
 
 // mark an assignment as submitted
 router.post('/assignment/:assignment_id/user/:user_id/submitAssignment', (req,res) => assignmentRoute.submitAssignment(req,res,db, acl));

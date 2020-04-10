@@ -1,4 +1,5 @@
 const sqlite3 = require('sqlite3').verbose();
+var fs = require('fs');
 
 class TestCasesDb {
 
@@ -58,12 +59,27 @@ class TestCasesDb {
     *    test results exist for this assignment or if there's an error. 
     */
    downloadResults(assignment_id) {
-      const sql = "SELECT u.name, t.test_name, t.test_input, t.test_result FROM users u, test_results t WHERE t.assignment_id = $aid and u.id = t.user_id";
+      const sql = "SELECT a.name AS assignment_name, u.name, t.test_name, t.test_input, t.test_result FROM assignments a, users u, test_results t WHERE t.assignment_id = $aid AND a.id= $aid AND u.id = t.user_id";
       const params = { $aid: assignment_id };
       return new Promise((resolve, reject) => {
          this.db.all(sql, params, (err, rows) => {
             if (err === null && rows !== undefined) {
-               resolve(rows);
+                const output = [];
+                output.push("Student Name, Test Name, Test Input, Test Result");
+                rows.forEach((r)=> {
+                  const row = [];
+                  row.push(`"${r.name}"`);
+                  row.push(`"${r.test_name}"`);
+                  row.push(`"${r.test_input}"`);
+                  row.push(`"${r.test_result}"`);
+
+                  output.push(row.join());
+                })
+
+                let path ="../data/"
+                let filename = path + rows[0].assignment_name + "_results.csv";
+                fs.writeFileSync(filename, output.join("\n"));
+                resolve(rows);
             }
             else {
                console.log(err);

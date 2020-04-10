@@ -147,14 +147,24 @@ exports.createTestCase = function(req, res, db, acl) {
  * @param {Object} db Database connection.
  * @returns {Object} JSON containing test files for the assignment, or error message. 
  */
-exports.downloadFiles = function(req, res, db) {
-   db.AssignmentFiles.downloadFiles(req.params.assignment_id)
-     .then(result => {
-        res.json({ response: result });
-     })
-     .catch(err => {
-        res.json({ response: err });
-     });
+exports.downloadFiles = function(req, res, db, acl) {
+   let session = req.session;
+   let user_id = req.params.user_id;
+   const assignment_id = req.params.assignment_id;
+   acl.isLoggedIn(session)
+      .then(() => {
+         //admins and instructors are allowed to look at others' stuff.  Students not.
+         if (session.user.is_instructor !== 1 && session.user.is_admin !== 1) {
+            user_id = session.user.id;
+         }
+      })
+      .then(() => db.AssignmentFiles.downloadFiles(req.params.assignment_id))
+      .then(results => {
+         res.json({ response: results });
+      })
+      .catch(err => {
+         res.json({ response: err });
+      });
 }
 
 
@@ -165,14 +175,24 @@ exports.downloadFiles = function(req, res, db) {
  * @param {Object} db Database connection.
  * @returns {Object} JSON containing test results for the assignment, or error message. 
  */
-exports.downloadResults = function(req, res, db) {
-   db.Assignments.TestCases.downloadResults(req.params.assignment_id)
-     .then(result => {
-        res.json({ response: result });
-     })
-     .catch(err => {
-        res.json({ response: err });
-     });
+exports.downloadResults = function(req, res, db, acl) {
+   let session = req.session;
+   let user_id = req.params.user_id;
+   const assignment_id = req.params.assignment_id;
+   acl.isLoggedIn(session)
+      .then(() => {
+         //admins and instructors are allowed to look at others' stuff.  Students not.
+         if (session.user.is_instructor !== 1 && session.user.is_admin !== 1) {
+            user_id = session.user.id;
+         }
+      })
+      .then(() => db.Assignments.TestCases.downloadResults(req.params.assignment_id))
+      .then(result => {
+         res.json({ response: result });
+      })
+      .catch(err => {
+         res.json({ response: err });
+      });
 }
 
 
