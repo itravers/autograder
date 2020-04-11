@@ -5,6 +5,7 @@ import CourseAssignmentSelector from '../components/CourseAssignmentSelector';
 
 //components
 import AddFiles from './components/AddFilesComponent';
+import DeleteFile from './components/DeleteFileComponent'; 
 import Source from './components/SourceViewComponent';
 import TestCases from './components/TestCasesComponent';
 import Results from './components/ResultsComponent';
@@ -52,6 +53,8 @@ class IndexView extends Component {
          files: [],
          file_data: {},
          current_assignment: { id: -1 },
+         see_delete_popup: false,
+         selected_file: null,  
          selected_user: this.props.current_user,
          selected_user_index: 0,
          student_roster: []
@@ -65,6 +68,7 @@ class IndexView extends Component {
       this.render = this.render.bind(this);
       this.renderStudentSelector = this.renderStudentSelector.bind(this);
       this.selectedUser = this.selectedUser.bind(this);
+      this.toggleDeletePopup = this.toggleDeletePopup.bind(this); 
       this.updateSelectedStudent = this.updateSelectedStudent.bind(this);
    }
 
@@ -157,6 +161,18 @@ class IndexView extends Component {
       });
    }
 
+   toggleDeletePopup(file) {
+      if(file !== undefined) {
+         this.setState({ selected_file: file });
+      }
+      else {
+         this.setState({ selected_file: null}); 
+      }
+      this.setState({
+         see_delete_popup: !this.state.see_delete_popup
+      });
+   }
+
    updateSelectedStudent(evt) {
       const selected_index = Number(evt.target.value);
       this.setState({
@@ -212,13 +228,18 @@ class IndexView extends Component {
                               <NavLink
                                  to={item.url}
                                  className={style}
-                                 activeClassName="active"
-                              >{item.name}</NavLink>
+                                 activeClassName="active">
+                                 {item.name} 
+                                 {(item.id > 0) ? <span className="close" onClick={() => this.toggleDeletePopup(item)}>&times;</span> : ''}
+                              </NavLink>
                            </li>
                         );
                      })}
                   </ul>
                </nav>
+               {this.state.see_delete_popup ? 
+                  <DeleteFile toggle={this.toggleDeletePopup} assignment={this.state.current_assignment} selected_file={this.state.selected_file} /> 
+                  : null}
                <Route path="/assignment/files/:name"
                   render={
                      ({ match }, props) => {
