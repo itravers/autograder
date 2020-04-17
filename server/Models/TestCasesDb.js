@@ -1,5 +1,6 @@
 const sqlite3 = require('sqlite3').verbose();
 var fs = require('fs');
+var path_ = require('path');
 
 class TestCasesDb {
 
@@ -150,9 +151,10 @@ class TestCasesDb {
                   output.push(row.join());
                 })
 
-                let path ="../data/"
+                let path = "../data/Grading/" + rows[0].assignment_name + "/Student Results/"
                 let filename = path + rows[0].assignment_name + "_results.csv";
-                fs.writeFileSync(filename, output.join("\n"));
+                fs.promises.mkdir(path_.dirname(filename), {recursive: true}).then(x => fs.promises.writeFile(filename, output.join("\n")));
+                //fs.writeFileSync(filename, output.join("\n"));
                 resolve(rows);
             }
             else {

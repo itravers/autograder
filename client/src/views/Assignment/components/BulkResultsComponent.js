@@ -23,6 +23,7 @@ class BulkResultsComponent extends Component {
       this.getClassResults = this.getClassResults.bind(this); 
       this.dateMismatch = this.dateMismatch.bind(this);
       this.rerunTests = this.rerunTests.bind(this);
+      this.downloadDetails = this.downloadDetails.bind(this);
    }
 
    componentDidMount() {
@@ -34,6 +35,13 @@ class BulkResultsComponent extends Component {
       if (new_props.user !== null && new_props.user !== undefined && new_props.user.id > 0) {
          this.getClassResults(new_props.student_roster);
       }
+   }
+
+   downloadDetails()
+   {
+      var files = this.props.models.assignment.downloadFiles(this.props.assignment.id);
+      var results = this.props.models.assignment.downloadResults(this.props.assignment.id);
+      
    }
 
    getTestNames() {
@@ -55,6 +63,8 @@ class BulkResultsComponent extends Component {
          }
       })
    }
+
+
 
    getTestResults(user_id) {
       let self = this;
@@ -180,7 +190,7 @@ class BulkResultsComponent extends Component {
       let dateStyle = {
          backgroundColor: 'red'
       };
-    
+
       // array of test names --> table columns
       const headers = this.state.test_names; 
       // array of students, where each student has test results associated with 
@@ -193,6 +203,12 @@ class BulkResultsComponent extends Component {
       return (
         <article className="container">
            <article>
+               <table className = "table center">
+                  <tr>
+                     <th><button className="btn btn-primary" onClick={() => { this.downloadDetails() }}>Download Details</button></th>
+                  </tr>
+               </table>
+
                <table className = "table table-striped text-left">
                   <thead>
                      <tr>

@@ -55,6 +55,47 @@ class Assignment {
 
    }
 
+
+   downloadFiles(assignment_id) {
+      return new Promise((resolve, reject) => {
+         let call = WebRequest.makeUrlRequest;
+         if (this.cache_results === true) {
+            call = WebRequest.makeCacheableUrlRequest;
+         }
+         const path = this.config.endpoints.assignment.download_files;
+         const endpoint = this.config.constructRoute(path, [assignment_id]); 
+         call(endpoint, (result) => {
+            if (result !== null && result !== undefined) {
+               resolve(result.data.response);
+            }
+            else {
+               reject(result);
+            }
+
+         });
+      });
+   }
+
+   downloadResults(assignment_id) {
+      return new Promise((resolve, reject) => {
+         let call = WebRequest.makeUrlRequest;
+         if (this.cache_results === true) {
+            call = WebRequest.makeCacheableUrlRequest;
+         }
+         const path = this.config.endpoints.assignment.download_results;
+         const endpoint = this.config.constructRoute(path, [assignment_id]); 
+         call(endpoint, (result) => {
+            if (result !== null && result !== undefined) {
+               resolve(result.data.response);
+            }
+            else {
+               reject(result);
+            }
+
+         });
+      });
+   }
+
    getTestCases(assignment_id) {
       return new Promise((resolve, reject) => {
          let call = WebRequest.makeUrlRequest;

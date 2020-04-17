@@ -1,6 +1,7 @@
 const sqlite3 = require('sqlite3').verbose();
 var fs = require('fs');
 var path_ = require('path');
+var https = require('https');
 
 class AssignmentFilesDb {
 
@@ -101,7 +102,7 @@ class AssignmentFilesDb {
       return new Promise((resolve, reject) => {
          this.db.all(sql, params, (err, rows) => {
             if (err === null && rows !== undefined) {
-               let path = "../data/" + rows[0].assignment_name + " Student Files/"
+               let path = "../data/Grading/" + rows[0].assignment_name + "/Student Files/"
 
                rows.forEach((r)=> {
                   var stu_name = r.name;
