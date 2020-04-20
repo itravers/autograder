@@ -19,9 +19,9 @@ const session = require('express-session');
 const FileManager = require('./FileManager.js');
 const Database = require('./Models/Database.js');
 const AccessControlList = require('./Models/AccessControlList.js');
+var FolderSetup = require('./setup.js');
 var OAuthConfig = require('./oauthconfig.json');
 var Compiler = require('./Models/Compiler.js');
-var FolderSetup = require('./setup.js');
 
 var FileStore = require('session-file-store')(session);
 
@@ -104,10 +104,10 @@ router.get('/', (req, res) => {
 router.get('/assignment/:assignment_id/testCases', (req, res) => assignmentRoute.getTestCases(req, res, db)); 
 
 // download student results for given assignment
-router.get('/assignment/:assignment_id/downloadResults', (req, res) => assignmentRoute.downloadResults(req, res, db)); 
+router.get('/assignment/:assignment_id/downloadResults', (req, res) => assignmentRoute.downloadResults(req, res, db, acl)); 
 
 // download student files for given assignment
-router.get('/assignment/:assignment_id/downloadFiles', (req, res) => assignmentRoute.downloadFiles(req, res, db)); 
+router.get('/assignment/:assignment_id/downloadFiles', (req, res) => assignmentRoute.downloadFiles(req, res, db, acl)); 
 
 // mark an assignment as submitted
 router.post('/assignment/:assignment_id/user/:user_id/submitAssignment', (req,res) => assignmentRoute.submitAssignment(req,res,db, acl));
@@ -121,6 +121,9 @@ router.get('/assignment/:assignment_id/isLocked', (req,res) => assignmentRoute.i
 // create a test case for the given assignment 
 router.post('/assignment/:assignment_id/testCases', (req, res) => assignmentRoute.createTestCase(req, res, db, acl));
 
+// edits a test case for the given assignment 
+router.put('/assignment/:assignment_id/testCases', (req, res) => assignmentRoute.editTestCase(req, res, db, acl)); 
+
 // gets user's test results for this assignment, if the user has permission
 // to view them 
 router.get('/assignment/:assignment_id/user/:user_id/testResults', (req, res) => assignmentRoute.getTestResults(req, res, db, acl)); 
@@ -133,6 +136,9 @@ router.post('/assignment/:assignment_id/compile', (req, res) => assignmentRoute.
 
 // Retrieves all files for the specified assignment and user (if allowed to grade)
 router.get('/assignment/:aid/user/:uid/file', (req, res) => assignmentRoute.assignmentFiles(req, res, db, acl)); 
+
+// Retrieves all test results submitted with outdated assignment_files
+router.get('/assignment/:aid/user/:uid/dateMismatch', (req, res) => assignmentRoute.dateMismatch(req, res, db, acl));
 
 // Uploads a file. :aid is the assignment ID that this file will belong to;
 // :uid is the ID of the user who has the assignment. 

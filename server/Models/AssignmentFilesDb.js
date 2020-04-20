@@ -1,4 +1,7 @@
 const sqlite3 = require('sqlite3').verbose();
+var fs = require('fs');
+var path_ = require('path');
+var https = require('https');
 
 class AssignmentFilesDb {
 
@@ -94,11 +97,21 @@ class AssignmentFilesDb {
     *    files exist for this assignment or if there's an error. 
     */
    downloadFiles(assignment_id) {
-      const sql = "SELECT u.name, a.file_name, a.contents FROM users u, assignment_files a WHERE a.assignment_id = $aid AND u.id = a.owner_id ";
+      const sql = "SELECT a.name AS assignment_name, u.name, af.file_name, af.contents FROM assignments a, users u, assignment_files af WHERE a.id = $aid AND af.assignment_id = $aid AND u.id = af.owner_id ORDER BY u.name";
       const params = { $aid: assignment_id };
       return new Promise((resolve, reject) => {
          this.db.all(sql, params, (err, rows) => {
             if (err === null && rows !== undefined) {
+               let path = "../data/Grading/" + rows[0].assignment_name + "/Student Files/"
+
+               rows.forEach((r)=> {
+                  var stu_name = r.name;
+                  var stu_path = path + stu_name + "/";
+                  var filename = stu_path + r.file_name;
+                  var file_contents = `"${r.contents}"`;
+                  fs.promises.mkdir(path_.dirname(filename), {recursive: true}).then(x => fs.promises.writeFile(filename, file_contents));
+               })
+               
                resolve(rows);
             }
             else {
