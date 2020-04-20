@@ -1,5 +1,7 @@
 import React, { Component } from 'react';
 import { connect } from "react-redux";
+import { withRouter } from "react-router"; 
+import { BrowserRouter as Redirect } from 'react-router-dom';
 
 const mapStateToProps = state => {
    return { current_user: state.current_user, models: state.models };
@@ -9,22 +11,25 @@ class DeleteFileComponent extends Component {
    constructor(props) {
        super(props); 
 
-       this.state = {
-           
-       }
-
        this.deleteFile = this.deleteFile.bind(this);  
        this.handleClose = this.handleClose.bind(this); 
    }
 
    deleteFile() {
-      this.props.models.assignment.removeFile(this.props.selected_file, this.props.assignment.id)
-      .then((file) => {
+    const self = this; 
+    self.props.models.assignment.removeFile(this.props.selected_file, this.props.assignment.id)
+      .then(() => {
         // could have callback like this, or display a "file deleted message" here  
         // this.props.file_remove_callback(file);
-        this.handleClose(); 
+        return new Promise((resolve, reject) => {
+          self.props.history.push("/assignment/"); 
+          resolve(true); 
+        }); 
       })
-      .catch((file) => {});
+      .then(() => {
+        self.handleClose(); 
+      })
+      .catch(() => {});
    }
 
    handleClose() {
@@ -32,6 +37,9 @@ class DeleteFileComponent extends Component {
   }
 
   render() {
+    if(this.props.selected_file === null) {
+      return(<Redirect to="/assignment" />);
+    }
     const file_name = this.props.selected_file.name; 
     return (
         <React.Fragment>
@@ -52,4 +60,4 @@ class DeleteFileComponent extends Component {
 
 const DeleteFile = connect(mapStateToProps)(DeleteFileComponent);
 export { DeleteFile };
-export default DeleteFile;
+export default withRouter(DeleteFile);

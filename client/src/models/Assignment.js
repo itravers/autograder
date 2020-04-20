@@ -17,12 +17,12 @@ class Assignment {
       return new Promise((resolve, reject) => {
          const path = this.config.endpoints.assignment.file;
          const endpoint = this.config.constructRoute(path, [assignment_id]);
-         WebRequest.makeDelete(endpoint, { id: file.serverId }, (result) => {
+         WebRequest.makeDelete(endpoint, { id: file.id }, (result) => {
             if (result !== null && result !== undefined) {
-               resolve(file.file.name);
+               resolve(result.data.response);
             }
             else {
-               reject(file.file.name);
+               reject(result.data.response);
             }
          });
       });
