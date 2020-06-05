@@ -109,6 +109,9 @@ router.get('/assignment/:assignment_id/downloadResults', (req, res) => assignmen
 // download student files for given assignment
 router.get('/assignment/:assignment_id/downloadFiles', (req, res) => assignmentRoute.downloadFiles(req, res, db, acl)); 
 
+// downloads and zips up student results and files for the given assignment 
+router.get('/assignment/:assignment_id/zipGradingFiles', (req, res) => assignmentRoute.zipGradingFiles(req, res, db, acl)); 
+
 // mark an assignment as submitted
 router.post('/assignment/:assignment_id/user/:user_id/submitAssignment', (req,res) => assignmentRoute.submitAssignment(req,res,db, acl));
 

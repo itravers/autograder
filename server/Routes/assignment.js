@@ -1,3 +1,6 @@
+let fs = require('fs'); 
+let archiver = require('archiver'); 
+
 /** 
  * Retrieves all files for the specified assignment and user (if allowed to grade).
  * @param {Object} req HTTP request object. 
@@ -558,3 +561,78 @@ exports.uploadFile = function(req, res, db, acl) {
           return res.status(500).send("Invalid user");
        });
  }
+
+ /** 
+ * Download and compress student results and files for the given assignment.
+ * @param {Object} req HTTP request object. 
+ * @param {Object} res HTTP response object. 
+ * @param {Object} db Database connection.
+ * @returns {Object} JSON containing assignment's id if successful, or error otherwise.  
+ */
+exports.zipGradingFiles = function(req, res, db, acl) {
+   const assignment_id = req.params.assignment_id; 
+   
+   // download all needed data locally first 
+   // TODO: use promises to make sure this finishes executing BEFORE trying 
+   // to download 
+   exports.downloadFiles(req, res, db, acl); 
+   exports.downloadResults(req, res, db, acl); 
+
+   // get the assignment's name, as this is the name of the subdirectory 
+   // containing its files 
+   db.Assignments.assignmentInfo(assignment_id)
+   .then(assignment => {
+      // then start streaming data  to local zip file 
+      // TODO: CHANGE THE PATH TO BE PLACED IN DATA DIRECTORY 
+      let output = fs.createWriteStream(assignment.name + '.zip'); 
+      let archive = archiver('zip', {
+         zlib: { level: 9 } // Sets the compression level.
+       });
+
+      // listen for all archive data to be written
+      // 'close' event is fired only when a file descriptor is involved
+      output.on('close', function() {
+         console.log(archive.pointer() + ' total bytes');
+         console.log('archiver has been finalized and the output file descriptor has closed.');
+      });
+      
+      // This event is fired when the data source is drained no matter what was the data source.
+      // It is not part of this library but rather from the NodeJS Stream API.
+      // @see: https://nodejs.org/api/stream.html#stream_event_end
+      output.on('end', function() {
+         console.log('Data has been drained');
+      });
+      
+      // good practice to catch warnings (ie stat failures and other non-blocking errors)
+      archive.on('warning', function(err) {
+         if (err.code === 'ENOENT') {
+         // log warning
+         } else {
+         // throw error
+         throw err;
+         }
+      });
+      
+      // good practice to catch this error explicitly
+      archive.on('error', function(err) {
+         throw err;
+      });
+      
+      // pipe archive data to the file
+      archive.pipe(output);
+            
+      // append files from the sub-directory corresponding to this assignment 
+      // to the archive 
+      archive.directory('../data/Grading/' + assignment.name, false); 
+
+      // finalize the archive (ie we are done appending files but streams have to finish yet)
+      archive.finalize();
+
+      res.json({response: assignment.id}); 
+   })
+   .catch(err => {
+      res.json({ response: err });
+   });
+
+   
+}
