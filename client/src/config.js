@@ -43,7 +43,8 @@ class SharedConfig{
             run: root_endpoint + "/api/assignment/{:assignment_id}/run",
             compile: root_endpoint + "/api/assignment/{:assignment_id}/compile",
             download_results: root_endpoint + "/api/assignment/{:assignment_id}/downloadResults",
-            download_files: root_endpoint + "/api/assignment/{:assignment_id}/downloadFiles"
+            download_files: root_endpoint + "/api/assignment/{:assignment_id}/downloadFiles",
+            zip_grading_files: root_endpoint + "/api/assignment/{:assignment_id}/zipGradingFiles"
          },
          course: {
             all: root_endpoint + "/api/course",

@@ -571,20 +571,26 @@ exports.uploadFile = function(req, res, db, acl) {
  */
 exports.zipGradingFiles = function(req, res, db, acl) {
    const assignment_id = req.params.assignment_id; 
+   let assignment; 
+
+   // get course id for this assignment 
+   db.Assignments.assignmentInfo(assignment_id)
+   .then(result => {
+      assignment = result; 
+   })
+
+   // check if current user has permission to view grading files 
+   .then(() => acl.canGradeAssignment(req.session.user, assignment.course_id))
    
    // download all needed data locally first 
-   // TODO: use promises to make sure this finishes executing BEFORE trying 
-   // to download 
-   exports.downloadFiles(req, res, db, acl); 
-   exports.downloadResults(req, res, db, acl); 
+   .then(() => db.AssignmentFiles.downloadFiles(req.params.assignment_id))
+   .then(() => db.Assignments.TestCases.downloadResults(req.params.assignment_id))
 
    // get the assignment's name, as this is the name of the subdirectory 
    // containing its files 
-   db.Assignments.assignmentInfo(assignment_id)
-   .then(assignment => {
+   .then(() => {
       // then start streaming data  to local zip file 
-      // TODO: CHANGE THE PATH TO BE PLACED IN DATA DIRECTORY 
-      let output = fs.createWriteStream(assignment.name + '.zip'); 
+      let output = fs.createWriteStream('../data/Grading/' + assignment.name + '.zip'); 
       let archive = archiver('zip', {
          zlib: { level: 9 } // Sets the compression level.
        });
@@ -606,10 +612,12 @@ exports.zipGradingFiles = function(req, res, db, acl) {
       // good practice to catch warnings (ie stat failures and other non-blocking errors)
       archive.on('warning', function(err) {
          if (err.code === 'ENOENT') {
-         // log warning
-         } else {
-         // throw error
-         throw err;
+            // log warning
+            console.log('Warning: file/directory not found'); 
+         } 
+         else {
+            // throw error
+            throw err;
          }
       });
       

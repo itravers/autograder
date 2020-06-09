@@ -96,6 +96,22 @@ class Assignment {
       });
    }
 
+   zipGradingFiles(assignment_id) {
+      return new Promise((resolve, reject) => {
+         let call = WebRequest.makePost;
+         const path = this.config.endpoints.assignment.zip_grading_files; 
+         const endpoint = this.config.constructRoute(path, [assignment_id]); 
+         call(endpoint, (result) => {
+            if (result !== null && result !== undefined && result.data.response !== undefined) {
+               resolve(result.data.response);
+            }
+            else {
+               reject(result);
+            }
+         });
+      });
+   }
+
    getTestCases(assignment_id) {
       return new Promise((resolve, reject) => {
          let call = WebRequest.makeUrlRequest;

@@ -23,7 +23,8 @@ class BulkResultsComponent extends Component {
       this.getClassResults = this.getClassResults.bind(this); 
       this.dateMismatch = this.dateMismatch.bind(this);
       this.rerunTests = this.rerunTests.bind(this);
-      this.downloadDetails = this.downloadDetails.bind(this);
+      this.zipGradingFiles = this.zipGradingFiles.bind(this); 
+
    }
 
    componentDidMount() {
@@ -37,11 +38,9 @@ class BulkResultsComponent extends Component {
       }
    }
 
-   downloadDetails()
+   zipGradingFiles()
    {
-      var files = this.props.models.assignment.downloadFiles(this.props.assignment.id);
-      var results = this.props.models.assignment.downloadResults(this.props.assignment.id);
-      
+      this.props.models.assignment.zipGradingFiles(this.props.assignment.id); 
    }
 
    getTestNames() {
@@ -204,9 +203,11 @@ class BulkResultsComponent extends Component {
         <article className="container">
            <article>
                <table className = "table center">
-                  <tr>
-                     <th><button className="btn btn-primary" onClick={() => { this.downloadDetails() }}>Download Details</button></th>
-                  </tr>
+                  <tbody>
+                     <tr>
+                        <th><button className="btn btn-primary" onClick={() => { this.zipGradingFiles() }}>Download Details</button></th>
+                     </tr>
+                  </tbody>
                </table>
 
                <table className = "table table-striped text-left">
@@ -221,7 +222,7 @@ class BulkResultsComponent extends Component {
                   </thead>
                   <tbody> 
                      {data.map((item, index) =>
-                        <tr key={index} class={index.class}>
+                        <tr key={index} className={index.class}>
                            <td>
                            {item.name}
                            </td>
