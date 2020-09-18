@@ -398,3 +398,4 @@ ASALocalRun/
 /server/oauthconfig.json
 client/src/oauthconfig.json
 server/oauthconfig.json
+*oauthconfig.json*
