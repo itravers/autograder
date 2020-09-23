@@ -130,8 +130,7 @@ class TestCasesDb {
    /**
     * Returns all students' tests results associated with a particular assignment.
     * @param {Number} assignment_id The assignment's ID number (integer). 
-    * @returns {Promise} Resolves with all test cases if successful; rejects if no 
-    *    test results exist for this assignment or if there's an error. 
+    * @returns {Promise} Resolves with all test cases if successful; rejects if there's an error. 
     */
    downloadResults(assignment_id) {
       const sql = "SELECT a.name AS assignment_name, u.name, t.test_name, t.test_input, t.test_result FROM assignments a, users u, test_results t WHERE t.assignment_id = $aid AND a.id= $aid AND u.id = t.user_id";
@@ -149,13 +148,20 @@ class TestCasesDb {
                   row.push(`"${r.test_result}"`);
 
                   output.push(row.join());
-                })
+                });
 
-                let path = "../data/Grading/" + rows[0].assignment_name + "/Student Results/"
-                let filename = path + rows[0].assignment_name + "_results.csv";
-                fs.promises.mkdir(path_.dirname(filename), {recursive: true}).then(x => fs.promises.writeFile(filename, output.join("\n")));
-                //fs.writeFileSync(filename, output.join("\n"));
-                resolve(rows);
+               // hacky solution: get assignment name by querying assignment ID with separate SQL query 
+               const sub_sql = "SELECT * FROM assignments WHERE id = $assignment_id"; 
+               const sub_params = {$assignment_id: assignment_id}; 
+               this.db.get(sub_sql, sub_params, (err, row) => {
+                     if(err === null && row !== undefined) {
+                        let path = "../data/Grading/" + row.name + "/Student Results/"
+                        let filename = path + row.name + "_results.csv";
+                        fs.promises.mkdir(path_.dirname(filename), {recursive: true})
+                        .then(x => fs.promises.writeFile(filename, output.join("\n")))
+                        .then(() => resolve(rows))
+                     }
+               });
             }
             else {
                console.log(err);

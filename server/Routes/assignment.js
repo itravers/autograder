@@ -583,8 +583,8 @@ exports.zipGradingFiles = function(req, res, db, acl) {
    .then(() => acl.canGradeAssignment(req.session.user, assignment.course_id))
    
    // download all needed data locally first 
-   .then(() => db.AssignmentFiles.downloadFiles(req.params.assignment_id))
-   .then(() => db.Assignments.TestCases.downloadResults(req.params.assignment_id))
+   .then(() => db.AssignmentFiles.downloadFiles(assignment_id))
+   .then(() => db.Assignments.TestCases.downloadResults(assignment_id))
 
    // get the assignment's name, as this is the name of the subdirectory 
    // containing its files 
@@ -635,6 +635,16 @@ exports.zipGradingFiles = function(req, res, db, acl) {
 
       // finalize the archive (ie we are done appending files but streams have to finish yet)
       archive.finalize();
+
+      // TODO: 
+      // 1. get the URL to the zip file we just created 
+         // a. get the port number 
+         // b. append to "localhost:" (for now)
+         // c. add path to file as described above: '/data/Grading/' + assignment.name
+            // i. could create a local variable to hold this path, to make it easier 
+      // 2. res.json(response: [url generated above])
+
+      console.log(req.headers.host); 
 
       res.json({response: assignment.id}); 
    })

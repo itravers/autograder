@@ -91,7 +91,7 @@ class AssignmentFilesDb {
    }
    
    /**
-    * Returns all students' files associated with a particular assignment.
+    * Creates a folder containing all students' files associated with a particular assignment.
     * @param {Number} assignment_id The assignment's ID number (integer). 
     * @returns {Promise} Resolves with all files if successful; rejects if no 
     *    files exist for this assignment or if there's an error. 
@@ -102,16 +102,17 @@ class AssignmentFilesDb {
       return new Promise((resolve, reject) => {
          this.db.all(sql, params, (err, rows) => {
             if (err === null && rows !== undefined) {
-               let path = "../data/Grading/" + rows[0].assignment_name + "/Student Files/"
-
-               rows.forEach((r)=> {
-                  var stu_name = r.name;
-                  var stu_path = path + stu_name + "/";
-                  var filename = stu_path + r.file_name;
-                  var file_contents = `"${r.contents}"`;
-                  fs.promises.mkdir(path_.dirname(filename), {recursive: true}).then(x => fs.promises.writeFile(filename, file_contents));
-               })
-               
+               let assignment_name; 
+               if (rows.length > 0) {
+                  let path = "../data/Grading/" + rows[0].assignment_name + "/Student Files/"; 
+                  rows.forEach((r)=> {
+                     var stu_name = r.name;
+                     var stu_path = path + stu_name + "/";
+                     var filename = stu_path + r.file_name;
+                     var file_contents = `"${r.contents}"`;
+                     fs.promises.mkdir(path_.dirname(filename), {recursive: true}).then(x => fs.promises.writeFile(filename, file_contents));
+                  }); 
+               }
                resolve(rows);
             }
             else {
