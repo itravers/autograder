@@ -93,8 +93,7 @@ class AssignmentFilesDb {
    /**
     * Creates a folder containing all students' files associated with a particular assignment.
     * @param {Number} assignment_id The assignment's ID number (integer). 
-    * @returns {Promise} Resolves with all files if successful; rejects if no 
-    *    files exist for this assignment or if there's an error. 
+    * @returns {Promise} Resolves with all files if successful; rejects if there's an error. 
     */
    downloadFiles(assignment_id) {
       const sql = "SELECT a.name AS assignment_name, u.name, af.file_name, af.contents FROM assignments a, users u, assignment_files af WHERE a.id = $aid AND af.assignment_id = $aid AND u.id = af.owner_id ORDER BY u.name";
@@ -102,7 +101,6 @@ class AssignmentFilesDb {
       return new Promise((resolve, reject) => {
          this.db.all(sql, params, (err, rows) => {
             if (err === null && rows !== undefined) {
-               let assignment_name; 
                if (rows.length > 0) {
                   let path = "../data/Grading/" + rows[0].assignment_name + "/Student Files/"; 
                   rows.forEach((r)=> {
@@ -110,10 +108,14 @@ class AssignmentFilesDb {
                      var stu_path = path + stu_name + "/";
                      var filename = stu_path + r.file_name;
                      var file_contents = `"${r.contents}"`;
-                     fs.promises.mkdir(path_.dirname(filename), {recursive: true}).then(x => fs.promises.writeFile(filename, file_contents));
-                  }); 
+                     fs.mkdirSync(path_.dirname(filename), {recursive: true});
+                     fs.writeFileSync(filename, file_contents);
+                  })
+                  resolve(rows);
                }
-               resolve(rows);
+               else {
+                  resolve(rows); 
+               }
             }
             else {
                console.log(err);

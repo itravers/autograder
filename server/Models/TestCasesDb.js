@@ -138,30 +138,28 @@ class TestCasesDb {
       return new Promise((resolve, reject) => {
          this.db.all(sql, params, (err, rows) => {
             if (err === null && rows !== undefined) {
-                const output = [];
-                output.push("Student Name, Test Name, Test Input, Test Result");
-                rows.forEach((r)=> {
-                  const row = [];
-                  row.push(`"${r.name}"`);
-                  row.push(`"${r.test_name}"`);
-                  row.push(`"${r.test_input}"`);
-                  row.push(`"${r.test_result}"`);
+               if(rows.length > 0 ) {
+                  const output = [];
+                  output.push("Student Name, Test Name, Test Input, Test Result");
+                  rows.forEach((r)=> {
+                     const row = [];
+                     row.push(`"${r.name}"`);
+                     row.push(`"${r.test_name}"`);
+                     row.push(`"${r.test_input}"`);
+                     row.push(`"${r.test_result}"`);
 
-                  output.push(row.join());
-                });
+                     output.push(row.join());
+                  });
 
-               // hacky solution: get assignment name by querying assignment ID with separate SQL query 
-               const sub_sql = "SELECT * FROM assignments WHERE id = $assignment_id"; 
-               const sub_params = {$assignment_id: assignment_id}; 
-               this.db.get(sub_sql, sub_params, (err, row) => {
-                     if(err === null && row !== undefined) {
-                        let path = "../data/Grading/" + row.name + "/Student Results/"
-                        let filename = path + row.name + "_results.csv";
-                        fs.promises.mkdir(path_.dirname(filename), {recursive: true})
-                        .then(x => fs.promises.writeFile(filename, output.join("\n")))
-                        .then(() => resolve(rows))
-                     }
-               });
+                  let path = "../data/Grading/" + rows[0].assignment_name + "/Student Results/";
+                  let filename = path + rows[0].assignment_name + "_results.csv";
+                  fs.promises.mkdir(path_.dirname(filename), {recursive: true})
+                  .then(x => fs.promises.writeFile(filename, output.join("\n")))
+                  .then(() => resolve(rows)); 
+               }
+               else {
+                  resolve(rows); 
+               }
             }
             else {
                console.log(err);
