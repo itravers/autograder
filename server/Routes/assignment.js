@@ -1,5 +1,6 @@
 let fs = require('fs'); 
 let archiver = require('archiver'); 
+let path = require('path'); 
 
 /** 
  * Retrieves all files for the specified assignment and user (if allowed to grade).
@@ -586,11 +587,11 @@ exports.zipGradingFiles = function(req, res, db, acl) {
    .then(() => db.AssignmentFiles.downloadFiles(assignment_id))
    .then(() => db.Assignments.TestCases.downloadResults(assignment_id))
 
-   // get the assignment's name, as this is the name of the subdirectory 
-   // containing its files 
    .then(() => {
-      // then start streaming data  to local zip file 
-      let output = fs.createWriteStream('../data/Grading/' + assignment.name + '.zip'); 
+      // then start streaming data to local zip file 
+      let file_name = '/downloads/' + assignment.name + '.zip'; 
+      //let output = fs.createWriteStream('../data/Grading/' + assignment.name + '.zip'); 
+      let output = fs.createWriteStream(file_name); 
       let archive = archiver('zip', {
          zlib: { level: 9 } // Sets the compression level.
        });
@@ -631,12 +632,12 @@ exports.zipGradingFiles = function(req, res, db, acl) {
             
       // append files from the sub-directory corresponding to this assignment 
       // to the archive 
-      archive.directory('../data/Grading/' + assignment.name, false); 
+      archive.directory('/downloads/' + assignment.name, false); 
 
       // finalize the archive (ie we are done appending files but streams have to finish yet)
       archive.finalize();
 
-      // TODO: 
+      // old TODO: 
       // 1. get the URL to the zip file we just created 
          // a. get the port number 
          // b. append to "localhost:" (for now)
@@ -646,7 +647,22 @@ exports.zipGradingFiles = function(req, res, db, acl) {
 
       console.log(req.headers.host); 
 
-      res.json({response: assignment.id}); 
+      // NEW TODO: 
+      // 0. test if res.download works on client with image. if not, fix it
+      // 1. get the path to the zip file we just created 
+      // 2. res.download(file)
+      // 3. on client, test to see if this works
+
+      // download ZIP file we just created 
+      let zip_path = path.join(__dirname, '..', '..', 'data', 'Grading', file_name); 
+      console.log(zip_path); 
+      res.download(zip_path); 
+
+      // TEST - PLEASE ERASE 
+      /* const dir = `${__dirname}`; 
+      const file = dir + '\\cats.jpg';
+      res.download(file);  */
+      //res.json({response: assignment.id}); 
    })
    .catch(err => {
       res.json({ response: err });

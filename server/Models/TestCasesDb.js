@@ -151,7 +151,7 @@ class TestCasesDb {
                      output.push(row.join());
                   });
 
-                  let path = "../data/Grading/" + rows[0].assignment_name + "/Student Results/";
+                  let path = "downloads/" + rows[0].assignment_name + "/Student Results/";
                   let filename = path + rows[0].assignment_name + "_results.csv";
                   fs.promises.mkdir(path_.dirname(filename), {recursive: true})
                   .then(x => fs.promises.writeFile(filename, output.join("\n")))

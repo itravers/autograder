@@ -102,7 +102,7 @@ class AssignmentFilesDb {
          this.db.all(sql, params, (err, rows) => {
             if (err === null && rows !== undefined) {
                if (rows.length > 0) {
-                  let path = "../data/Grading/" + rows[0].assignment_name + "/Student Files/"; 
+                  let path = "downloads/" + rows[0].assignment_name + "/Student Files/"; 
                   rows.forEach((r)=> {
                      var stu_name = r.name;
                      var stu_path = path + stu_name + "/";
