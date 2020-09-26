@@ -98,17 +98,21 @@ class Assignment {
 
    zipGradingFiles(assignment_id) {
       return new Promise((resolve, reject) => {
-         let call = WebRequest.makePost;
+         let call = WebRequest.makeUrlRequest;
+         if (this.cache_results === true) {
+            call = WebRequest.makeCacheableUrlRequest;
+         }
          const path = this.config.endpoints.assignment.zip_grading_files; 
          const endpoint = this.config.constructRoute(path, [assignment_id]); 
+         
          call(endpoint, (result) => {
-            if (result !== null && result !== undefined && result.data.response !== undefined) {
-               resolve(result.data.response);
+            if (result !== null && result !== undefined && result.status == 200) {
+               resolve(result); 
             }
             else {
                reject(result);
             }
-         });
+         }, {responseType: 'arraybuffer'});
       });
    }
 

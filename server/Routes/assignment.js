@@ -636,7 +636,6 @@ exports.zipGradingFiles = function(req, res, db, acl) {
 
       // set listener to respond with zip download when stream is finished and closed 
       output.on('close', () => {
-         console.log(req.headers.host); 
          res.download(file_name);  
       })
 
