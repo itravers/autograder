@@ -46,6 +46,8 @@ class SharedConfig{
          course: {
             all: root_endpoint + "/api/course",
             active_assignments: root_endpoint + "/api/course/{:id}/assignments/active",
+            active_user_assignments: root_endpoint + "/api/course/assignments/active",
+            user_assignments: root_endpoint + "/api/course/assignments",
             all_assignments: root_endpoint + "/api/course/{:id}/assignments",
             deleted_assignments: root_endpoint + "/api/course/{:id}/assignments/inactive",
             enrolled: root_endpoint + "/api/course/enrolled",

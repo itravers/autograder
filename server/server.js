@@ -144,6 +144,12 @@ router.get('/course', (req, res) => courseRoute.courses(req, res, db));
 // Creates a course. 
 router.post('/course', (req, res) => courseRoute.createCourse(req, res, db, acl)); 
 
+// returns all assignments from all enrolled courses, even if not active
+router.get('/course/assignments', (req, res) => courseRoute.userAssignments(req, res, db))
+
+// returns all assignments from all enrolled courses, only if active
+router.get('/course/assignments/active', (req, res) => courseRoute.userAssignmentsActive(req, res, db))
+
 // returns all assignments from the given course 
 router.get('/course/:id/assignments', (req, res) => courseRoute.assignments(req, res, db)); 
 

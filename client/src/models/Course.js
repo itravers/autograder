@@ -12,6 +12,7 @@ class Course {
       };
       this.getCoursesForUser = this.getCoursesForUser.bind(this);
       this.getActiveAssignmentsForCourse = this.getActiveAssignmentsForCourse.bind(this);
+      this.getActiveAssignmentsForUser = this.getActiveAssignmentsForUser.bind(this);
       this.addUser = this.addUser.bind(this);
       this.all = this.all.bind(this);
       this.removeUser = this.removeUser.bind(this);
@@ -64,6 +65,26 @@ class Course {
          }
          const path = this.config.endpoints.course.active_assignments; 
          const endpoint = this.config.constructRoute(path, [course_id]); 
+         call(endpoint, (result) => {
+            if (result !== null && result !== undefined) {
+               resolve(result.data.response);
+            }
+            else {
+               reject(result);
+            }
+
+         });
+      });
+   }
+
+   getActiveAssignmentsForUser(user_id) {
+      return new Promise((resolve, reject) => {
+         let call = WebRequest.makeUrlRequest;
+         if (this.cache_results === true) {
+            call = WebRequest.makeCacheableUrlRequest;
+         }
+         const path = this.config.endpoints.course.active_user_assignments; 
+         const endpoint = this.config.constructRoute(path, [user_id]); 
          call(endpoint, (result) => {
             if (result !== null && result !== undefined) {
                resolve(result.data.response);

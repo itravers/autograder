@@ -21,7 +21,7 @@ class HeaderView extends Component {
       }
       if (this.props.current_user.id > 0) {
          links.push(<Link to="/course" className="dropdown-item">My Courses</Link>);
-         links.push(<Link to="/course" className="dropdown-item">My Assignments</Link>);
+         links.push(<Link to="/course/assignments" className="dropdown-item">My Assignments</Link>);
          links.push(<Link to="/account/logout" className="dropdown-item">Logout</Link>);
       }
       else {

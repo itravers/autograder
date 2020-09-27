@@ -142,18 +142,59 @@ exports.addUser = function(req, res, db, acl) {
  * @param {Object} req HTTP request object. 
  * @param {Object} res HTTP response object. 
  * @param {Object} db Database connection. 
+ *    False if we want to show the assignment given by req.params.id.
  * @returns {Object} JSON response with all assignments from given course, 
  *    or with error message if unsuccessful. 
  */
 exports.assignments = function(req, res, db) {
-    const course_id = req.params.id;
-    db.Courses.assignments(course_id, true, true)
-      .then(result => 
-         res.json({ response: result })
-      )
-      .catch(err =>
-         res.json({ response: err })
-      );
+   const course_id = req.params.id;
+   db.Courses.assignments(course_id, true, true)
+        .then(result => 
+           res.json({ response: result })
+        )
+        .catch(err =>
+           res.json({ response: err })
+        );
+ }
+
+ /**  
+ * Returns all assignments for the given user.
+ * @param {Object} req HTTP request object. 
+ * @param {Object} res HTTP response object. 
+ * @param {Object} db Database connection. 
+ *    False if we want to show the assignment given by req.params.id.
+ * @returns {Object} JSON response with all assignments from given user, 
+ *    or with error message if unsuccessful. 
+ */
+exports.userAssignments = function(req, res, db) {
+   const user_id = req.params.user_id;
+   db.Courses.userAssignments(user_id, true, true)
+        .then(result => 
+           res.json({ response: result })
+        )
+        .catch(err =>
+           res.json({ response: err })
+        );
+ }
+
+  /**  
+ * Returns all active assignments for the given user.
+ * @param {Object} req HTTP request object. 
+ * @param {Object} res HTTP response object. 
+ * @param {Object} db Database connection. 
+ *    False if we want to show the assignment given by req.params.id.
+ * @returns {Object} JSON response with all assignments from given user, 
+ *    or with error message if unsuccessful. 
+ */
+exports.userAssignmentsActive = function(req, res, db) {
+   const user_id = req.params.user_id;
+   db.Courses.userAssignments(user_id, true, false)
+        .then(result => 
+           res.json({ response: result })
+        )
+        .catch(err =>
+           res.json({ response: err })
+        );
  }
 
  /** 

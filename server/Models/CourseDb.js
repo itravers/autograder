@@ -12,6 +12,7 @@ class CoursesDb {
       this.addUser = this.addUser.bind(this); 
       this.all = this.all.bind(this);
       this.assignments = this.assignments.bind(this);
+      this.userAssignments = this.userAssignments.bind(this);
       this.canGrade = this.canGrade.bind(this);
       this.canModify = this.canModify.bind(this);
       this.courseUsers = this.courseUsers.bind(this); 
@@ -124,6 +125,47 @@ class CoursesDb {
             sql += " AND is_deleted = 1"; 
          }
          this.db.all(sql, { $course_id: course_id }, (err, rows) => {
+            if (err === null && rows !== undefined) {
+               resolve(rows);
+            }
+            else if (err !== null) {
+               console.log(err);
+               reject(err); 
+            }
+            else
+            {
+               reject(false); 
+            }
+         });
+      });
+   }
+
+     /**
+    * Returns assignments for a given user.
+    * @param {Number} user_id The user's ID number (integer).
+    * @param {Boolean} [include_active=true] Set this to false to exclude active assignments.
+    * @param {Boolean} [include_deleted=true] Set this to false to exclude deleted assignments.
+    * @returns {Promise} Resolves with all selected assignments if successful; rejects otherwise.
+    */
+   userAssignments(user_id, include_active = true, include_deleted = true) {
+      return new Promise((resolve, reject) => {
+         if(user_id == null) user_id = 1;
+         let sql = "SELECT courses.name as courseName, assignments.id, courses.id as courseID, assignments.name "+
+                     "as assignmentName, assignments.is_deleted, assignments.is_locked, course_users.course_role "+
+                     " FROM assignments, users, courses, course_users" + 
+                     " WHERE users.id = $user_id" + 
+                     " AND users.id = course_users.user_id" +
+                     " AND course_users.course_id = assignments.course_id" + 
+                     " AND assignments.course_id = courses.id";
+         if(include_active === true && include_deleted === false)
+         {
+            sql += " AND assignments.is_deleted = 0"; 
+         }
+         else if(include_active === false && include_deleted === true)
+         {
+            sql += " AND assignmentsis_deleted = 1"; 
+         }
+         this.db.all(sql, { $user_id: user_id }, (err, rows) => {
             if (err === null && rows !== undefined) {
                resolve(rows);
             }
