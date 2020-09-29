@@ -41,12 +41,9 @@ class BulkResultsComponent extends Component {
    zipGradingFiles()
    {
       this.props.models.assignment.zipGradingFiles(this.props.assignment.id)
-      .then(result => {
-         // blob the data we get back 
-         let blob = new Blob([result.data]);
-
-         // create a temp link for downloading ZIP data
-         const url = URL.createObjectURL(blob); 
+      .then(blob => {
+        // create a temp link for downloading ZIP data
+         const url = URL.createObjectURL(new Blob([blob])); 
          const link = document.createElement('a');
          link.href = url;
          link.download = this.props.assignment.name + ".zip";

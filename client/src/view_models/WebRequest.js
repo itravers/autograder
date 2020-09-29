@@ -24,8 +24,8 @@ class WebRequest {
     * @param {*} url 
     * @param {*} callback 
     */
-   static makeUrlRequest(url, callback, config={}) {
-      axios(url, { withCredentials: true, ...config }).then(result => {
+   static makeUrlRequest(url, callback) {
+      axios(url, { withCredentials: true }).then(result => {
          callback(result);
       });
    }
