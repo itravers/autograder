@@ -321,6 +321,41 @@ exports.editTestCase = function(req, res, db, acl) {
       );
 }
 
+/**
+  * Returns the URL to the API endpoint for downloading grading 
+  * files. The assignment ID should be in req.params.assignment_id.
+  * @param {Object} req HTTP request object. 
+  * @param {Object} res HTTP response object. 
+  * @param {Object} db Database connection.
+  * @param {Object} acl Object containing AccessControlList methods.
+  * @returns {Object} JSON containing the URL, or a 403 status code if not 
+  *   authorized. 
+  */
+exports.getGradingDownloadURL = function(req, res, db, acl) {
+   const assignment_id = req.params.assignment_id; 
+   let assignment; 
+
+   // get course id for this assignment 
+   db.Assignments.assignmentInfo(assignment_id)
+   .then(result => {
+      assignment = result; 
+   })
+
+   // check if current user has permission to view grading files 
+   .then(() => acl.canGradeAssignment(req.session.user, assignment.course_id))
+
+   // if so, return the URL. else, the assignment ID was invalid or the user 
+   // doesn't have permission to see grading files 
+   .then(() => {
+      // TODO: get the URL from server.js somehow, don't hardcode it 
+      const url = req.headers.host + "/api/assignment/" + assignment_id + "/zipGradingFiles"; 
+      res.json({response: url});
+   })
+   .catch(() => {
+      res.status(403).send("Not authorized");
+   });
+}
+
    /**
   * Marks assignment as submitted. :aid is the assignment ID.   
   * The assignment ID to modify should be in req.body.id.
