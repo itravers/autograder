@@ -96,23 +96,23 @@ class Assignment {
       });
    }
 
-   zipGradingFiles(assignment_id) {
+   getGradingFilesLink(assignment_id) {
       return new Promise((resolve, reject) => {
-         const path = this.config.endpoints.assignment.zip_grading_files; 
+         let call = WebRequest.makeUrlRequest;
+         if (this.cache_results === true) {
+            call = WebRequest.makeCacheableUrlRequest;
+         }
+         const path = this.config.endpoints.assignment.grading_files_link; 
          const endpoint = this.config.constructRoute(path, [assignment_id]); 
-         fetch(endpoint, { credentials: 'include' })
-         .then(result => {
-            if(result.ok)
-            {
-               resolve(result);
+         call(endpoint, (result) => {
+            if (result !== null && result.data !== undefined) {
+               resolve(result.data.response);
             }
             else {
-               reject(result); 
+               reject(result);
             }
-         })
-         .catch(err => {
-            reject(err); 
-         })
+
+         });
       });
    }
 

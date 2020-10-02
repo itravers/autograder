@@ -348,7 +348,7 @@ exports.getGradingDownloadURL = function(req, res, db, acl) {
    // doesn't have permission to see grading files 
    .then(() => {
       // TODO: get the URL from server.js somehow, don't hardcode it 
-      const url = req.headers.host + "/api/assignment/" + assignment_id + "/zipGradingFiles"; 
+      const url = "http://" + req.headers.host + "/api/assignment/" + assignment_id + "/zipGradingFiles"; 
       res.json({response: url});
    })
    .catch(() => {
