@@ -1,6 +1,6 @@
 const sqlite3 = require('sqlite3').verbose();
-var fs = require('fs');
-var path_ = require('path');
+let fs = require('fs');
+let path = require('path');
 
 class TestCasesDb {
 
@@ -150,10 +150,11 @@ class TestCasesDb {
 
                      output.push(row.join());
                   });
-
-                  let path = "downloads/" + rows[0].assignment_name + "/Student Results/";
-                  let filename = path + rows[0].assignment_name + "_results.csv";
-                  fs.promises.mkdir(path_.dirname(filename), {recursive: true})
+                  let directory = path.resolve('downloads', rows[0].assignment_name, 'Student Results'); 
+                  let filename = path.resolve(directory, rows[0].assignment_name + '_results.csv'); 
+                  // creates the desired directory + all parents as necessary
+                  fs.promises.mkdir(directory, {recursive: true})
+                  // then writes to the desired file 
                   .then(x => fs.promises.writeFile(filename, output.join("\n")))
                   .then(() => resolve(rows)); 
                }

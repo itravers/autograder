@@ -622,10 +622,9 @@ exports.zipGradingFiles = function(req, res, db, acl) {
    .then(() => db.AssignmentFiles.downloadFiles(assignment_id))
    .then(() => db.Assignments.TestCases.downloadResults(assignment_id))
 
-   .then(() => {
+   .then(() => { 
       // then start streaming data to local zip file 
-      let file_name = 'downloads/' + assignment.name + '.zip'; 
-      //let output = fs.createWriteStream('../data/Grading/' + assignment.name + '.zip'); 
+      let file_name = path.resolve('downloads', assignment.name + '.zip'); 
       let output = fs.createWriteStream(file_name); 
       let archive = archiver('zip', {
          zlib: { level: 9 } // Sets the compression level.
@@ -667,7 +666,7 @@ exports.zipGradingFiles = function(req, res, db, acl) {
             
       // append files from the sub-directory corresponding to this assignment 
       // to the archive 
-      archive.directory('downloads/' + assignment.name, false); 
+      archive.directory(path.resolve('downloads', assignment.name), false); 
 
       // set listener to respond with zip download when stream is finished and closed 
       output.on('close', () => {

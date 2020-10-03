@@ -1,7 +1,6 @@
 const sqlite3 = require('sqlite3').verbose();
-var fs = require('fs');
-var path_ = require('path');
-var https = require('https');
+let fs = require('fs');
+let path = require('path');
 
 class AssignmentFilesDb {
 
@@ -102,13 +101,13 @@ class AssignmentFilesDb {
          this.db.all(sql, params, (err, rows) => {
             if (err === null && rows !== undefined) {
                if (rows.length > 0) {
-                  let path = "downloads/" + rows[0].assignment_name + "/Student Files/"; 
+                  let directory = path.resolve('downloads', rows[0].assignment_name, 'Student Files'); 
                   rows.forEach((r)=> {
                      var stu_name = r.name;
-                     var stu_path = path + stu_name + "/";
-                     var filename = stu_path + r.file_name;
+                     let stu_path = path.resolve(directory, stu_name); 
+                     let filename = path.resolve(stu_path, r.file_name); 
                      var file_contents = `"${r.contents}"`;
-                     fs.mkdirSync(path_.dirname(filename), {recursive: true});
+                     fs.mkdirSync(stu_path, {recursive: true});
                      fs.writeFileSync(filename, file_contents);
                   })
                   resolve(rows);
