@@ -1,6 +1,7 @@
 let fs = require('fs'); 
 let archiver = require('archiver'); 
 let path = require('path'); 
+let rmdir = require('rimraf');
 
 /** 
  * Retrieves all files for the specified assignment and user (if allowed to grade).
@@ -624,7 +625,8 @@ exports.zipGradingFiles = function(req, res, db, acl) {
 
    .then(() => { 
       // then start streaming data to local zip file 
-      let file_name = path.resolve('downloads', assignment.name + '.zip'); 
+      let assignment_path = path.resolve('downloads', assignment.name); 
+      let file_name = assignment_path  + '.zip';
       let output = fs.createWriteStream(file_name); 
       let archive = archiver('zip', {
          zlib: { level: 9 } // Sets the compression level.
@@ -666,12 +668,22 @@ exports.zipGradingFiles = function(req, res, db, acl) {
             
       // append files from the sub-directory corresponding to this assignment 
       // to the archive 
-      archive.directory(path.resolve('downloads', assignment.name), false); 
+      archive.directory(assignment_path, false); 
 
       // set listener to respond with zip download when stream is finished and closed 
       output.on('close', () => {
-         res.download(file_name);  
-      })
+         res.download(file_name); 
+         // delete the directory + ZIP file we've just created after 5 minutes 
+         setTimeout(() => {
+            rmdir(assignment_path, (err) => {
+               if (err) console.log(err); 
+            });
+            fs.promises.unlink(file_name)
+            .catch(err => {
+               console.log(err); 
+            })
+         }, 300000);
+      });
 
       // finalize the archive (ie we are done appending files but streams have to finish yet)
       archive.finalize();
