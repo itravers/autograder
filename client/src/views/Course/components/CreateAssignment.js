@@ -28,6 +28,7 @@ class CreateAssignmentComponent extends Component {
        super(props); 
 
        this.state = {
+           courses: [],
            course_id: 0, 
            assignment_name: "", 
            //TODO: figure out what datatype a checked box is supposed to be 
@@ -36,9 +37,45 @@ class CreateAssignmentComponent extends Component {
        }
 
        this.createAssignment = this.createAssignment.bind(this); 
+       this.getCourses = this.getCourses.bind(this); 
+       this.buildOptions = this.buildOptions.bind(this); 
        this.handleInputChange = this.handleInputChange.bind(this); 
        this.handleClose = this.handleClose.bind(this); 
+
+       this.getCourses();
    }
+
+     // sets state to the list of all courses that user is enrolled or teaching in 
+     getCourses() {
+        let self = this; 
+        return new Promise(function(resolve, reject) {
+           self.props.models.course.getCoursesForUser()
+              .then((result) => {
+                 let courses = [];
+                 for (let course of result) {
+                    const course_role = self.props.models.course.getCoursePrivileges(course.course_role);
+                    if (course_role.can_modify_course === true || course_role.can_grade_assignment === true || course_role.can_submit_assignment === true) {
+                       courses.push(course);
+                    }
+                 }
+                 self.setState({ courses: courses  });
+                 resolve(); 
+              })
+              .catch(err => { reject(); });
+        });
+     }
+
+     // Returns each course the user is enrolled or teaching in, into an options html tag, which we can display later
+     buildOptions(){
+         var optionsArray = [];
+         const courses = this.state.courses;
+
+         //loop through all the courses in the current state, one for each option
+         for(let i = 0; i < courses.length; i++){
+             optionsArray.push(<option key={i} value={courses[i].id}>{courses[i].name}</option>)
+         }
+         return optionsArray;
+     }
 
    handleInputChange(event) {
        const target = event.target; 
@@ -72,6 +109,7 @@ class CreateAssignmentComponent extends Component {
     const course_id = this.state.course_id; 
     const assignment_name = this.state.assignment_name; 
     const locked = false; 
+
     return (
         <React.Fragment>
             <article className="modal_content container">
@@ -85,9 +123,8 @@ class CreateAssignmentComponent extends Component {
                     <select className="form-control"
                         id="CourseId"
                         name="course_id"
-                        //value= TODO: figure out a way to get the course id from the parent component here
                         onChange={this.handleInputChange}>
-
+                        {this.buildOptions()}
                     </select>
                 </div>
                 <div className="form-group">
