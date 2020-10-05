@@ -21,6 +21,16 @@
    border-radius: 5px;
    border: 2px solid black;
  }
+
+ .modal_content_left {
+  background-color: white;
+  position: fixed;
+  top: 25%;
+  width: 40%;
+  padding: 20px;
+  border-radius: 5px;
+  border: 2px solid black;
+}
  
  .close {
    color: Black;

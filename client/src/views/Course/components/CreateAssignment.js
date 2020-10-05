@@ -112,7 +112,7 @@ class CreateAssignmentComponent extends Component {
 
     return (
         <React.Fragment>
-            <article className="modal_content container">
+            <article className="modal_content_left container">
             <span className="close" onClick={this.handleClose}>
                 &times;
             </span>
