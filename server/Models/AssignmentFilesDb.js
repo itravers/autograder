@@ -95,13 +95,13 @@ class AssignmentFilesDb {
     * @returns {Promise} Resolves with all files if successful; rejects if there's an error. 
     */
    downloadFiles(assignment_id) {
-      const sql = "SELECT a.name AS assignment_name, u.name, af.is_deleted, af.file_name, af.contents FROM assignments a, users u, assignment_files af WHERE a.id = $aid AND af.assignment_id = $aid AND u.id = af.owner_id ORDER BY u.name";
+      const sql = "SELECT u.name, af.is_deleted, af.file_name, af.contents FROM assignments a, users u, assignment_files af WHERE a.id = $aid AND af.assignment_id = $aid AND u.id = af.owner_id ORDER BY u.name";
       const params = { $aid: assignment_id };
       return new Promise((resolve, reject) => {
          this.db.all(sql, params, (err, rows) => {
             if (err === null && rows !== undefined) {
                if (rows.length > 0) {
-                  let directory = path.resolve('downloads', rows[0].assignment_name, 'Student Files'); 
+                  let directory = path.resolve('downloads', assignment_id, 'Student Files'); 
                   rows.forEach((r)=> {
                      var stu_name = r.name;
                      let stu_path = path.resolve(directory, stu_name); 
