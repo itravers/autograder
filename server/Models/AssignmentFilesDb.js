@@ -95,7 +95,7 @@ class AssignmentFilesDb {
     * @returns {Promise} Resolves with all files if successful; rejects if there's an error. 
     */
    downloadFiles(assignment_id) {
-      const sql = "SELECT a.name AS assignment_name, u.name, af.file_name, af.contents FROM assignments a, users u, assignment_files af WHERE a.id = $aid AND af.assignment_id = $aid AND u.id = af.owner_id ORDER BY u.name";
+      const sql = "SELECT a.name AS assignment_name, u.name, af.is_deleted, af.file_name, af.contents FROM assignments a, users u, assignment_files af WHERE a.id = $aid AND af.assignment_id = $aid AND u.id = af.owner_id ORDER BY u.name";
       const params = { $aid: assignment_id };
       return new Promise((resolve, reject) => {
          this.db.all(sql, params, (err, rows) => {
@@ -105,11 +105,20 @@ class AssignmentFilesDb {
                   rows.forEach((r)=> {
                      var stu_name = r.name;
                      let stu_path = path.resolve(directory, stu_name); 
-                     let filename = path.resolve(stu_path, r.file_name); 
-                     var file_contents = `"${r.contents}"`;
-                     fs.mkdirSync(stu_path, {recursive: true});
-                     fs.writeFileSync(filename, file_contents);
-                  })
+                     let filename = path.resolve(stu_path, r.file_name);
+                     if(r.is_deleted == 0) {
+                        var file_contents = `"${r.contents}"`;
+                        fs.mkdirSync(stu_path, {recursive: true});
+                        fs.writeFileSync(filename, file_contents);
+                     }
+                     else {
+                        // file has been soft-deleted, remove from filesystem if it exists there 
+                        try {
+                           fs.accessSync(filename, fs.constants.F_OK); 
+                           fs.unlinkSync(filename);
+                        } catch { /* intentionally empty; accessSync() throws error if file doesn't exist in system */ }
+                     }
+                  });
                   resolve(rows);
                }
                else {
