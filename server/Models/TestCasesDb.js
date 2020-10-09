@@ -130,9 +130,9 @@ class TestCasesDb {
    /**
     * Returns all students' tests results associated with a particular assignment.
     * @param {Number} assignment_id The assignment's ID number (integer). 
-    * @returns {Promise} Resolves with all test cases if successful; rejects if there's an error. 
+    * @returns {Promise} Resolves with assignment directory's name if successful; rejects if there's an error. 
     */
-   downloadResults(assignment_id) {
+   downloadResults(assignment_id, dir_name = assignment_id + "_" + Date.now()) {
       const sql = "SELECT a.name AS assignment_name, u.name, t.test_name, t.test_input, t.test_result FROM assignments a, users u, test_results t WHERE t.assignment_id = $aid AND a.id= $aid AND u.id = t.user_id";
       const params = { $aid: assignment_id };
       return new Promise((resolve, reject) => {
@@ -150,16 +150,16 @@ class TestCasesDb {
 
                      output.push(row.join());
                   });
-                  let directory = path.resolve('downloads', rows[0].assignment_name, 'Student Results'); 
+                  let directory = path.resolve('downloads', dir_name, 'Student Results'); 
                   let filename = path.resolve(directory, rows[0].assignment_name + '_results.csv'); 
                   // creates the desired directory + all parents as necessary
                   fs.promises.mkdir(directory, {recursive: true})
                   // then writes to the desired file 
                   .then(x => fs.promises.writeFile(filename, output.join("\n")))
-                  .then(() => resolve(rows)); 
+                  .then(() => resolve(dir_name)); 
                }
                else {
-                  resolve(rows); 
+                  resolve(dir_name); 
                }
             }
             else {
