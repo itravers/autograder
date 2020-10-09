@@ -119,6 +119,19 @@ class AssignmentFilesDb {
                         } catch { /* intentionally empty; accessSync() throws error if file doesn't exist in system */ }
                      }
                   });
+
+                  // after all rows processed: get the names of all student directories
+                  const stu_dirnames = fs.readdirSync(directory, { withFileTypes: true })
+                     .filter(dirent => dirent.isDirectory())
+                     .map(dirent => dirent.name);
+
+                  // for each student directory: check if it's empty. if so, delete it 
+                  stu_dirnames.forEach((student) => {
+                     let stu_path = path.resolve(directory, student); 
+                     try {
+                        fs.rmdirSync(stu_path); 
+                     } catch { /* intentionally empty; rmdirSync() throws error if directory not empty */ }
+                  }); 
                   resolve(rows);
                }
                else {
