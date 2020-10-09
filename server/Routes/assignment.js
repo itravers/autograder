@@ -1,7 +1,7 @@
 let fs = require('fs'); 
 let archiver = require('archiver'); 
 let path = require('path'); 
-let rmdir_rf = require('rimraf');
+let rmdir = require('rimraf');
 
 /** 
  * Retrieves all files for the specified assignment and user (if allowed to grade).
@@ -625,7 +625,7 @@ exports.zipGradingFiles = function(req, res, db, acl) {
 
    .then(() => { 
       // then start streaming data to local zip file 
-      let assignment_path = path.resolve('downloads', assignment_id); 
+      let assignment_path = path.resolve('downloads', assignment.name); 
       let file_name = assignment_path  + '.zip';
       let output = fs.createWriteStream(file_name); 
       let archive = archiver('zip', {
@@ -675,7 +675,7 @@ exports.zipGradingFiles = function(req, res, db, acl) {
          res.download(file_name); 
          // delete the directory + ZIP file we've just created after 5 minutes 
          setTimeout(() => {
-            rmdir_rf(assignment_path, (err) => {
+            rmdir(assignment_path, (err) => {
                if (err) console.log(err); 
             });
             fs.promises.unlink(file_name)

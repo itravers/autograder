@@ -45,6 +45,7 @@ class BulkResultsComponent extends Component {
         // create a temp link for downloading ZIP data
          const link = document.createElement('a');
          link.href = url;
+         link.download = this.props.assignment.name + ".zip";
          link.click();
          window.URL.revokeObjectURL(link.href); 
       })
