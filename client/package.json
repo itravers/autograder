@@ -5,11 +5,14 @@
   "dependencies": {
     "axios": "^0.18.1",
     "bootstrap": "^4.5.2",
+    "fibers": "^5.0.0",
     "filepond": "^3.9.0",
     "filepond-plugin-file-validate-size": "^2.2.2",
     "filepond-plugin-file-validate-type": "^1.2.5",
     "jquery": "^3.5.1",
     "lodash": "^4.17.20",
+    "node-gyp": "^7.1.0",
+    "node-sass": "^4.14.1",
     "popper": "^1.0.1",
     "popper.js": "^1.16.1",
     "react": "^16.13.1",
@@ -18,10 +21,11 @@
     "react-filepond": "^5.0.0",
     "react-redux": "^6.0.1",
     "react-router-dom": "^4.3.1",
-    "react-scripts": "^2.1.8",
+    "react-scripts": "^3.4.3",
     "react-syntax-highlighter": "^10.3.5",
     "redux": "^4.0.5",
-    "typescript": "^4.0.3"
+    "sass": "^1.27.0",
+    "typescript": "^3.9.7"
   },
   "scripts": {
     "start": "react-scripts start",
