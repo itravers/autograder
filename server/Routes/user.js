@@ -88,6 +88,7 @@ exports.logout = function(req, res) {
  */
  exports.oauth = function(req, res, db, OAuthConfig) {
    const requestToken = req.query.code;
+   const clientUrl = req.headers.referer;
 
    // make a POST request to GitHub authentication API asking for access token
    axios({
@@ -106,7 +107,7 @@ exports.logout = function(req, res) {
       .then(user => db.Users.userRow(user.login))
       .then(user => {
          req.session.user = user; 
-         res.redirect(`http://localhost:3000/account/login`);
+         res.redirect('http://' + clientUrl + 'account/login');
       })
       .catch(err => {
          res.json({response: err});
