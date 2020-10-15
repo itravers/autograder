@@ -107,7 +107,7 @@ exports.logout = function(req, res) {
       .then(user => db.Users.userRow(user.login))
       .then(user => {
          req.session.user = user; 
-         res.redirect('http://' + clientUrl + 'account/login');
+         res.redirect(clientUrl + 'account/login');
       })
       .catch(err => {
          res.json({response: err});
