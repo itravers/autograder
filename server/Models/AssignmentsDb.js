@@ -38,7 +38,6 @@ class AssignmentsDb {
       });
    }
 
-<<<<<<< HEAD
    /**
     * Returns the row in the assignments table corresponding to the given 
     * assignment. 
@@ -61,7 +60,6 @@ class AssignmentsDb {
          });
       });
    }
-=======
 
     /**
     * Toggles assignment's lock status
@@ -108,8 +106,6 @@ class AssignmentsDb {
          });
      });
    }
-
->>>>>>> assignments
 }
 
 /**

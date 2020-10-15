@@ -62,7 +62,8 @@ class TestCasesDb {
    }
 
    /**
-    * Checks if a given assignment for a given user has tests run with outdated versions of files for that assignment, test name, and user.
+    * Checks if a given user last ran the given test case with outdated versions 
+    * of files for that assignment.
     * @param {Number} assignment_id The assignment's ID number (integer). 
     * @param {Number} user_id The user's ID number (integer). 
     * @param {String} test_name The test name.
@@ -75,8 +76,13 @@ class TestCasesDb {
                "FROM test_results t " +
                "WHERE t.assignment_id = $assignment_id " +
                "AND t.user_id = $user_id " + 
-               "AND (SELECT max(date_run) FROM test_results t WHERE t.user_id= $user_id AND t.assignment_id = $assignment_id AND t.test_name = $test_name) <" +
-               "(SELECT max(date_created) FROM assignment_files a WHERE a.owner_id = $user_id AND a.assignment_id = $assignment_id)";
+               "AND (SELECT max(date_run) " + 
+                  "FROM test_results t " + 
+                  "WHERE t.user_id= $user_id AND t.assignment_id = $assignment_id AND t.test_name = $test_name) " +
+               "< (SELECT " + 
+                  "CASE WHEN max(date_deleted) IS NOT NULL and max(date_deleted) > max(date_created) THEN max(date_deleted) " +
+                     "ELSE max(date_created) " +
+                  "END FROM assignment_files a WHERE a.owner_id = $user_id AND a.assignment_id = $assignment_id)";
 
       const params = { $assignment_id: assignment_id, $user_id: user_id, $test_name: test_name };
       return new Promise((resolve, reject) => {
@@ -84,6 +90,9 @@ class TestCasesDb {
             if (err === null && rows.length > 0) {
                this.dateMismatchUpdate(assignment_id, user_id);
                resolve(rows);
+            }
+            else if (rows.length === 0) {
+               resolve(rows); 
             }
             else {
                console.log(err);

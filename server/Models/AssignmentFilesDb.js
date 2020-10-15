@@ -140,7 +140,7 @@ class AssignmentFilesDb {
     *    rejects with error otherwise. 
     */
    remove(id) {
-      const sql = "UPDATE assignment_files set is_deleted = 1 WHERE id = $id ";
+      const sql = "UPDATE assignment_files set is_deleted = 1, date_deleted = datetime('now') WHERE id = $id ";
       const params = { $id: id };
      return new Promise((resolve, reject) => {
 
