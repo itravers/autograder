@@ -131,7 +131,7 @@ router.post('/assignment/:assignment_id/compile', (req, res) => assignmentRoute.
 // Retrieves all files for the specified assignment and user (if allowed to grade)
 router.get('/assignment/:aid/user/:uid/file', (req, res) => assignmentRoute.assignmentFiles(req, res, db, acl)); 
 
-// Retrieves test results submitted with outdated assignment_files.
+// Returns a boolean indicating if a user's current test results were last run on outdated files. 
 router.get('/assignment/:aid/user/:uid/test/:test_name/existsDateMismatch', (req, res) => assignmentRoute.existsDateMismatch(req, res, db, acl));
 
 // Uploads a file. :aid is the assignment ID that this file will belong to;

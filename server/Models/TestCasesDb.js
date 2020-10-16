@@ -102,8 +102,8 @@ class TestCasesDb {
       });
    }
 
-/**
-    * Updates given assignment's test results with mismatch value
+   /**
+    * Updates given assignment's test results to indicate that they are outdated.
     * @param {Number} assignment_id The assignment's ID number (integer). 
     * @param {Number} user_id The user's ID number (integer). 
     * @returns {Promise} Resolves with test results that were updated if successful;
@@ -111,7 +111,7 @@ class TestCasesDb {
     */
 
    dateMismatchUpdate(assignment_id, user_id) {   
-      const sql = "UPDATE test_results SET has_mismatch = true WHERE user_id = $user_id AND assignment_id = $assignment_id";
+      const sql = "UPDATE test_results SET is_outdated = true WHERE user_id = $user_id AND assignment_id = $assignment_id";
       const params = {
          $user_id: user_id,
          $assignment_id: assignment_id,

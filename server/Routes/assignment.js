@@ -166,6 +166,7 @@ exports.createTestCase = function(req, res, db, acl) {
  exports.deleteFile = function(req, res, db, acl) {
    let session = req.session;
    const current_user = session.user;
+   const assignment_id = req.params.aid; 
    const file_id = req.body.id;
 
    //do we have an active user?
@@ -175,18 +176,19 @@ exports.createTestCase = function(req, res, db, acl) {
       .then(() => acl.userOwnsFile(current_user, file_id))
 
       //then make the call
+      .then(() => db.AssignmentFiles.remove(file_id))
       .then(() => {
-
-         db.AssignmentFiles.remove(file_id)
-            .then(() => {
-               return res.json({ response: file_id }); 
-            })
-            .catch(err => {
-               console.log(err);
-               return res.status(500).send("Error");
-            });
+         db.Assignments.TestCases.dateMismatchUpdate(assignment_id, current_user.id)
+         .catch(err => {
+            // file uploaded successfully but updating the test_results 
+            // table failed for whatever reason 
+         })
+         .finally(() => {
+            return res.json({ response: file_id });
+         }) 
       })
-      .catch((error) => {
+      .catch(err => {
+         console.log(err);
          return res.status(500).send("Error");
       });
 }
@@ -497,7 +499,14 @@ exports.uploadFile = function(req, res, db, acl) {
 
           db.AssignmentFiles.add(current_user.id, assignment_id, uploaded_file.name, text)
             .then(result => {
-               res.type('html').send(String(result));
+               db.Assignments.TestCases.dateMismatchUpdate(assignment_id, current_user.id)
+               .catch(err => {
+                  // file uploaded successfully but updating the test_results 
+                  // table failed for whatever reason 
+               })
+               .finally(() => {
+                  res.type('html').send(String(result));
+               }); 
             })
             .catch(err => {
                return res.status(500).send(err);
