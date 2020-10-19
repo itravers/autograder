@@ -12,40 +12,40 @@ class BulkResultsComponent extends Component {
       super(props);
 
       this.state = {
-         test_names: [], 
-         test_results: [],
-         oldest_test: "", // actually needs to be oldest out of (all newest for each test name)
-         has_mismatch: false
+         test_cases: {}, 
+         test_results: []
       };
 
-      this.getTestNames = this.getTestNames.bind(this); 
+      this.getTestCases = this.getTestCases.bind(this); 
       this.getTestResults = this.getTestResults.bind(this);
       this.getClassResults = this.getClassResults.bind(this); 
-      this.dateMismatch = this.dateMismatch.bind(this);
       this.rerunTests = this.rerunTests.bind(this);
    }
 
    componentDidMount() {
-      this.getTestNames(this.props.assignment.id)
+      this.getTestCases(this.props.assignment.id)
       .then(() =>  this.getClassResults(this.props.student_roster)); 
    }
 
-   componentWillReceiveProps(new_props) {
+   UNSAFE_componentWillReceiveProps(new_props) {
       if (new_props.user !== null && new_props.user !== undefined && new_props.user.id > 0) {
          this.getClassResults(new_props.student_roster);
       }
    }
 
-   getTestNames() {
+   // gets a list of test cases for this assignment, creates an object with
+   // property test case names & value test case input, and sets state variable 
+   // test_cases to this object
+   getTestCases() {
       return new Promise((resolve, reject) => {
          if (this.props.assignment.id > 0) {
             this.props.models.assignment.getTestCases(this.props.assignment.id)
             .then((results) => {
-               let names = []; 
+               let tests = {}; 
                for (const result of results) {
-                  names.push(result.test_name); 
+                  tests[result.test_name] = result.test_input;
                }
-               this.setState({test_names: names});
+               this.setState({test_cases: tests});
                resolve();  
             })
             .catch((err) => {
@@ -56,28 +56,28 @@ class BulkResultsComponent extends Component {
       })
    }
 
+   // returns an object containing all test results for the given user,
+   // organized by test case name  
    getTestResults(user_id) {
-      let self = this;
       return new Promise((resolve, reject) => {
+         // formatted_results will be an object with key = test name and value 
+         // = array of test results, sorted from most to least recent
          let formatted_results = {}; 
          if (this.props.assignment.id > 0) {
             this.props.models.assignment.getTestResults(this.props.assignment.id, user_id)
                .then((results) => {
+                  // sort test results by test name 
                   for (const result of results) {
+                     // if the test case hasn't been added to formatted_results 
+                     // yet, add it now 
                      if (formatted_results[result.test_name] === undefined) {
                         formatted_results[result.test_name] = [];
                      }
                      formatted_results[result.test_name].push(result);
-                     self.dateMismatch(result);
-                     self.setState({has_mismatch: result.has_mismatch});
-                     if (self.state.oldest_test === "") {
-                        self.setState({oldest_test: result.date_run});
-                     }
-                     else if (Date.parse(self.state.oldest_test) >= Date.parse(result.date_run)) {
-                        self.setState({oldest_test: result.date_run});
-                     }
                   }
-                  for(const name of this.state.test_names)
+
+                  // add any test names for which the student has no results 
+                  for(const name of Object.keys(this.state.test_cases))
                   {
                      if(formatted_results[name] === undefined || formatted_results[name].length === 0) {
                         formatted_results[name] = [{test_result: ""}]; 
@@ -93,77 +93,50 @@ class BulkResultsComponent extends Component {
       });
    }
 
+   // 
    async getClassResults(student_roster) {
-      let self = this;
       let class_results = []; 
       // get test results for each student in class 
          for(const student of student_roster) {
-            // create object to hold necessary data, including an object where 
-            // key = test name and value = Array of test results for that test case 
-            let student_row = {id: student.id, name: student.name, results: {}, oldest_test: self.state.oldest_test, has_mismatch: self.state.has_mismatch};
+            // create object to hold necessary data, including a results object 
+            // where key = test name and value = array of test results for that 
+            // test case, sorted with most recent result first  
+            let student_row = {id: student.id, name: student.name, results: {}, oldest_test_date: "", has_mismatch: false};
             student_row.results = await this.getTestResults(student.id); 
-            student_row.oldest_test = self.state.oldest_test;
-            student_row.has_mismatch = self.state.has_mismatch;
-            self.setState({oldest_test: ""});
+
+            // get the least recently run test of all current test results for 
+            // this student, and flag if any are outdated
+            let oldest_test_date = ""; 
+            for(const test_name of Object.keys(this.state.test_cases))
+            {
+               if (student_row.results.hasOwnProperty(test_name) && student_row.results[test_name][0] !== undefined) {
+                  let test = student_row.results[test_name][0];
+                  if (oldest_test_date === "" || (Date.parse(oldest_test_date) > Date.parse(test.date_run))) {
+                     oldest_test_date = test.date_run;
+                  }
+                  if (test.is_outdated === 1) {
+                     student_row.has_mismatch = true; 
+                  }
+               }
+            }
+            student_row.oldest_test_date = oldest_test_date; 
             class_results.push(student_row); 
          }
          this.setState({ test_results: class_results }); 
    }
 
-   dateMismatchHelper(assignment_id, user_id)
-   {
-      //let self = this;
-      var found = false;
-      return new Promise((resolve, reject) => {
-         if (assignment_id > 0 && user_id > 0) {
-            this.props.models.assignment.dateMismatch(assignment_id, user_id)
-            .then((results) => {
-               if (results[0] != null) {
-                  found = true;
-               }
-               resolve(found);
-            })
-            .catch((err) => {
-               console.log(err);
-               reject(err); 
-            });
-         }
-      });
-   }
-
-   dateMismatch(test_result) {
-
-      var assignment_id = ""
-      var user_id = ""
-      var test_name = ""
-      assignment_id = test_result.assignment_id;
-      user_id = test_result.user_id;
-      test_name = test_result.test_name;
-      if (assignment_id > 0 && user_id > 0) {
-         this.props.models.assignment.dateMismatch(assignment_id, user_id, test_name);
-      }
-   }
-
-   async dateMismatchOld(test_result) {
-      var test_result_obj = ""
-      var mismatch = ""
-      for(var key in test_result) {
-         test_result_obj = test_result[key][0];
-         mismatch = await this.dateMismatchHelper(test_result_obj.assignment_id, test_result_obj.user_id);
-         return mismatch;}
-       
-   }
-
    compile(assignment_id, test_input, test_name) {
       this.props.models.assignment.compile(assignment_id, test_input, test_name);
-      // needs to reset has_mismatch values for that user and assignment
+      // needs to reset has_mismatch values for that user and assignment --> can re-run "get class test results" function? 
+      // or can re-run "get test results for this student" and update state variable with this 
       // needs to be a different function that takes in student id; current ver of compile uses logged in user id
    }
-
-   rerunTests(item) {
-      for (var key in item.results)
+ 
+   // reruns all named test cases on this assignment for the given student 
+   rerunTests(student) {
+      for (var key in student.results)
       {
-         var test = item.results[key];
+         var test = student.results[key];
          var assignment_id = test[0].assignment_id;
          var test_input = test[0].test_input;
          var test_name = test[0].test_name;
@@ -176,20 +149,15 @@ class BulkResultsComponent extends Component {
       {
         return(<Redirect to="/assignment" />);
       }
-
-      let dateStyle = {
-         backgroundColor: 'red'
-      };
     
       // array of test names --> table columns
-      const headers = this.state.test_names; 
+      const headers = Object.keys(this.state.test_cases); 
       // array of students, where each student has test results associated with 
       // them --> one table row per student 
       const data = this.state.test_results;
       // json property containing the actual output in a test result object
       const json_result_field = "test_result"; 
       
-
       return (
         <article className="container">
            <article>
@@ -205,7 +173,7 @@ class BulkResultsComponent extends Component {
                   </thead>
                   <tbody> 
                      {data.map((item, index) =>
-                        <tr key={index} class={index.class}>
+                        <tr key={index} className={index.class}>
                            <td>
                            {item.name}
                            </td>
@@ -214,9 +182,9 @@ class BulkResultsComponent extends Component {
                            )}
                            {item.has_mismatch ? 
                            (
-                              <td style={dateStyle}>{item.oldest_test}</td>
+                              <td className="bg-warning">{item.oldest_test_date}</td>
                               ) : (
-                              <td>{item.oldest_test}</td>
+                              <td>{item.oldest_test_date}</td>
                            )}
                            {item.has_mismatch ? 
                            (
