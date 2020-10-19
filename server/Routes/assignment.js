@@ -178,7 +178,7 @@ exports.createTestCase = function(req, res, db, acl) {
       //then make the call
       .then(() => db.AssignmentFiles.remove(file_id))
       .then(() => {
-         db.Assignments.TestCases.dateMismatchUpdate(assignment_id, current_user.id)
+         db.Assignments.TestCases.updateTestOutdated(assignment_id, current_user.id)
          .catch(err => {
             // file uploaded successfully but updating the test_results 
             // table failed for whatever reason 
@@ -223,49 +223,6 @@ exports.editTestCase = function(req, res, db, acl) {
       .catch(err =>
          res.json({ response: err })
       );
-}
-
-/**
- * Checks if a given user last ran a given test with outdated
- * versions of files for that assignment.
- * @param {Object} req HTTP request object. 
- * @param {Object} res HTTP response object. 
- * @param {Object} db Database connection. 
- * @param {Object} acl Object containing AccessControlList methods.
- * @returns {Object} JSON response with boolean indicating if the last test was
- *    run on outdated files if successful, or with error message if unsuccessful.
- */
-exports.existsDateMismatch = function(req, res, db, acl) {
-   let session = req.session;
-   const current_user = session.user;
-   const assignment_id = req.params.aid;
-   const user_id = req.params.uid;
-   const test_name = req.params.test_name;
-
-   // if user is logged in
-   acl.isLoggedIn(session)
-
-      //and this user can grade
-      .then(() => acl.canGradeAssignment(current_user, assignment_id))
-
-      //then make the call
-      .then(() => {
-         db.Assignments.TestCases.dateMismatch(assignment_id, user_id, test_name)
-            .then(result => {
-               if(result.length > 0) {
-                  res.json({response: true});
-               }
-               else {
-                  res.json({response: false}); 
-               }
-            })
-            .catch(err => {
-               res.json({ response: err });
-            });
-         })
-      .catch((error) => {
-         return res.status(500).send(error);
-      });
 }
 
    /**
@@ -499,7 +456,7 @@ exports.uploadFile = function(req, res, db, acl) {
 
           db.AssignmentFiles.add(current_user.id, assignment_id, uploaded_file.name, text)
             .then(result => {
-               db.Assignments.TestCases.dateMismatchUpdate(assignment_id, current_user.id)
+               db.Assignments.TestCases.updateTestOutdated(assignment_id, current_user.id)
                .catch(err => {
                   // file uploaded successfully but updating the test_results 
                   // table failed for whatever reason 
