@@ -126,11 +126,11 @@ class Assignment {
       });
    }
 
-   run(assignment_id, test_case) {
-      return this.compile(assignment_id, test_case, true);
+   run(assignment_id, user_id, test_case, test_name) {
+      return this.compile(assignment_id, user_id, test_case, test_name, true);
    }
 
-   compile(assignment_id, test_case, test_name, run_only = false) {
+   compile(assignment_id, user_id, test_case, test_name, run_only = false) {
       return new Promise((resolve, reject) => {
 
          //never allow caching of compile calls
@@ -139,7 +139,7 @@ class Assignment {
          if (run_only === true) {
             path = this.config.endpoints.assignment.run; 
          }
-         const endpoint = this.config.constructRoute(path, [assignment_id]);
+         const endpoint = this.config.constructRoute(path, [assignment_id, user_id]);
          call(endpoint, { stdin: test_case, test_name: test_name }, (result) => {
             if (result !== null && result !== undefined && Object.keys(result.data.response).length > 0) {
                resolve(result.data.response);

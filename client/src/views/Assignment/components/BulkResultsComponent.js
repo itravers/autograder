@@ -13,7 +13,8 @@ class BulkResultsComponent extends Component {
 
       this.state = {
          test_cases: {}, 
-         test_results: []
+         test_results: [],
+         is_running_test: false
       };
 
       this.getTestCases = this.getTestCases.bind(this); 
@@ -93,7 +94,8 @@ class BulkResultsComponent extends Component {
       });
    }
 
-   // 
+   // gets test results for each student in the class and sets the state 
+   // variable test_results to the resulting array 
    async getClassResults(student_roster) {
       let class_results = []; 
       // get test results for each student in class 
@@ -103,45 +105,54 @@ class BulkResultsComponent extends Component {
             // test case, sorted with most recent result first  
             let student_row = {id: student.id, name: student.name, results: {}, oldest_test_date: "", has_mismatch: false};
             student_row.results = await this.getTestResults(student.id); 
-
-            // get the least recently run test of all current test results for 
-            // this student, and flag if any are outdated
-            let oldest_test_date = ""; 
-            for(const test_name of Object.keys(this.state.test_cases))
-            {
-               if (student_row.results.hasOwnProperty(test_name) && student_row.results[test_name][0] !== undefined) {
-                  let test = student_row.results[test_name][0];
-                  if (oldest_test_date === "" || (Date.parse(oldest_test_date) > Date.parse(test.date_run))) {
-                     oldest_test_date = test.date_run;
-                  }
-                  if (test.is_outdated === 1) {
-                     student_row.has_mismatch = true; 
-                  }
-               }
-            }
-            student_row.oldest_test_date = oldest_test_date; 
+            student_row = await this.updateDateAndMismatch(student_row); 
             class_results.push(student_row); 
          }
          this.setState({ test_results: class_results }); 
    }
 
-   compile(assignment_id, test_input, test_name) {
-      this.props.models.assignment.compile(assignment_id, test_input, test_name);
-      // needs to reset has_mismatch values for that user and assignment --> can re-run "get class test results" function? 
-      // or can re-run "get test results for this student" and update state variable with this 
-      // needs to be a different function that takes in student id; current ver of compile uses logged in user id
+   // updates the has_mismatch and oldest_test values in a student object,
+   // indicating if any of the current test results are outdated
+   updateDateAndMismatch(student) {
+      student.has_mismatch = false; 
+      let oldest_test_date = ""; 
+      for(const test_name of Object.keys(this.state.test_cases))
+      {
+         if (student.results.hasOwnProperty(test_name) && student.results[test_name][0] !== undefined) {
+            let test = student.results[test_name][0];
+            if (oldest_test_date === "" || (Date.parse(oldest_test_date) > Date.parse(test.date_run))) {
+               oldest_test_date = test.date_run;
+            }
+            if (test.is_outdated === 1) {
+               student.has_mismatch = true; 
+            }
+         }
+      }
+      student.oldest_test_date = oldest_test_date;
+      return student;
    }
  
    // reruns all named test cases on this assignment for the given student 
-   rerunTests(student) {
-      for (var key in student.results)
+   async rerunTests(student) {
+      this.setState({ is_running_test: true }); 
+      // rerun test cases sequentially
+      for(const test_name in this.state.test_cases)
       {
-         var test = student.results[key];
-         var assignment_id = test[0].assignment_id;
-         var test_input = test[0].test_input;
-         var test_name = test[0].test_name;
-         this.props.models.assignment.compile(assignment_id, test_input, test_name);
+         let assignment_id = this.props.assignment.id; 
+         let test_input = this.state.test_cases[test_name]; 
+         await this.props.models.assignment.compile(assignment_id, student.id, test_input, test_name); 
       }
+      // then update this student's test results 
+      student.results = await this.getTestResults(student.id);
+      student = await this.updateDateAndMismatch(student);
+
+      // finally, update array of class results for this student
+      let test_results_copy = [...this.state.test_results]
+      let index = test_results_copy.findIndex((element) => element.id === student.id);
+      test_results_copy[index] = student; 
+      this.setState({ test_results: test_results_copy }); 
+      this.setState({ is_running_test: false });  
+      return; 
    }
 
    render() {
@@ -188,8 +199,13 @@ class BulkResultsComponent extends Component {
                            )}
                            {item.has_mismatch ? 
                            (
-                              <td><button className="btn btn-primary" onClick={() => { this.rerunTests(item) }}>Run</button></td>
-                              ) : (
+                              <td><button className="btn btn-primary" 
+                                          onClick={() => { this.rerunTests(item) }}
+                                          disabled={this.state.is_running_test}>
+                                    Run
+                                 </button>
+                              </td>
+                           ) : (
                               <td></td>
                            )}
                         </tr>

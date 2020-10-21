@@ -295,7 +295,10 @@ class IndexView extends Component {
                      (props) => {
                         return (
                            <div className="container">
-                              <TestCases assignment={this.state.current_assignment} />
+                              <TestCases 
+                                 assignment={this.state.current_assignment} 
+                                 selected_user={this.state.selected_user}
+                              />
                            </div>
                         )
                      }} />

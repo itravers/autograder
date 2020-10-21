@@ -39,8 +39,8 @@ class SharedConfig{
             submit_assignment: root_endpoint + "/api/assignment/{:assignment_id}/user/{:user_id}/submitAssignment",
             lock_assignment: root_endpoint + "/api/assignment/{:assignment_id}/lockAssignment",
             is_locked: root_endpoint + "/api/assignment/{:assignment_id}/isLocked",
-            run: root_endpoint + "/api/assignment/{:assignment_id}/run",
-            compile: root_endpoint + "/api/assignment/{:assignment_id}/compile"
+            run: root_endpoint + "/api/assignment/{:assignment_id}/user/{:user_id}/run",
+            compile: root_endpoint + "/api/assignment/{:assignment_id}/user/{:user_id}/compile"
          },
          course: {
             all: root_endpoint + "/api/course",

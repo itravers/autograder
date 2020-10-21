@@ -63,6 +63,7 @@ exports.compileAndRun = function(req, res, db, config, acl, Compiler) {
    let session = req.session;
    const current_user = session.user;
    const assignment_id = req.params.assignment_id;
+   const selected_user = {id: parseInt(req.params.user_id)}; 
    const dockerfile_path = "Models/compilers/cpp_clang";
    const stdin = req.body.stdin;
    const test_name = req.body.test_name;
@@ -70,16 +71,29 @@ exports.compileAndRun = function(req, res, db, config, acl, Compiler) {
    //do we have an active user?
    acl.isLoggedIn(session)
 
-      //and this user can access the current assignment
-      .then(() => acl.userHasAssignment(current_user, assignment_id))
-
+      // determine if the current user wants to compile their own code or 
+      // someone else's (e.g. one of their students')
+      .then(() => {
+         if (selected_user.id === current_user.id) {
+            // user wants to compile their own code; make sure they can access
+            // the current assignment 
+            return acl.userHasAssignment(current_user, assignment_id)
+         }
+         else {
+            // user wants to compile someone else's code; make sure given user_id
+            // can access assignment and current_user has privileges 
+            return acl.userHasAssignment(selected_user, assignment_id)
+            .then(result => acl.canGradeAssignment(current_user, result.course_id))
+         }
+      })
+      
       //then, try to compile and build the assignment
       .then(() => {
          let compiler = Compiler.createCompiler(
             db,
             config.temp_path,
             req.params.assignment_id,
-            current_user.id,
+            selected_user.id,
             dockerfile_path,
             stdin
          );
@@ -88,7 +102,7 @@ exports.compileAndRun = function(req, res, db, config, acl, Compiler) {
 
       // log test results in database 
       .then((result) => {
-         db.Assignments.TestCases.log(assignment_id, current_user.id, test_name, stdin, result)
+         db.Assignments.TestCases.log(assignment_id, selected_user.id, test_name, stdin, result)
             .then(() => {
                res.json({ response: result });
             })
@@ -97,7 +111,7 @@ exports.compileAndRun = function(req, res, db, config, acl, Compiler) {
             });
       })
       .catch((err) => {
-         db.Assignments.TestCases.log(assignment_id, current_user.id, test_name, stdin, err.message)
+         db.Assignments.TestCases.log(assignment_id, selected_user.id, test_name, stdin, err.message)
             .then(() => {
                res.json({ response: err.message });
             })
@@ -381,6 +395,7 @@ exports.getTestCases = function(req, res, db) {
     let session = req.session;
     const current_user = session.user;
     const assignment_id = req.params.assignment_id;
+    const selected_user = {id: parseInt(req.params.user_id)}; 
     const tools_command = config.compiler.tools_path + "\\" + config.compiler.tools_batch;
     const compile_cmd = config.compiler.compile_command;
     const stdin = req.body.stdin;
@@ -389,8 +404,21 @@ exports.getTestCases = function(req, res, db) {
     //do we have an active user?
     acl.isLoggedIn(session)
  
-       //and this user can access the current assignment
-       .then(() => acl.userHasAssignment(current_user, assignment_id))
+       // determine if the current user wants to compile their own code or 
+      // someone else's (e.g. one of their students')
+      .then(() => {
+         if (selected_user.id === current_user.id) {
+            // user wants to compile their own code; make sure they can access
+            // the current assignment 
+            return acl.userHasAssignment(current_user, assignment_id)
+         }
+         else {
+            // user wants to compile someone else's code; make sure given user_id
+            // can access assignment and current_user has privileges 
+            return acl.userHasAssignment(selected_user, assignment_id)
+            .then(result => acl.canGradeAssignment(current_user, result.course_id))
+         }
+      })
  
        //then, try to compile and build the assignment
        .then(() => {
@@ -398,18 +426,20 @@ exports.getTestCases = function(req, res, db) {
              db,
              config.temp_path,
              req.params.assignment_id,
-             current_user.id,
+             selected_user.id,
              tools_command,
              compile_cmd,
              stdin
           );
+          // TODO: Docker container broke this function. Update as needed when
+          // it's fixed in Compiler.js
           return compiler.canRunFiles()
              .then(() => compiler.runFiles());
        })
        
        // log test results in database 
       .then((result) => {
-         db.Assignments.TestCases.log(assignment_id, current_user.id, test_name, stdin, result)
+         db.Assignments.TestCases.log(assignment_id, selected_user.id, test_name, stdin, result)
             .then(() => {
                res.json({ response: result });
             })
@@ -418,7 +448,7 @@ exports.getTestCases = function(req, res, db) {
             });
       })
       .catch((err) => {
-         db.Assignments.TestCases.log(assignment_id, current_user.id, test_name, stdin, err.message)
+         db.Assignments.TestCases.log(assignment_id, selected_user.id, test_name, stdin, err.message)
             .then(() => {
                res.json({ response: err.message });
             })
