@@ -14,13 +14,15 @@ class BulkResultsComponent extends Component {
       this.state = {
          test_cases: {}, 
          test_results: [],
-         is_running_test: false
+         is_running_tests: false,
+         is_running_all_tests: false
       };
 
       this.getTestCases = this.getTestCases.bind(this); 
       this.getTestResults = this.getTestResults.bind(this);
       this.getClassResults = this.getClassResults.bind(this); 
-      this.rerunTests = this.rerunTests.bind(this);
+      this.rerunStudentTests = this.rerunStudentTests.bind(this);
+      this.rerunClassTests = this.rerunClassTests.bind(this); 
    }
 
    componentDidMount() {
@@ -103,7 +105,7 @@ class BulkResultsComponent extends Component {
             // create object to hold necessary data, including a results object 
             // where key = test name and value = array of test results for that 
             // test case, sorted with most recent result first  
-            let student_row = {id: student.id, name: student.name, results: {}, oldest_test_date: "", has_mismatch: false};
+            let student_row = {id: student.id, name: student.name, results: {}, oldest_test_date: "", has_mismatch: false, is_running_tests: false};
             student_row.results = await this.getTestResults(student.id); 
             student_row = await this.updateDateAndMismatch(student_row); 
             class_results.push(student_row); 
@@ -133,8 +135,14 @@ class BulkResultsComponent extends Component {
    }
  
    // reruns all named test cases on this assignment for the given student 
-   async rerunTests(student) {
-      this.setState({ is_running_test: true }); 
+   async rerunStudentTests(student) {
+      // set state to indicate that this specific student is running tests 
+      student.is_running_tests = true;
+      let test_results_copy = [...this.state.test_results]
+      let index = test_results_copy.findIndex((element) => element.id === student.id);
+      test_results_copy[index] = student; 
+      this.setState({ test_results: test_results_copy, is_running_tests: true }); 
+      
       // rerun test cases sequentially
       for(const test_name in this.state.test_cases)
       {
@@ -147,11 +155,19 @@ class BulkResultsComponent extends Component {
       student = await this.updateDateAndMismatch(student);
 
       // finally, update array of class results for this student
-      let test_results_copy = [...this.state.test_results]
-      let index = test_results_copy.findIndex((element) => element.id === student.id);
+      student.is_running_tests = false; 
       test_results_copy[index] = student; 
-      this.setState({ test_results: test_results_copy }); 
-      this.setState({ is_running_test: false });  
+      this.setState({ test_results: test_results_copy, is_running_tests: false }); 
+      return; 
+   }
+
+   // reruns all tests for the entire student roster 
+   async rerunClassTests() {
+      this.setState({ is_running_tests: true, is_running_all_tests: true }); 
+      // call rerunStudentTests for each student in the test_results array
+      const promises = this.state.test_results.map(this.rerunStudentTests);
+      await Promise.all(promises);
+      this.setState({ is_running_tests: false, is_running_all_tests: false });
       return; 
    }
 
@@ -168,10 +184,23 @@ class BulkResultsComponent extends Component {
       const data = this.state.test_results;
       // json property containing the actual output in a test result object
       const json_result_field = "test_result"; 
+      let running_all_text = "sit tight... this may take a while";
+      if (this.state.is_running_all_tests === false) {
+         running_all_text = "";
+      }
       
       return (
         <article className="container">
            <article>
+               <div style={{ padding: "1.1rem" }}>
+                  <button
+                           type="Submit"
+                           disabled={this.state.is_running_tests || this.state.is_running_all_tests}
+                           onClick={() => { this.rerunClassTests() }}
+                           className="btn btn-outline-primary">Run all tests</button>
+                  <br/>
+                  <span>{running_all_text}</span>
+               </div>
                <table className = "table table-striped text-left">
                   <thead>
                      <tr>
@@ -199,9 +228,10 @@ class BulkResultsComponent extends Component {
                            )}
                            {item.has_mismatch ? 
                            (
-                              <td><button className="btn btn-primary" 
-                                          onClick={() => { this.rerunTests(item) }}
-                                          disabled={this.state.is_running_test}>
+                              <td><button type="Submit"
+                                          className="btn btn-primary" 
+                                          onClick={() => { this.rerunStudentTests(item) }}
+                                          disabled={item.is_running_tests || this.state.is_running_all_tests}>
                                     Run
                                  </button>
                               </td>
