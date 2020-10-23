@@ -122,7 +122,7 @@ class BulkResultsComponent extends Component {
       {
          if (student.results.hasOwnProperty(test_name) && student.results[test_name][0] !== undefined) {
             let test = student.results[test_name][0];
-            if (oldest_test_date === "" || (Date.parse(oldest_test_date) > Date.parse(test.date_run))) {
+            if (oldest_test_date === "" || oldest_test_date === undefined || (Date.parse(oldest_test_date) > Date.parse(test.date_run))) {
                oldest_test_date = test.date_run;
             }
             if (test.is_outdated === 1) {

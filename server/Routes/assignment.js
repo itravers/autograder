@@ -366,12 +366,14 @@ exports.getTestCases = function(req, res, db) {
     let user_id = req.params.user_id;
     const assignment_id = req.params.assignment_id;
     acl.isLoggedIn(session)
-       .then(() => {
-          //admins and instructors are allowed to look at others' stuff.  Students not.
-          if (session.user.is_instructor !== 1 && session.user.is_admin !== 1) {
-             user_id = session.user.id;
-          }
-       })
+      // user should either be an admin, or should be an instructor with 
+      // permission to grade for this course 
+      .then(() => acl.isAdmin(session))
+      .catch(() => {
+         // not admin, so check for grading permissions 
+         return acl.userHasAssignment(session.user, assignment_id)
+         .then(result => acl.canGradeAssignment(session.user, result.course_id))
+      })
        .then(() => db.Assignments.TestCases.testResults(assignment_id, user_id))
        .then(results => {
           res.json({ response: results });
