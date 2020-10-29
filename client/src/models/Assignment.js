@@ -63,7 +63,7 @@ class Assignment {
          const path = this.config.endpoints.assignment.test_cases; 
          const endpoint = this.config.constructRoute(path, [assignment_id]); 
          call(endpoint, (result) => {
-            if (result !== null && result !== undefined && Object.keys(result.data.response).length > 0) {
+            if (result !== null && result.data.response !== undefined) {
                resolve(result.data.response);
             }
             else {
