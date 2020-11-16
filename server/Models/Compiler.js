@@ -1,6 +1,7 @@
 const fs = require('fs');
 const { exec, execFile, spawn, onExit } = require('child_process');
 const path = require("path");
+const rmdir_rf = require('rimraf');
 
 /**
  * Constructor for all compilers using Docker. 
@@ -22,13 +23,17 @@ class Compiler {
       this.dockerfile_path = dockerfile_path;
       this.assignment_workspace = this.workspace_path + "/" + assignment_id;
       this.student_workspace = this.assignment_workspace + "/" + student_id;
+      this.before_run_workspace = this.student_workspace + "/before_run"; 
+      this.after_run_workspace = this.student_workspace + "/after_run"; 
       this.stdin = stdin;
       this.timeout = timeout;
+      this.stdout = ""; 
 
       this.begin = this.begin.bind(this);
       this.loadFiles = this.loadFiles.bind(this);
       this.buildDockerContainer = this.buildDockerContainer.bind(this); 
       this.runDockerContainer = this.runDockerContainer.bind(this);
+      this.updateDatabase = this.updateDatabase.bind(this); 
       this.canRunFiles = this.canRunFiles.bind(this); 
    }
 
@@ -43,8 +48,9 @@ class Compiler {
          this.loadFiles()
             .then(result => this.buildDockerContainer())
             .then(result => this.runDockerContainer())
+            .then(result => this.updateDatabase())
             .then(result => {
-               resolve(result);
+               resolve(this.stdout);
             })
             .catch(err => {
                reject(err);
@@ -87,8 +93,14 @@ class Compiler {
                if (fs.existsSync(this.student_workspace) === false) {
                   fs.mkdirSync(this.student_workspace);
                }
+               if (fs.existsSync(this.before_run_workspace) === false) {
+                  fs.mkdirSync(this.before_run_workspace);
+               }
+               if (fs.existsSync(this.after_run_workspace) === false) {
+                  fs.mkdirSync(this.after_run_workspace);
+               }
                for (let file of files) {
-                  const file_path = this.student_workspace + "/" + file.file_name;
+                  const file_path = this.before_run_workspace + "/" + file.file_name;
                   file.path = file_path;
                   fs.writeFile(file_path, file.contents, { encoding: "utf8" }, (err) => {
                      if (!err) {
@@ -117,7 +129,7 @@ class Compiler {
    buildDockerContainer() {
       return new Promise((resolve, reject) => {
 
-         const absolute_path = path.resolve(this.student_workspace);
+         const absolute_path = path.resolve(this.before_run_workspace);
          const image_name = "cpp_" + this.assignment_id + "_" + this.student_id;
          const exe_command = "docker build " + absolute_path + " -t " + image_name;
          exec(exe_command, { timeout: this.timeout }, (err, stdout, stderr) => {
@@ -131,8 +143,10 @@ class Compiler {
       });
    }
 
+   // TODO: clean up callbacks
    /**
-    * Runs docker container with untrusted code. 
+    * Runs docker container with untrusted code and copies any files created
+    * to the local filesystem.
     * @returns {Promise} Resolves with the result of running container with 
     *    untrusted code if successful. Rejects with error otherwise. 
     */
@@ -140,16 +154,38 @@ class Compiler {
       return new Promise((resolve, reject) => {
 
          //create BATCH file
-         const absolute_path = path.resolve(this.student_workspace);
+         //const absolute_path = path.resolve(this.before_run_workspace);
+         const after_run_path = path.resolve(this.after_run_workspace);
          const image_name = "cpp_" + this.assignment_id + "_" + this.student_id;
 
          //docker timeout is in seconds whereas nodejs timeout is in milliseconds
          const docker_timeout = this.timeout / 1000;
-         const exe_command = "docker run --rm " + image_name + " timeout " + docker_timeout + " sh -c './run.sh'";
+         //const exe_command = "docker run --rm " + image_name + " timeout " + docker_timeout + " sh -c './run.sh'";
+         const container_name = image_name + "_" + Date.now(); 
+         const exe_command = "docker run --name " + container_name + " " + image_name + " timeout " + docker_timeout + " sh -c './run.sh'"; 
 
          exec(exe_command, { timeout: this.timeout }, (err, stdout, stderr) => {
             if (!err) {
-               resolve(stdout);
+               this.stdout = stdout; 
+               // copy all files from /tmp workspace on container to local filesystem
+               const cp_command = "docker cp " + container_name + ":/tmp/. " + after_run_path;
+               exec(cp_command, { timeout: this.timeout }, (err, stdout, stderr) => {
+                  if (!err) {
+                     // cleanup: remove container
+                     const rm_command = "docker rm " + container_name;
+                     exec(rm_command, { timeout: this.timeout }, (err, stdout, stderr) => {
+                        if (!err) {
+                           resolve(this.stdout);
+                        }
+                        else {
+                           reject(err);
+                        }
+                     });
+                  }
+                  else {
+                     reject(err);
+                  }
+               });
             }
             else {
                reject(err);
@@ -159,9 +195,56 @@ class Compiler {
    }
 
    /**
+    * Adds any files that were created when running code to database. 
+    * @returns {Promise} Resolves if successful. Rejects with error otherwise. 
+    */
+   updateDatabase() {
+      return new Promise((resolve, reject) => {
+         const docker_filenames = ["Dockerfile", "run.sh", "stdin.txt", "output"];
+         // iterate through all files in new workspace
+         let promises = []; 
+         fs.readdirSync(this.after_run_workspace).forEach(filename =>  {
+            // if it's not a docker file, upload to database
+            if(docker_filenames.includes(filename) === false) { 
+               let file_path = path.resolve(this.after_run_workspace, filename);
+               let contents = fs.readFileSync(file_path);
+               let add_promise = this.db.AssignmentFiles.add(this.student_id, this.assignment_id, filename, contents); 
+               promises.push(add_promise);
+            }
+            //new_files[filename] = fs.statSync(path.resolve(this.after_run_workspace, filename));
+         });
+          
+         /* // then for each file in old workspace: if it doesn't exist in new workspace, delete from db
+         fs.readdirSync(this.before_run_workspace).forEach(filename =>  {
+            // TODO: replace existsSync() with fs.promises.access()
+            if(fs.existsSync(path.resolve(after_run_workspace, filename)) === false) {
+               // TODO: update this line once bug with removePrior() is resolved
+               promises.push(this.db.AssignmentFiles.removePrior(this.assignment_id, filename)); 
+            }
+            //old_files[filename] = fs.statSync(path.resolve(this.before_run_workspace, filename));
+         }); */
+
+         // clear workspaces after all files are added/deleted in db as needed
+         Promise.all(promises)
+         .then(() => {
+            rmdir_rf(path.resolve(this.before_run_workspace), () => {
+               rmdir_rf(path.resolve(this.after_run_workspace), () => {
+                  resolve(); 
+               }); 
+            });
+         })
+         .catch(err => {
+            // some file didn't get added to db properly 
+            console.log(err); 
+            reject(); 
+         })
+      });
+   }
+
+   /**
     * If we're just testing the same program against multiple tests, it's wasteful to always
     * compile.  This function tells us if we can run an existing program without a compile
-    * by checking to see if the necessasry files already exist (i.e. main.exe)
+    * by checking to see if the necessary files already exist (i.e. main.exe)
     * @returns {Promise} Resolves with true if the necessary files to run this program already 
     *    exist. Otherwise, if the necessary files don't already exist, we can't run this 
     *    program, so it rejects with error. 
