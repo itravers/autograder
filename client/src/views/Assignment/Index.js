@@ -298,6 +298,7 @@ class IndexView extends Component {
                               <TestCases 
                                  assignment={this.state.current_assignment} 
                                  selected_user={this.state.selected_user}
+                                 getAssignmentFiles={this.getAssignmentFiles}
                               />
                            </div>
                         )

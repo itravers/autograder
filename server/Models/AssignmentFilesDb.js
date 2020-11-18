@@ -30,7 +30,7 @@ class AssignmentFilesDb {
       return new Promise((resolve, reject) => {
 
          //remove any prior version of this file before adding new version
-         this.removePrior(assignment_id, file_name)
+         this.removePrior(user_id, assignment_id, file_name)
          .then(() => {
             const sql = "INSERT INTO assignment_files " +
                " (assignment_id, owner_id, file_name, contents) " +
@@ -160,15 +160,16 @@ class AssignmentFilesDb {
    }
 
    /**
-    * Removes (soft deletes) of prior versions of a given file for a given assignment.
+    * Removes (soft deletes) prior versions of a given file for a given user and assignment.
+    * @param {Number} owner_id The owner's user ID number (integer).
     * @param {Number} assignment_id The assignment's ID number (integer).
     * @param {String} file_name The file's name. 
     * @returns {Promise} Resolves with the number of files affected if successful; 
     *    rejects with error otherwise. 
     */
-   removePrior(assignment_id, file_name) {
-      const sql = "UPDATE assignment_files set is_deleted = 1 WHERE assignment_id = $assignment_id AND file_name = $file_name ";
-      const params = { $assignment_id: assignment_id, $file_name: file_name };
+   removePrior(owner_id, assignment_id, file_name) {
+      const sql = "UPDATE assignment_files set is_deleted = 1 WHERE owner_id = $owner_id AND assignment_id = $assignment_id AND file_name = $file_name ";
+      const params = { $owner_id: owner_id, $assignment_id: assignment_id, $file_name: file_name };
 
       return new Promise((resolve, reject) => {
          //AC: placing db callback function into its own variable changes 

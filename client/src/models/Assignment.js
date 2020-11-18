@@ -41,6 +41,10 @@ class Assignment {
                   item.type = "text/plain";
                   item.lastModified = 0;
                   item.name = item.file_name;
+                  // convert buffers to strings
+                  if(item.contents.type === 'Buffer' && item.contents.data !== undefined) {
+                     item.contents = new Buffer.from(item.contents.data).toString();
+                  }
                   file_data[item.file_name] = item;
                   file_links.push(item);
                }

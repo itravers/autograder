@@ -27,10 +27,11 @@ class TestCasesComponent extends Component {
    }
 
    handleFormSubmit(evt) {
-      evt.preventDefault();
+      evt.preventDefault(); 
       this.setState({ is_running_test: true }, () => {
          this.props.models.assignment.compile(this.props.assignment.id, this.props.selected_user.id, this.state.selected_test.test_input, this.state.selected_test.test_name)
             .then(result => {
+               this.props.getAssignmentFiles(); 
                this.setState({ test_result: result, is_running_test: false });
             })
             .catch(result => {
