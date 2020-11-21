@@ -2,6 +2,17 @@ const fs = require('fs');
 const { exec, execFile, spawn, onExit } = require('child_process');
 const path = require("path");
 const rmdir_rf = require('rimraf');
+const util = require('util');
+// custom function for "promisifying" fs.access, to avoid callback pyramid of doom
+fs.access[util.promisify.custom] = (path, mode) => {
+   return new Promise((resolve,reject) => {
+      fs.access(path, mode, (err) => {
+         if(err) reject(err);
+         else resolve(); 
+      });
+   });
+}
+const access = util.promisify(fs.access); 
 
 /**
  * Constructor for all compilers using Docker. 
@@ -27,13 +38,17 @@ class Compiler {
       this.after_run_workspace = this.student_workspace + "/after_run"; 
       this.stdin = stdin;
       this.timeout = timeout;
+      this.image_name = "cpp_" + this.assignment_id + "_" + this.student_id;
+      this.container_name = this.image_name + "_" + Date.now(); 
       this.stdout = ""; 
 
       this.begin = this.begin.bind(this);
       this.loadFiles = this.loadFiles.bind(this);
       this.buildDockerContainer = this.buildDockerContainer.bind(this); 
       this.runDockerContainer = this.runDockerContainer.bind(this);
+      this.copyFilesFromContainer = this.copyFilesFromContainer.bind(this); 
       this.updateDatabase = this.updateDatabase.bind(this); 
+      this.cleanUp = this.cleanUp.bind(this); 
       this.canRunFiles = this.canRunFiles.bind(this); 
    }
 
@@ -48,7 +63,9 @@ class Compiler {
          this.loadFiles()
             .then(result => this.buildDockerContainer())
             .then(result => this.runDockerContainer())
+            .then(result => this.copyFilesFromContainer())
             .then(result => this.updateDatabase())
+            .then(result => this.cleanUp())
             .then(result => {
                resolve(this.stdout);
             })
@@ -128,10 +145,8 @@ class Compiler {
     */
    buildDockerContainer() {
       return new Promise((resolve, reject) => {
-
          const absolute_path = path.resolve(this.before_run_workspace);
-         const image_name = "cpp_" + this.assignment_id + "_" + this.student_id;
-         const exe_command = "docker build " + absolute_path + " -t " + image_name;
+         const exe_command = "docker build " + absolute_path + " -t " + this.image_name;
          exec(exe_command, { timeout: this.timeout }, (err, stdout, stderr) => {
             if (!err) {
                resolve(stdout);
@@ -143,7 +158,6 @@ class Compiler {
       });
    }
 
-   // TODO: clean up callbacks
    /**
     * Runs docker container with untrusted code and copies any files created
     * to the local filesystem.
@@ -152,40 +166,34 @@ class Compiler {
     */
    runDockerContainer() {
       return new Promise((resolve, reject) => {
-
-         //create BATCH file
-         //const absolute_path = path.resolve(this.before_run_workspace);
-         const after_run_path = path.resolve(this.after_run_workspace);
-         const image_name = "cpp_" + this.assignment_id + "_" + this.student_id;
-
          //docker timeout is in seconds whereas nodejs timeout is in milliseconds
          const docker_timeout = this.timeout / 1000;
-         //const exe_command = "docker run --rm " + image_name + " timeout " + docker_timeout + " sh -c './run.sh'";
-         const container_name = image_name + "_" + Date.now(); 
-         const exe_command = "docker run --name " + container_name + " " + image_name + " timeout " + docker_timeout + " sh -c './run.sh'"; 
-
+         const exe_command = "docker run --name " + this.container_name + " " + this.image_name + " timeout " + docker_timeout + " sh -c './run.sh'"; 
          exec(exe_command, { timeout: this.timeout }, (err, stdout, stderr) => {
             if (!err) {
                this.stdout = stdout; 
-               // copy all files from /tmp workspace on container to local filesystem
-               const cp_command = "docker cp " + container_name + ":/tmp/. " + after_run_path;
-               exec(cp_command, { timeout: this.timeout }, (err, stdout, stderr) => {
-                  if (!err) {
-                     // cleanup: remove container
-                     const rm_command = "docker rm " + container_name;
-                     exec(rm_command, { timeout: this.timeout }, (err, stdout, stderr) => {
-                        if (!err) {
-                           resolve(this.stdout);
-                        }
-                        else {
-                           reject(err);
-                        }
-                     });
-                  }
-                  else {
-                     reject(err);
-                  }
-               });
+               resolve(stdout);
+            }
+            else {
+               reject(err);
+            }
+         });
+      });
+   }
+
+   /**
+    * Copies files from Docker container to local filesystem.
+    * @returns {Promise} Resolves with output from command if successful. 
+    *    Rejects with error otherwise. 
+    */
+   copyFilesFromContainer() {
+      return new Promise((resolve, reject) => {
+         // copy all files from /tmp workspace on container to local filesystem
+         const after_run_path = path.resolve(this.after_run_workspace);
+         const exe_command = "docker cp " + this.container_name + ":/tmp/. " + after_run_path;
+         exec(exe_command, { timeout: this.timeout }, (err, stdout, stderr) => {
+            if (!err) {
+               resolve(stdout); 
             }
             else {
                reject(err);
@@ -201,30 +209,42 @@ class Compiler {
    updateDatabase() {
       return new Promise((resolve, reject) => {
          const docker_filenames = ["Dockerfile", "run.sh", "stdin.txt", "output"];
-         // iterate through all files in new workspace
-         let promises = []; 
-         fs.readdirSync(this.after_run_workspace).forEach(filename =>  {
-            // if it's not a docker file, upload to database
-            if(docker_filenames.includes(filename) === false) { 
-               let file_path = path.resolve(this.after_run_workspace, filename);
-               let contents = fs.readFileSync(file_path);
-               let add_promise = this.db.AssignmentFiles.add(this.student_id, this.assignment_id, filename, contents); 
-               promises.push(add_promise);
-            }
-            //new_files[filename] = fs.statSync(path.resolve(this.after_run_workspace, filename));
-         });
-          
-         /* // then for each file in old workspace: if it doesn't exist in new workspace, delete from db
-         fs.readdirSync(this.before_run_workspace).forEach(filename =>  {
-            // TODO: replace existsSync() with fs.promises.access()
-            if(fs.existsSync(path.resolve(after_run_workspace, filename)) === false) {
-               // TODO: update this line once bug with removePrior() is resolved
-               promises.push(this.db.AssignmentFiles.removePrior(this.assignment_id, filename)); 
-            }
-            //old_files[filename] = fs.statSync(path.resolve(this.before_run_workspace, filename));
-         }); */
+         let after_run_filenames = fs.readdirSync(this.after_run_workspace);
 
-         // clear workspaces after all files are added/deleted in db as needed
+         // for each file that exists in the workspace after executing code: 
+         // upload it to the database only if it was created or modified during 
+         // runtime, and it's not a Docker file 
+         const promises = after_run_filenames.map(filename => {
+            // skip processing if it's a Docker file 
+            if(docker_filenames.includes(filename) === true) {
+               return Promise.resolve(); 
+            } 
+
+            let before_run_path = path.resolve(this.before_run_workspace, filename);
+            let after_run_path = path.resolve(this.after_run_workspace, filename);
+            let before_stats = null; 
+            let after_stats = fs.statSync(after_run_path); 
+
+            // did file exist before running code?
+            return access(before_run_path)
+            .then(() => {
+               // yes -- get its stats 
+               before_stats = fs.statSync(before_run_path); 
+            })
+            .catch(() => {
+               // no -- it's just been created  
+               before_stats = null; 
+            })
+            .finally(() => {
+               // if the file was created or modified during runtime, upload to db
+               if((before_stats === null) || (before_stats.mtimeMs < after_stats.mtimeMs)) {
+                  let contents = fs.readFileSync(after_run_path);
+                  return this.db.AssignmentFiles.add(this.student_id, this.assignment_id, filename, contents); 
+               }
+            })
+         });
+
+         // clear workspaces after all files are added to db as needed
          Promise.all(promises)
          .then(() => {
             rmdir_rf(path.resolve(this.before_run_workspace), () => {
@@ -238,6 +258,27 @@ class Compiler {
             console.log(err); 
             reject(); 
          })
+      });
+   }
+
+   // TODO: move temp workspace deletion here 
+   /**
+    * Deletes Docker container and temp workspaces.
+    * @returns {Promise} Resolves with [TODO] if successful. Rejects with error 
+    *    otherwise. 
+    */
+   cleanUp() {
+      return new Promise((resolve, reject) => {
+         // remove Docker container
+         const exe_command = "docker rm " + this.container_name;
+         exec(exe_command, { timeout: this.timeout }, (err, stdout, stderr) => {
+            if (!err) {
+               resolve(stdout);
+            }
+            else {
+               reject(err);
+            }
+         });
       });
    }
 
@@ -278,12 +319,12 @@ class Compiler {
 }
 
 /**
- * Contains methods for compiling and running C++ code in Windows using Docker.
+ * Contains methods for compiling and running C++ code in a Docker container.
  * @typedef {Object} Compiler 
  */
 
 /**
- * Creates an instance of the Windows MSVC compiler. 
+ * Creates an instance of the compiler. 
  * @param {Object} db Database connection.
  * @param {String} workspace_path Path to directory containing files to compile and run. 
  * @param {Number} assignment_id This code's assignment's ID number (integer). 
@@ -291,7 +332,7 @@ class Compiler {
  * @param {String} tools_setup_cmd Command for setting up build tools. 
  * @param {String} compile_cmd Command for compiling this code. 
  * @param {String} stdin Input stream to be entered into code. 
- * @returns {Compiler} Windows MSVC compiler using Docker.
+ * @returns {Compiler} Compiler using Docker.
  */
 exports.createCompiler = function (db, workspace_path, assignment_id, student_id, dockerfile_path, stdin) {
    return new Compiler(db, workspace_path, assignment_id, student_id, dockerfile_path, stdin);
