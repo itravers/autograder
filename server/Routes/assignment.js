@@ -1,3 +1,8 @@
+let fs = require('fs'); 
+let archiver = require('archiver'); 
+let path = require('path'); 
+let rmdir = require('rimraf');
+
 /** 
  * Retrieves all files for the specified assignment and user (if allowed to grade).
  * @param {Object} req HTTP request object. 
@@ -118,26 +123,135 @@ exports.compileAndRun = function(req, res, db, config, acl, Compiler) {
  */
 exports.createTestCase = function(req, res, db, acl) {
    let session = req.session;
+   
+   const a_id = req.params.assignment_id;
+   const test_id = req.body.test_id; 
    const test_name = req.body.test_name; 
    const test_input = req.body.test_input; 
-   const test_desc = req.body.test_desc;
+   const test_description = req.body.test_description;
 
-   // does the current user have permission to create test cases 
-   // for this assignment? (are they an admin?)
-   acl.isAdmin(session)
-
+   // get course id for this assignment to check if user can edit this 
+   // assignment's test cases
+   db.Assignments.assignmentInfo(a_id)
+      .then((result) => acl.canModifyCourse(session.user, result.course_id))
+      .catch(() => {
+         res.json({response: 'cannot modify course'}); 
+      })
       // does this test case already exist for this assignment?
-      .then(() => db.Assignments.TestCases.isUnique(req.params.assignment_id, test_input))
+      .then(() => db.Assignments.TestCases.isUnique(a_id, test_id))
 
       // if the test case doesn't exist yet, add it to the database
-      .then(() => db.Assignments.TestCases.createTest(req.params.assignment_id, test_name, test_input, test_desc))
+      .then(() =>  db.Assignments.TestCases.createTest(a_id, test_name, test_input, test_description))
       .then(
          result => res.json({ response: result })
       )
-      .catch(err =>
-         res.json({ response: err })
-      );
+      .catch(err => {
+         // if err === false, this catch came from "isUnique()"-- then the test 
+         // case already exists and we should modify it 
+         if(err === false)
+         {
+            exports.editTestCase(req, res, db, acl); 
+         }
+         else
+         {
+            res.json({response: err});
+         }
+      });
 }
+
+/**
+ * Checks if a given assignment for a given user has tests run with outdated versions of files for that assignment and user.
+ * @param {Object} req HTTP request object. 
+ * @param {Object} res HTTP response object. 
+ * @param {Object} db Database connection. 
+ * @param {Object} acl Object containing AccessControlList methods.
+ * @returns {Object} JSON response with test case's ID if successful, or
+ *    with error message if unsuccessful for any reason.
+ */
+exports.dateMismatch = function(req, res, db, acl) {
+   let session = req.session;
+   const current_user = session.user;
+   const assignment_id = req.params.aid;
+   const user_id = req.params.uid;
+   const test_name = req.params.test;
+
+   // if user is logged in
+   acl.isLoggedIn(session)
+
+      //and this user can grade
+      .then(() => acl.canGradeAssignment(current_user, assignment_id))
+
+      //then make the call
+      .then(() => {
+         db.Assignments.TestCases.dateMismatch(assignment_id, user_id, test_name)
+            .then(result => {
+               res.json({ response: result });
+            })
+            .catch(err => {
+               res.json({ response: err });
+            });
+         })
+      .catch((error) => {
+         return res.status(500).send(error);
+      });
+}
+
+
+/** 
+ * Download student files for the given assignment.
+ * @param {Object} req HTTP request object. 
+ * @param {Object} res HTTP response object. 
+ * @param {Object} db Database connection.
+ * @returns {Object} JSON containing test files for the assignment, or error message. 
+ */
+exports.downloadFiles = function(req, res, db, acl) {
+   let session = req.session;
+   let user_id = req.params.user_id;
+   const assignment_id = req.params.assignment_id;
+   acl.isLoggedIn(session)
+      .then(() => {
+         //admins and instructors are allowed to look at others' stuff.  Students not.
+         if (session.user.is_instructor !== 1 && session.user.is_admin !== 1) {
+            user_id = session.user.id;
+         }
+      })
+      .then(() => db.AssignmentFiles.downloadFiles(req.params.assignment_id))
+      .then(results => {
+         res.json({ response: results });
+      })
+      .catch(err => {
+         res.json({ response: err });
+      });
+}
+
+
+/** 
+ * Download student results for the given assignment.
+ * @param {Object} req HTTP request object. 
+ * @param {Object} res HTTP response object. 
+ * @param {Object} db Database connection.
+ * @returns {Object} JSON containing test results for the assignment, or error message. 
+ */
+exports.downloadResults = function(req, res, db, acl) {
+   let session = req.session;
+   let user_id = req.params.user_id;
+   const assignment_id = req.params.assignment_id;
+   acl.isLoggedIn(session)
+      .then(() => {
+         //admins and instructors are allowed to look at others' stuff.  Students not.
+         if (session.user.is_instructor !== 1 && session.user.is_admin !== 1) {
+            user_id = session.user.id;
+         }
+      })
+      .then(() => db.Assignments.TestCases.downloadResults(req.params.assignment_id))
+      .then(result => {
+         res.json({ response: result });
+      })
+      .catch(err => {
+         res.json({ response: err });
+      });
+}
+
 
  /**
   * Deletes a file from an assignment. :aid is the assignment ID that this file will belong to.   
@@ -177,6 +291,73 @@ exports.createTestCase = function(req, res, db, acl) {
 }
 
 /**
+ * Edits a test case. 
+ * @param {Object} req HTTP request object. 
+ * @param {Object} res HTTP response object. 
+ * @param {Object} db Database connection. 
+ * @param {Object} acl Object containing AccessControlList methods.
+ * @returns {Object} JSON response with number of rows edited if successful, or
+ *    with error message if unsuccessful for any reason.
+ */
+exports.editTestCase = function(req, res, db, acl) {
+   let session = req.session; 
+   const a_id = req.params.assignment_id;
+   const test_id = req.body.test_id; 
+   const test_name = req.body.test_name; 
+   const test_input = req.body.test_input; 
+   const test_desc = req.body.test_description;
+
+   // get course id for this assignment to check if user can edit this 
+   // assignment's test cases
+   db.Assignments.assignmentInfo(a_id)
+      .then((result) => acl.canModifyCourse(session.user, result.course_id))
+
+      // update the test's information in the database
+      .then(() => db.Assignments.TestCases.editTest(a_id, test_id, test_name, test_input, test_desc))
+      .then(
+         result => res.json({ response: result })
+      )
+      .catch(err =>
+         res.json({ response: err })
+      );
+}
+
+/**
+  * Returns the URL to the API endpoint for downloading grading 
+  * files. The assignment ID should be in req.params.assignment_id.
+  * @param {Object} req HTTP request object. 
+  * @param {Object} res HTTP response object. 
+  * @param {Object} db Database connection.
+  * @param {Object} acl Object containing AccessControlList methods.
+  * @returns {Object} JSON containing the URL, or a 403 status code if not 
+  *   authorized. 
+  */
+exports.getGradingDownloadURL = function(req, res, db, acl) {
+   const assignment_id = req.params.assignment_id; 
+   let assignment; 
+
+   // get course id for this assignment 
+   db.Assignments.assignmentInfo(assignment_id)
+   .then(result => {
+      assignment = result; 
+   })
+
+   // check if current user has permission to view grading files 
+   .then(() => acl.canGradeAssignment(req.session.user, assignment.course_id))
+
+   // if so, return the URL. else, the assignment ID was invalid or the user 
+   // doesn't have permission to see grading files 
+   .then(() => {
+      // TODO: get the URL from server.js somehow, don't hardcode it 
+      const url = "http://" + req.headers.host + "/api/assignment/" + assignment_id + "/zipGradingFiles"; 
+      res.json({response: url});
+   })
+   .catch(() => {
+      res.status(403).send("Not authorized");
+   });
+}
+
+   /**
   * Marks assignment as submitted. :aid is the assignment ID.   
   * The assignment ID to modify should be in req.body.id.
   * @param {Object} req HTTP request object. 
@@ -417,3 +598,99 @@ exports.uploadFile = function(req, res, db, acl) {
           return res.status(500).send("Invalid user");
        });
  }
+
+ /** 
+ * Download and compress student results and files for the given assignment.
+ * @param {Object} req HTTP request object. 
+ * @param {Object} res HTTP response object. 
+ * @param {Object} db Database connection.
+ * @returns {Object} JSON containing assignment's id if successful, or error otherwise.  
+ */
+exports.zipGradingFiles = function(req, res, db, acl) {
+   const assignment_id = req.params.assignment_id; 
+   let assignment; 
+
+   // get course id for this assignment 
+   db.Assignments.assignmentInfo(assignment_id)
+   .then(result => {
+      assignment = result; 
+   })
+
+   // check if current user has permission to view grading files 
+   .then(() => acl.canGradeAssignment(req.session.user, assignment.course_id))
+   
+   // download all needed data locally first 
+   .then(() => db.AssignmentFiles.downloadFiles(assignment_id))
+   .then(assignment_dir => db.Assignments.TestCases.downloadResults(assignment_id, assignment_dir))
+
+   .then(assignment_dir => { 
+      // then start streaming data to local zip file 
+      let assignment_path = path.resolve('downloads', assignment_dir); 
+      let file_name = assignment_path  + '.zip';
+      let output = fs.createWriteStream(file_name); 
+      let archive = archiver('zip', {
+         zlib: { level: 9 } // Sets the compression level.
+       });
+
+      // listen for all archive data to be written
+      // 'close' event is fired only when a file descriptor is involved
+      output.on('close', function() {
+         console.log(archive.pointer() + ' total bytes');
+         console.log('archiver has been finalized and the output file descriptor has closed.');
+      });
+      
+      // This event is fired when the data source is drained no matter what was the data source.
+      // It is not part of this library but rather from the NodeJS Stream API.
+      // @see: https://nodejs.org/api/stream.html#stream_event_end
+      output.on('end', function() {
+         console.log('Data has been drained');
+      });
+      
+      // good practice to catch warnings (ie stat failures and other non-blocking errors)
+      archive.on('warning', function(err) {
+         if (err.code === 'ENOENT') {
+            // log warning
+            console.log('Warning: file/directory not found'); 
+         } 
+         else {
+            // throw error
+            throw err;
+         }
+      });
+      
+      // good practice to catch this error explicitly
+      archive.on('error', function(err) {
+         throw err;
+      });
+      
+      // pipe archive data to the file
+      archive.pipe(output);
+            
+      // append files from the sub-directory corresponding to this assignment 
+      // to the archive 
+      archive.directory(assignment_path, false); 
+
+      // set listener to respond with zip download when stream is finished and closed 
+      output.on('close', () => {
+         res.download(file_name); 
+         // delete the directory + ZIP file we've just created after 5 minutes 
+         setTimeout(() => {
+            rmdir(assignment_path, (err) => {
+               if (err) console.log(err); 
+            });
+            fs.promises.unlink(file_name)
+            .catch(err => {
+               console.log(err); 
+            })
+         }, 300000);
+      });
+
+      // finalize the archive (ie we are done appending files but streams have to finish yet)
+      archive.finalize();
+   })
+   .catch(err => {
+      res.json({ response: err });
+   });
+
+   
+}
