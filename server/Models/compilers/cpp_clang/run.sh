@@ -1,1 +1,1 @@
-./output < stdin.txt
+./output "$(< stdin.txt)"

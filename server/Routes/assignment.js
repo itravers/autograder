@@ -63,6 +63,8 @@ exports.compileAndRun = function(req, res, db, config, acl, Compiler) {
    let session = req.session;
    const current_user = session.user;
    const assignment_id = req.params.assignment_id;
+
+   //TODO: Get a list of file extensions, and choose dockerfile_path based on that
    const dockerfile_path = "Models/compilers/cpp_clang";
    const stdin = req.body.stdin;
    const test_name = req.body.test_name;
