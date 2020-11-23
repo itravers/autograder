@@ -12,6 +12,7 @@ class Assignment {
       this.compile = this.compile.bind(this);
       this.submitAssignment = this.submitAssignment.bind(this);
       this.lockAssignment = this.lockAssignment.bind(this);
+      this.dateMismatch = this.dateMismatch.bind(this);
    }
 
    createAssignment(course_id, name) {
@@ -35,12 +36,12 @@ class Assignment {
       return new Promise((resolve, reject) => {
          const path = this.config.endpoints.assignment.file;
          const endpoint = this.config.constructRoute(path, [assignment_id]);
-         WebRequest.makeDelete(endpoint, { id: file.serverId }, (result) => {
+         WebRequest.makeDelete(endpoint, { id: file.id }, (result) => {
             if (result !== null && result !== undefined) {
-               resolve(file.file.name);
+               resolve(result.data.response);
             }
             else {
-               reject(file.file.name);
+               reject(result.data.response);
             }
          });
       });
@@ -72,6 +73,67 @@ class Assignment {
 
    }
 
+
+   downloadFiles(assignment_id) {
+      return new Promise((resolve, reject) => {
+         let call = WebRequest.makeUrlRequest;
+         if (this.cache_results === true) {
+            call = WebRequest.makeCacheableUrlRequest;
+         }
+         const path = this.config.endpoints.assignment.download_files;
+         const endpoint = this.config.constructRoute(path, [assignment_id]); 
+         call(endpoint, (result) => {
+            if (result !== null && result !== undefined) {
+               resolve(result.data.response);
+            }
+            else {
+               reject(result);
+            }
+
+         });
+      });
+   }
+
+   downloadResults(assignment_id) {
+      return new Promise((resolve, reject) => {
+         let call = WebRequest.makeUrlRequest;
+         if (this.cache_results === true) {
+            call = WebRequest.makeCacheableUrlRequest;
+         }
+         const path = this.config.endpoints.assignment.download_results;
+         const endpoint = this.config.constructRoute(path, [assignment_id]); 
+         call(endpoint, (result) => {
+            if (result !== null && result !== undefined) {
+               resolve(result.data.response);
+            }
+            else {
+               reject(result);
+            }
+
+         });
+      });
+   }
+
+   getGradingFilesLink(assignment_id) {
+      return new Promise((resolve, reject) => {
+         let call = WebRequest.makeUrlRequest;
+         if (this.cache_results === true) {
+            call = WebRequest.makeCacheableUrlRequest;
+         }
+         const path = this.config.endpoints.assignment.grading_files_link; 
+         const endpoint = this.config.constructRoute(path, [assignment_id]); 
+         call(endpoint, (result) => {
+            if (result !== null && result.data !== undefined) {
+               resolve(result.data.response);
+            }
+            else {
+               reject(result);
+            }
+
+         });
+      });
+   }
+
    getTestCases(assignment_id) {
       return new Promise((resolve, reject) => {
          let call = WebRequest.makeUrlRequest;
@@ -92,6 +154,38 @@ class Assignment {
       });
    }
 
+   editTestCase(assignment_id, test_id, test_name, test_input, test_desc) {
+      return new Promise((resolve, reject) => {
+         let call = WebRequest.makePut;
+         const path = this.config.endpoints.assignment.test_cases; 
+         const endpoint = this.config.constructRoute(path, [assignment_id]);
+         call(endpoint, { test_id: test_id, test_name: test_name, test_input: test_input, test_description: test_desc }, (result) => {
+            if (result !== null && result !== undefined && result.data.response !== undefined) {
+               resolve(result.data.response);
+            }
+            else {
+               reject(result);
+            }
+         });
+      });
+   }
+
+   createTestCase(assignment_id, test_id, test_name, test_input, test_desc) {
+      return new Promise((resolve, reject) => {
+         let call = WebRequest.makePost;
+         const path = this.config.endpoints.assignment.test_cases; 
+         const endpoint = this.config.constructRoute(path, [assignment_id]); 
+         call(endpoint, { test_id: test_id, test_name: test_name, test_input: test_input, test_description: test_desc }, (result) => {
+            if (result !== null && result !== undefined && result.data.response !== undefined) {
+               resolve(result.data.response);
+            }
+            else {
+               reject(result);
+            }
+         });
+      });
+   }
+
    getTestResults(assignment_id, user_id) {
       return new Promise((resolve, reject) => {
          let call = WebRequest.makeUrlRequest;
@@ -99,6 +193,26 @@ class Assignment {
             call = WebRequest.makeCacheableUrlRequest;
          }
          const path = this.config.endpoints.assignment.test_results;
+         const endpoint = this.config.constructRoute(path, [assignment_id, user_id]); 
+         call(endpoint, (result) => {
+            if (result !== null && result !== undefined) {
+               resolve(result.data.response);
+            }
+            else {
+               reject(result);
+            }
+
+         });
+      });
+   }
+
+   dateMismatch(assignment_id, user_id) {
+      return new Promise((resolve, reject) => {
+         let call = WebRequest.makeUrlRequest;
+         if (this.cache_results === true) {
+            call = WebRequest.makeCacheableUrlRequest;
+         }
+         const path = this.config.endpoints.assignment.date_mismatch;
          const endpoint = this.config.constructRoute(path, [assignment_id, user_id]); 
          call(endpoint, (result) => {
             if (result !== null && result !== undefined) {
@@ -195,6 +309,7 @@ class Assignment {
          });
       });
    }
+
 }
 
 export { Assignment };

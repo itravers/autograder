@@ -67,6 +67,28 @@ class AssignmentsDb {
       });
    }
 
+   /**
+    * Returns the row in the assignments table corresponding to the given 
+    * assignment. 
+    * @param {Number} assignment_id The assignment's ID number (integer). 
+    * @returns {Promise} Resolves with a row containing the assignment's
+    *    information if this assignment exists; rejects otherwise. 
+    */
+   assignmentInfo(assignment_id)
+   {
+      const sql = "SELECT * FROM assignments WHERE id = $assignment_id"; 
+      const params = {$assignment_id: assignment_id}; 
+      return new Promise((resolve, reject) => {
+         this.db.get(sql, params, (err, row) => {
+            if(err === null && row !== undefined) {
+               resolve(row); 
+            }
+            else {
+               reject(err); 
+            }
+         });
+      });
+   }
 
     /**
     * Toggles assignment's lock status
