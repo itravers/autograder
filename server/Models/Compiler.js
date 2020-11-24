@@ -47,7 +47,8 @@ class Compiler {
       this.buildDockerContainer = this.buildDockerContainer.bind(this); 
       this.runDockerContainer = this.runDockerContainer.bind(this);
       this.copyFilesFromContainer = this.copyFilesFromContainer.bind(this); 
-      this.updateDatabase = this.updateDatabase.bind(this); 
+      this.addFilesToDatabase = this.addFilesToDatabase.bind(this); 
+      this.deleteFilesInDatabase = this.deleteFilesInDatabase.bind(this);
       this.cleanUp = this.cleanUp.bind(this); 
       this.canRunFiles = this.canRunFiles.bind(this); 
    }
@@ -64,7 +65,8 @@ class Compiler {
             .then(result => this.buildDockerContainer())
             .then(result => this.runDockerContainer())
             .then(result => this.copyFilesFromContainer())
-            .then(result => this.updateDatabase())
+            .then(result => this.addFilesToDatabase())
+            .then(result => this.deleteFilesInDatabase())
             .then(result => this.cleanUp())
             .then(result => {
                resolve(this.stdout);
@@ -206,22 +208,22 @@ class Compiler {
     * Adds any files that were created when running code to database. 
     * @returns {Promise} Resolves if successful. Rejects with error otherwise. 
     */
-   updateDatabase() {
+   addFilesToDatabase() {
       return new Promise((resolve, reject) => {
-         const docker_filenames = ["Dockerfile", "run.sh", "stdin.txt", "output"];
-         let after_run_filenames = fs.readdirSync(this.after_run_workspace);
+         const docker_files = ["Dockerfile", "run.sh", "stdin.txt", "output"];
+         let after_files = fs.readdirSync(this.after_run_workspace);
 
          // for each file that exists in the workspace after executing code: 
          // upload it to the database only if it was created or modified during 
          // runtime, and it's not a Docker file 
-         const promises = after_run_filenames.map(filename => {
+         const promises = after_files.map(file => {
             // skip processing if it's a Docker file 
-            if(docker_filenames.includes(filename) === true) {
+            if(docker_files.includes(file) === true) {
                return Promise.resolve(); 
             } 
 
-            let before_run_path = path.resolve(this.before_run_workspace, filename);
-            let after_run_path = path.resolve(this.after_run_workspace, filename);
+            let before_run_path = path.resolve(this.before_run_workspace, file);
+            let after_run_path = path.resolve(this.after_run_workspace, file);
             let before_stats = null; 
             let after_stats = fs.statSync(after_run_path); 
 
@@ -239,29 +241,57 @@ class Compiler {
                // if the file was created or modified during runtime, upload to db
                if((before_stats === null) || (before_stats.mtimeMs < after_stats.mtimeMs)) {
                   let contents = fs.readFileSync(after_run_path);
-                  return this.db.AssignmentFiles.add(this.student_id, this.assignment_id, filename, contents); 
+                  contents = new Buffer.from(contents).toString(); 
+                  return this.db.AssignmentFiles.add(this.student_id, this.assignment_id, file, contents); 
                }
             })
          });
 
-         // clear workspaces after all files are added to db as needed
          Promise.all(promises)
          .then(() => {
-            rmdir_rf(path.resolve(this.before_run_workspace), () => {
+            /* rmdir_rf(path.resolve(this.before_run_workspace), () => {
                rmdir_rf(path.resolve(this.after_run_workspace), () => {
                   resolve(); 
                }); 
-            });
+            }); */
+            resolve(); 
          })
          .catch(err => {
             // some file didn't get added to db properly 
-            console.log(err); 
             reject(); 
          })
       });
    }
 
-   // TODO: move temp workspace deletion here 
+   /**
+    * Soft-deletes any files that were deleted when running code in database. 
+    * @returns {Promise} Resolves if successful. Rejects with error otherwise. 
+    */
+   deleteFilesInDatabase() {
+      return new Promise((resolve, reject) => {
+         // get a list of files that were deleted in runtime (exist in 
+         // before_run_workspace but don't exist in after_run_workspace)
+         let before_files = fs.readdirSync(this.before_run_workspace);
+         let after_files = fs.readdirSync(this.after_run_workspace);
+         let deleted_files = before_files.filter(file => !after_files.includes(file));
+
+         // then remove each of these files for this user 
+         let promises = []; 
+         for(const file of deleted_files) {
+            promises.push(this.db.AssignmentFiles.removePrior(this.student_id, this.assignment_id, file)); 
+         }
+
+         Promise.all(promises)
+         .then(() => {
+            resolve(); 
+         })
+         .catch(err => {
+            // some file didn't get deleted from db properly 
+            reject(err); 
+         })
+      });
+   }
+
    /**
     * Deletes Docker container and temp workspaces.
     * @returns {Promise} Resolves with [TODO] if successful. Rejects with error 
