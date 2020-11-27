@@ -111,12 +111,12 @@ exports.compileAndRun = function(req, res, db, config, acl, Compiler) {
             });
       })
       .catch((err) => {
-         db.Assignments.TestCases.log(assignment_id, selected_user.id, test_name, stdin, err.message)
+         db.Assignments.TestCases.log(assignment_id, selected_user.id, test_name, stdin, err)
             .then(() => {
-               res.json({ response: err.message });
+               res.json({ response: err });
             })
             .catch(log_err => {
-               res.json({ response: log_err });
+               res.json({ response: log_err.message });
             });
       });
 }

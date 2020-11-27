@@ -40,6 +40,7 @@ class Compiler {
       this.timeout = timeout;
       this.image_name = "cpp_" + this.assignment_id + "_" + this.student_id;
       this.container_name = this.image_name + "_" + Date.now(); 
+      this.docker_files = ["Dockerfile", "run.sh", "stdin.txt", "output"];
       this.stdout = ""; 
 
       this.begin = this.begin.bind(this);
@@ -49,7 +50,8 @@ class Compiler {
       this.copyFilesFromContainer = this.copyFilesFromContainer.bind(this); 
       this.addFilesToDatabase = this.addFilesToDatabase.bind(this); 
       this.deleteFilesInDatabase = this.deleteFilesInDatabase.bind(this);
-      this.cleanUp = this.cleanUp.bind(this); 
+      this.removeDockerContainer = this.removeDockerContainer.bind(this); 
+      this.removeAfterRunWorkspace = this.removeAfterRunWorkspace.bind(this); 
       this.canRunFiles = this.canRunFiles.bind(this); 
    }
 
@@ -67,12 +69,21 @@ class Compiler {
             .then(result => this.copyFilesFromContainer())
             .then(result => this.addFilesToDatabase())
             .then(result => this.deleteFilesInDatabase())
-            .then(result => this.cleanUp())
+            .then(result => Promise.all([this.removeDockerContainer(), this.removeAfterRunWorkspace()]))
             .then(result => {
                resolve(this.stdout);
             })
+            // if an error is thrown at any point during compilation, we still 
+            // want to clean up before returning the error 
             .catch(err => {
-               reject(err);
+               Promise.all([this.removeDockerContainer(), this.removeAfterRunWorkspace()])
+               // reject with given error regardless of if clean up was successful
+               .then(() => {
+                  reject(err); 
+               })
+               .catch(() => {
+                  reject(err); 
+               })
             });
       });
    }
@@ -92,20 +103,9 @@ class Compiler {
             .then(files => {
                if (files.length === 0) {
                   reject("No files found");
-               }
+               } 
 
-               //add stdin as a file
-               files.push({ file_name: "stdin.txt", contents: this.stdin });
-
-               //add dockerfile
-               files.push({ file_name: "Dockerfile", contents: fs.readFileSync(this.dockerfile_path + "/Dockerfile")});
-
-               //add docker run command (to be used inside of docker container to run program)
-               files.push({ file_name: "run.sh", contents: fs.readFileSync(this.dockerfile_path + "/run.sh")});
-
-               //and throw them into a temp workspace
-               let write_counter = 0;
-
+               // create temp workspace directories
                if (fs.existsSync(this.assignment_workspace) === false) {
                   fs.mkdirSync(this.assignment_workspace);
                }
@@ -118,13 +118,40 @@ class Compiler {
                if (fs.existsSync(this.after_run_workspace) === false) {
                   fs.mkdirSync(this.after_run_workspace);
                }
+
+               // keep a separate list of files that have been deleted in db and need to be removed 
+               let old_files = fs.readdirSync(this.before_run_workspace);
+               let files_to_delete = old_files.filter(old_filename => {
+                  // we only want to delete this file if it DOESN'T exist in db 
+                  // and it's not a docker file 
+                  if (this.docker_files.includes(old_filename) || files.some(file => file.file_name === old_filename)) {
+                     return false; 
+                  }
+                  else {
+                     return true; 
+                  }
+               });
+
+               // add stdin as a file
+               files.push({ file_name: "stdin.txt", contents: this.stdin });
+
+               // add dockerfile
+               files.push({ file_name: "Dockerfile", contents: fs.readFileSync(this.dockerfile_path + "/Dockerfile")});
+
+               // add docker run command (to be used inside of docker container to run program)
+               files.push({ file_name: "run.sh", contents: fs.readFileSync(this.dockerfile_path + "/run.sh")});
+
+               // throw files into a temp workspace
+               let callback_counter = 0;  
+               let total_callbacks = files.length + files_to_delete.length; 
+
                for (let file of files) {
                   const file_path = this.before_run_workspace + "/" + file.file_name;
                   file.path = file_path;
                   fs.writeFile(file_path, file.contents, { encoding: "utf8" }, (err) => {
                      if (!err) {
-                        write_counter++;
-                        if (write_counter === files.length) {
+                        callback_counter++;
+                        if (callback_counter === total_callbacks) {
                            resolve(files);
                         }
                      }
@@ -132,6 +159,22 @@ class Compiler {
                         reject(err);
                      }
                   });
+               }
+
+               // delete files from the workspace if they've been removed from db 
+               for(let file_name of files_to_delete) {
+                  const file_path = this.before_run_workspace + "/" + file_name;
+                  fs.unlink(file_path, (err) => {
+                     if (!err) {
+                        callback_counter++; 
+                        if(callback_counter === total_callbacks) {
+                           resolve(files);
+                        }
+                     }
+                     else {
+                        reject(err); 
+                     }
+                  })
                }
             })
             .catch(err => {
@@ -210,7 +253,6 @@ class Compiler {
     */
    addFilesToDatabase() {
       return new Promise((resolve, reject) => {
-         const docker_files = ["Dockerfile", "run.sh", "stdin.txt", "output"];
          let after_files = fs.readdirSync(this.after_run_workspace);
 
          // for each file that exists in the workspace after executing code: 
@@ -218,7 +260,7 @@ class Compiler {
          // runtime, and it's not a Docker file 
          const promises = after_files.map(file => {
             // skip processing if it's a Docker file 
-            if(docker_files.includes(file) === true) {
+            if(this.docker_files.includes(file) === true) {
                return Promise.resolve(); 
             } 
 
@@ -249,11 +291,6 @@ class Compiler {
 
          Promise.all(promises)
          .then(() => {
-            /* rmdir_rf(path.resolve(this.before_run_workspace), () => {
-               rmdir_rf(path.resolve(this.after_run_workspace), () => {
-                  resolve(); 
-               }); 
-            }); */
             resolve(); 
          })
          .catch(err => {
@@ -283,7 +320,7 @@ class Compiler {
 
          Promise.all(promises)
          .then(() => {
-            resolve(); 
+            resolve();  
          })
          .catch(err => {
             // some file didn't get deleted from db properly 
@@ -293,20 +330,61 @@ class Compiler {
    }
 
    /**
-    * Deletes Docker container and temp workspaces.
-    * @returns {Promise} Resolves with [TODO] if successful. Rejects with error 
-    *    otherwise. 
+    * Deletes Docker container.
+    * @returns {Promise} Resolves with output from removing Docker container if 
+    *    successful. Rejects with error otherwise. 
     */
-   cleanUp() {
+   removeDockerContainer() {
       return new Promise((resolve, reject) => {
-         // remove Docker container
-         const exe_command = "docker rm " + this.container_name;
-         exec(exe_command, { timeout: this.timeout }, (err, stdout, stderr) => {
+         // check if container exists 
+         if(this.dockerContainerExists()) {
+            // remove Docker container
+            const exe_command = "docker rm " + this.container_name;
+            exec(exe_command, { timeout: this.timeout }, (err, stdout, stderr) => {
+               if (!err) {
+                  resolve(stdout);
+               }
+               else {
+                  reject(err);
+               }
+            });
+         }
+         else {
+            resolve("container doesn't exist"); 
+         }
+      });
+   }
+
+   /**
+    * Returns boolean indicating if the Docker container used by this compiler
+    * instance exists. Helper function for removeDockerContainer(). 
+    * @returns {Boolean} Returns true if the container with the given name exists
+    *    in an exited state. Returns false otherwise. 
+    */
+   dockerContainerExists() {
+      const exe_command = "docker ps -aq -f status=exited -f name=" + this.container_name; 
+      exec(exe_command, {timeout: this.timeout}, (err, stdout, stderr) => {
+         if (stdout) {
+            return true; 
+         }
+         else {
+            return false; 
+         }
+      });
+   }
+
+   /**
+    * Deletes after_run_workspace directory.
+    * @returns {Promise} Resolves if successful. Rejects with error otherwise.
+    */
+   removeAfterRunWorkspace() {
+      return new Promise((resolve, reject) => { 
+         rmdir_rf(path.resolve(this.after_run_workspace), (err) => {
             if (!err) {
-               resolve(stdout);
+               resolve("after_run_workspace deleted"); 
             }
             else {
-               reject(err);
+               reject(err); 
             }
          });
       });
