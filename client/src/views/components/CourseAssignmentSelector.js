@@ -51,14 +51,14 @@ class CourseAssignmentSelectorView extends Component {
    }
 
    updateSelectedCourse(evt) {
-      this.setState({ selected_course: this.state.courses[evt.target.value] }, () => {
+      this.setState({ selected_course: this.state.courses[evt.target.selectedIndex] }, () => {
          this.props.updateCourseUser(this.state.selected_course);
          this.getAssignmentsForCourse();
       });
    }
 
    updateSelectedAssignment(evt) {
-      this.setState({ selected_assignment: this.state.assignments[evt.target.value] }, () => {
+      this.setState({ selected_assignment: this.state.assignments[evt.target.selectedIndex] }, () => {
          this.props.onAssignmentChange(this.state.selected_assignment);
       });
    }
@@ -88,8 +88,8 @@ class CourseAssignmentSelectorView extends Component {
                   <select value={this.state.selected_assignment.id} onChange={this.updateSelectedAssignment}>
                      {this.state.assignments.map((value, index) =>
                         <option
-                           key={value.id}
-                           value={index}>
+                           key={index}
+                           value={value.id}>
                            {value.name}
                         </option>
                      )}

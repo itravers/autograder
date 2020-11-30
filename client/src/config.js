@@ -40,7 +40,10 @@ class SharedConfig{
             lock_assignment: root_endpoint + "/api/assignment/{:assignment_id}/lockAssignment",
             is_locked: root_endpoint + "/api/assignment/{:assignment_id}/isLocked",
             run: root_endpoint + "/api/assignment/{:assignment_id}/user/{:user_id}/run",
-            compile: root_endpoint + "/api/assignment/{:assignment_id}/user/{:user_id}/compile"
+            compile: root_endpoint + "/api/assignment/{:assignment_id}/user/{:user_id}/compile",
+            download_results: root_endpoint + "/api/assignment/{:assignment_id}/downloadResults",
+            download_files: root_endpoint + "/api/assignment/{:assignment_id}/downloadFiles",
+            grading_files_link: root_endpoint + "/api/assignment/{:assignment_id}/gradingFilesLink"
          },
          course: {
             all: root_endpoint + "/api/course",

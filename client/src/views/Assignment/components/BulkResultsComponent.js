@@ -23,6 +23,7 @@ class BulkResultsComponent extends Component {
       this.getClassResults = this.getClassResults.bind(this); 
       this.rerunStudentTests = this.rerunStudentTests.bind(this);
       this.rerunClassTests = this.rerunClassTests.bind(this); 
+      this.zipGradingFiles = this.zipGradingFiles.bind(this);
    }
 
    componentDidMount() {
@@ -34,6 +35,22 @@ class BulkResultsComponent extends Component {
       if (new_props.user !== null && new_props.user !== undefined && new_props.user.id > 0) {
          this.getClassResults(new_props.student_roster);
       }
+   }
+
+   zipGradingFiles()
+   {
+      this.props.models.assignment.getGradingFilesLink(this.props.assignment.id)
+      .then(url => {
+        // create a temp link for downloading ZIP data
+         const link = document.createElement('a');
+         link.href = url;
+         link.download = this.props.assignment.name + ".zip";
+         link.click();
+         window.URL.revokeObjectURL(link.href); 
+      })
+      .catch(err => {
+         console.log(err); 
+      }); 
    }
 
    // gets a list of test cases for this assignment, creates an object with
@@ -201,6 +218,11 @@ class BulkResultsComponent extends Component {
                   <br/>
                   <span>{running_all_text}</span>
                </div>
+
+               <div>
+                  <button className="btn btn-primary" onClick={() => { this.zipGradingFiles() }}>Download Details</button>
+               </div>
+
                <table className = "table table-striped text-left">
                   <thead>
                      <tr>

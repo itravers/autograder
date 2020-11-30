@@ -9,7 +9,7 @@ const routes = [
       strict_match: true
    },
    {
-      path: "/course/manage/:id",
+      path: "/course/:id/manage",
       component: Manage,
       strict_match: true
    },

@@ -1,4 +1,6 @@
 const sqlite3 = require('sqlite3').verbose();
+let fs = require('fs');
+let path = require('path');
 
 class AssignmentFilesDb {
 
@@ -87,6 +89,43 @@ class AssignmentFilesDb {
       });
    }
    
+   /**
+    * Creates a folder containing all students' files associated with a particular assignment.
+    * @param {Number} assignment_id The assignment's ID number (integer). 
+    * @returns {Promise} Resolves with assignment directory's name if successful; rejects if there's an error. 
+    */
+   downloadFiles(assignment_id, dir_name = assignment_id + "_" + Date.now()) {
+      const sql = "SELECT u.name, af.is_deleted, af.file_name, af.contents FROM assignments a, users u, assignment_files af WHERE a.id = $aid AND af.assignment_id = $aid AND u.id = af.owner_id ORDER BY u.name";
+      const params = { $aid: assignment_id };
+      return new Promise((resolve, reject) => {
+         this.db.all(sql, params, (err, rows) => {
+            if (err === null && rows !== undefined) {
+               if (rows.length > 0) {
+                  let directory = path.resolve('downloads', dir_name, 'Student Files'); 
+                  rows.forEach((r)=> {
+                     if(r.is_deleted == 0) {
+                        var stu_name = r.name;
+                        let stu_path = path.resolve(directory, stu_name); 
+                        let filename = path.resolve(stu_path, r.file_name);
+                        var file_contents = `"${r.contents}"`;
+                        fs.mkdirSync(stu_path, {recursive: true});
+                        fs.writeFileSync(filename, file_contents);
+                     }
+                  });
+                  resolve(dir_name);
+               }
+               else {
+                  resolve(dir_name); 
+               }
+            }
+            else {
+               console.log(err);
+               reject(err); 
+            }
+         });
+      });
+   }
+
    /**
     * Returns all assignments for the specified user.
     * @param {Number} assignment_id The assignment's ID number (integer).
