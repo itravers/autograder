@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import { connect } from "react-redux";
 import { ArrayIndexSelect } from '../../components/Selectors.js';
 import { Redirect } from 'react-router'; 
+import Fade from 'bootstrap'; 
 
 const mapStateToProps = state => {
    return { current_user: state.current_user, models: state.models };
@@ -18,6 +19,7 @@ class ManageTestsComponent extends Component {
          test_names: [],
          selected_test_index: 0,
          selected_test: { test_name: "" }, 
+         show_changes_saved: false, 
          test_result: "",
          is_submitting_changes: false
       };
@@ -33,7 +35,10 @@ class ManageTestsComponent extends Component {
       this.setState({ is_submitting_changes: true }, () => {
          this.props.models.assignment.createTestCase(this.props.assignment.id, this.state.selected_test.id, this.state.selected_test.test_name, this.state.selected_test.test_input, this.state.selected_test.test_description)
             .then(result => {
-               this.setState({ is_submitting_changes: false });
+               this.setState({ is_submitting_changes: false, show_changes_saved: true });
+               setTimeout(() => {
+                  this.setState({ show_changes_saved: false});  
+               }, 5000); 
                this.getTestCases();
             })
             .catch(result => {
@@ -68,7 +73,8 @@ class ManageTestsComponent extends Component {
    testCaseSelected(evt) {
       this.setState({
          selected_test_index: evt.target.value,
-         selected_test: this.state.test_cases[evt.target.value]
+         selected_test: this.state.test_cases[evt.target.value],
+         show_changes_saved: false
       });
    }
 
@@ -116,6 +122,11 @@ render() {
       let submit_text = "submitting changes...";
       if (this.state.is_submitting_changes === false) {
          submit_text = "";
+      }
+
+      let changes_saved_text = "changes saved!"; 
+      if(this.state.show_changes_saved === false) {
+         changes_saved_text = ""; 
       }
 
       if(this.props.modify_permissions === false)
@@ -177,6 +188,7 @@ render() {
                   className="btn btn-outline-primary">Submit Changes</button>
                   <br />
                   <span>{submit_text}</span> 
+                  <span>{changes_saved_text}</span>
             </form>
          </div >
       );

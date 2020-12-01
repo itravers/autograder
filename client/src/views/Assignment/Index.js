@@ -322,7 +322,7 @@ class IndexView extends Component {
                   render={
                      (props) => {
                         return (
-                           <div>
+                           <div className="container">
                               <Description assignment={this.state.current_assignment} />
                            </div>
                         )
