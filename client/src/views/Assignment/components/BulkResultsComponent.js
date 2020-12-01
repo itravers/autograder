@@ -239,15 +239,12 @@ class BulkResultsComponent extends Component {
                            <td>
                            {item.name}
                            </td>
-                           {headers.map((test_name, index) =>
-                              <td key={index}>{item.results[test_name][0][json_result_field]}</td>
+                           {headers.map((test_name, index) => 
+                              <td key={index} className={item.results[test_name][0].is_outdated ? ("bg-warning") : ("")}>
+                                 {item.results[test_name][0][json_result_field]}
+                              </td>
                            )}
-                           {item.has_mismatch ? 
-                           (
-                              <td className="bg-warning">{item.oldest_test_date}</td>
-                              ) : (
                               <td>{item.oldest_test_date}</td>
-                           )}
                            {item.has_mismatch ? 
                            (
                               <td><button type="Submit"
