@@ -337,39 +337,55 @@ class Compiler {
    removeDockerContainer() {
       return new Promise((resolve, reject) => {
          // check if container exists 
-         if(this.dockerContainerExists()) {
-            // remove Docker container
-            const exe_command = "docker rm " + this.container_name;
-            exec(exe_command, { timeout: this.timeout }, (err, stdout, stderr) => {
-               if (!err) {
-                  resolve(stdout);
-               }
-               else {
-                  reject(err);
-               }
-            });
-         }
-         else {
-            resolve("container doesn't exist"); 
-         }
+         this.dockerContainerExists()
+         .then(result => {
+            if(result === true) {
+               // remove Docker container
+               const exe_command = "docker rm " + this.container_name;
+               exec(exe_command, { timeout: this.timeout }, (err, stdout, stderr) => {
+                  if (!err) {
+                     resolve(stdout);
+                  }
+                  else {
+                     reject(err);
+                  }
+               });
+            }
+            else {
+               resolve("container doesn't exist"); 
+            }
+         })
+         .catch(err => {
+            reject(err); 
+         })
       });
    }
 
    /**
     * Returns boolean indicating if the Docker container used by this compiler
     * instance exists. Helper function for removeDockerContainer(). 
-    * @returns {Boolean} Returns true if the container with the given name exists
-    *    in an exited state. Returns false otherwise. 
+    * @returns {Promise} Resolves with true or false indicating if the 
+    *    container exists if successful. Rejects with error if the Docker command
+    *    searching for this container either couldn't be executed or the command
+    *    itself threw an error. 
     */
    dockerContainerExists() {
-      const exe_command = "docker ps -aq -f status=exited -f name=" + this.container_name; 
-      exec(exe_command, {timeout: this.timeout}, (err, stdout, stderr) => {
-         if (stdout) {
-            return true; 
-         }
-         else {
-            return false; 
-         }
+      return new Promise((resolve, reject) => {
+         const exe_command = "docker ps -aq -f name=" + this.container_name; 
+         exec(exe_command, {timeout: this.timeout}, (err, stdout, stderr) => {
+            if(err) {
+               reject(err);
+            }
+            else if(stderr) {
+               reject(stderr); 
+            }
+            else if (stdout) {
+               resolve(true); 
+            }
+            else {
+               resolve(false); 
+            }
+         });
       });
    }
 

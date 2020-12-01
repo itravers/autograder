@@ -101,13 +101,13 @@ class AssignmentFilesDb {
          this.db.all(sql, params, (err, rows) => {
             if (err === null && rows !== undefined) {
                if (rows.length > 0) {
-                  let directory = path.resolve('downloads', dir_name, 'Student Files'); 
+                  let directory = path.resolve('..', 'data', 'temp', 'downloads', dir_name, 'Student Files'); 
                   rows.forEach((r)=> {
                      if(r.is_deleted == 0) {
-                        var stu_name = r.name;
+                        let stu_name = r.name;
                         let stu_path = path.resolve(directory, stu_name); 
                         let filename = path.resolve(stu_path, r.file_name);
-                        var file_contents = `"${r.contents}"`;
+                        let file_contents = r.contents; 
                         fs.mkdirSync(stu_path, {recursive: true});
                         fs.writeFileSync(filename, file_contents);
                      }

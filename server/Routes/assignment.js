@@ -629,7 +629,7 @@ exports.zipGradingFiles = function(req, res, db, acl) {
 
    .then(assignment_dir => { 
       // then start streaming data to local zip file 
-      let assignment_path = path.resolve('downloads', assignment_dir); 
+      let assignment_path = path.resolve('..', 'data', 'temp', 'downloads', assignment_dir);
       let file_name = assignment_path  + '.zip';
       let output = fs.createWriteStream(file_name); 
       let archive = archiver('zip', {

@@ -118,7 +118,7 @@ class TestCasesDb {
 
                      output.push(row.join());
                   });
-                  let directory = path.resolve('downloads', dir_name, 'Student Results'); 
+                  let directory = path.resolve('..', 'data', 'temp', 'downloads', dir_name, 'Student Results');
                   let filename = path.resolve(directory, rows[0].assignment_name + '_results.csv'); 
                   // creates the desired directory + all parents as necessary
                   fs.promises.mkdir(directory, {recursive: true})
