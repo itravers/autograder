@@ -174,7 +174,6 @@ class IndexView extends Component {
                         }
                         return result;
                      }, []).map((value, index) => {
-                        let button_text = "Add";
                         return (
                            <tr key={value.id}>
                               <td>

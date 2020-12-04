@@ -17,11 +17,11 @@ class SharedConfig{
       let next_arg = 0; 
 
       // while there is still an unreplaced {parameter} in path
-      let regex_find = path.search(/{([^}]*)}/);  
-      while(path.search(/{([^}]*)}/) > -1)
+      let regex = /{([^}]*)}/; 
+      while(path.search(regex) > -1)
       {
          // replace whatever's in {} with the next passed argument
-         path = path.replace(/{([^}]*)}/, params[next_arg]);
+         path = path.replace(regex, params[next_arg]);
          next_arg++; 
       }
       return path; 
