@@ -32,7 +32,11 @@ class TestCasesComponent extends Component {
          this.props.models.assignment.compile(this.props.assignment.id, this.props.selected_user.id, this.state.selected_test.test_input, this.state.selected_test.test_name)
             .then(result => {
                this.props.getAssignmentFiles(); 
-               this.setState({ test_result: result, is_running_test: false });
+               let displayed_result = result; 
+               if (result === "" || result === false) {
+                  displayed_result = "[no output given]"; 
+               }
+               this.setState({ test_result: displayed_result, is_running_test: false });
             })
             .catch(result => {
                this.setState({ test_result: result, is_running_test: false });

@@ -112,7 +112,7 @@ exports.compileAndRun = function(req, res, db, config, acl, Compiler) {
                res.json({ response: result });
             })
             .catch(log_err => {
-               res.json({ response: log_err });
+               res.json({ response: log_err.message });
             });
       })
       .catch((err) => {
