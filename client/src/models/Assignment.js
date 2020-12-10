@@ -11,7 +11,6 @@ class Assignment {
       this.compile = this.compile.bind(this);
       this.submitAssignment = this.submitAssignment.bind(this);
       this.lockAssignment = this.lockAssignment.bind(this);
-      this.dateMismatch = this.dateMismatch.bind(this);
    }
 
    removeFile(file, assignment_id) {
@@ -125,13 +124,45 @@ class Assignment {
          const path = this.config.endpoints.assignment.test_cases; 
          const endpoint = this.config.constructRoute(path, [assignment_id]); 
          call(endpoint, (result) => {
-            if (result !== null && result !== undefined && Object.keys(result.data.response).length > 0) {
+            if (result !== null && result.data.response !== undefined) {
                resolve(result.data.response);
             }
             else {
                reject(result);
             }
 
+         });
+      });
+   }
+
+   editTestCase(assignment_id, test_id, test_name, test_input, test_desc) {
+      return new Promise((resolve, reject) => {
+         let call = WebRequest.makePut;
+         const path = this.config.endpoints.assignment.test_cases; 
+         const endpoint = this.config.constructRoute(path, [assignment_id]);
+         call(endpoint, { test_id: test_id, test_name: test_name, test_input: test_input, test_description: test_desc }, (result) => {
+            if (result !== null && result !== undefined && result.data.response !== undefined) {
+               resolve(result.data.response);
+            }
+            else {
+               reject(result);
+            }
+         });
+      });
+   }
+
+   createTestCase(assignment_id, test_id, test_name, test_input, test_desc) {
+      return new Promise((resolve, reject) => {
+         let call = WebRequest.makePost;
+         const path = this.config.endpoints.assignment.test_cases; 
+         const endpoint = this.config.constructRoute(path, [assignment_id]); 
+         call(endpoint, { test_id: test_id, test_name: test_name, test_input: test_input, test_description: test_desc }, (result) => {
+            if (result !== null && result !== undefined && result.data.response !== undefined) {
+               resolve(result.data.response);
+            }
+            else {
+               reject(result);
+            }
          });
       });
    }
@@ -188,31 +219,11 @@ class Assignment {
       });
    }
 
-   dateMismatch(assignment_id, user_id) {
-      return new Promise((resolve, reject) => {
-         let call = WebRequest.makeUrlRequest;
-         if (this.cache_results === true) {
-            call = WebRequest.makeCacheableUrlRequest;
-         }
-         const path = this.config.endpoints.assignment.date_mismatch;
-         const endpoint = this.config.constructRoute(path, [assignment_id, user_id]); 
-         call(endpoint, (result) => {
-            if (result !== null && result !== undefined) {
-               resolve(result.data.response);
-            }
-            else {
-               reject(result);
-            }
-
-         });
-      });
+   run(assignment_id, user_id, test_case, test_name) {
+      return this.compile(assignment_id, user_id, test_case, test_name, true);
    }
 
-   run(assignment_id, test_case) {
-      return this.compile(assignment_id, test_case, true);
-   }
-
-   compile(assignment_id, test_case, test_name, run_only = false) {
+   compile(assignment_id, user_id, test_case, test_name, run_only = false) {
       return new Promise((resolve, reject) => {
 
          //never allow caching of compile calls
@@ -221,9 +232,9 @@ class Assignment {
          if (run_only === true) {
             path = this.config.endpoints.assignment.run; 
          }
-         const endpoint = this.config.constructRoute(path, [assignment_id]);
+         const endpoint = this.config.constructRoute(path, [assignment_id, user_id]);
          call(endpoint, { stdin: test_case, test_name: test_name }, (result) => {
-            if (result !== null && result !== undefined && Object.keys(result.data.response).length > 0) {
+            if (result !== null && result.data.response !== undefined) {
                resolve(result.data.response);
             }
             else {

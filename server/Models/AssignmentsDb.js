@@ -10,7 +10,9 @@ class AssignmentsDb {
       this.db = db_connection;
 
       this.hasUser = this.hasUser.bind(this);
+      this.assignmentInfo = this.assignmentInfo.bind(this);
       this.lockAssignment = this.lockAssignment.bind(this);
+      this.isLocked = this.isLocked.bind(this); 
    }
 
    /**
@@ -106,7 +108,6 @@ class AssignmentsDb {
          });
      });
    }
-
 }
 
 /**

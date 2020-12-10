@@ -135,16 +135,13 @@ router.put('/assignment/:assignment_id/testCases', (req, res) => assignmentRoute
 router.get('/assignment/:assignment_id/user/:user_id/testResults', (req, res) => assignmentRoute.getTestResults(req, res, db, acl)); 
 
 //runs student's code without compiling first (saves time)
-router.post('/assignment/:assignment_id/run', (req, res) => assignmentRoute.run(req, res, db, config, acl, Compiler)); 
+router.post('/assignment/:assignment_id/user/:user_id/run', (req, res) => assignmentRoute.run(req, res, db, config, acl, Compiler)); 
 
 //compiles & runs student's code
-router.post('/assignment/:assignment_id/compile', (req, res) => assignmentRoute.compileAndRun(req, res, db, config, acl, Compiler)); 
+router.post('/assignment/:assignment_id/user/:user_id/compile', (req, res) => assignmentRoute.compileAndRun(req, res, db, config, acl, Compiler)); 
 
 // Retrieves all files for the specified assignment and user (if allowed to grade)
 router.get('/assignment/:aid/user/:uid/file', (req, res) => assignmentRoute.assignmentFiles(req, res, db, acl)); 
-
-// Retrieves all test results submitted with outdated assignment_files
-router.get('/assignment/:aid/user/:uid/dateMismatch', (req, res) => assignmentRoute.dateMismatch(req, res, db, acl));
 
 // Uploads a file. :aid is the assignment ID that this file will belong to;
 // :uid is the ID of the user who has the assignment. 

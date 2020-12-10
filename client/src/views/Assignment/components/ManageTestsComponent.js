@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import { connect } from "react-redux";
 import { ArrayIndexSelect } from '../../components/Selectors.js';
 import { Redirect } from 'react-router'; 
+import Fade from 'bootstrap'; 
 
 const mapStateToProps = state => {
    return { current_user: state.current_user, models: state.models };
@@ -11,12 +12,14 @@ class ManageTestsComponent extends Component {
    constructor(props) {
       super(props);
 
+      this.new_test_name = "Create a new test"; 
       this.state = {
          can_edit_tests: false, 
          test_cases: [],
          test_names: [],
          selected_test_index: 0,
          selected_test: { test_name: "" }, 
+         show_changes_saved: false, 
          test_result: "",
          is_submitting_changes: false
       };
@@ -32,7 +35,10 @@ class ManageTestsComponent extends Component {
       this.setState({ is_submitting_changes: true }, () => {
          this.props.models.assignment.createTestCase(this.props.assignment.id, this.state.selected_test.id, this.state.selected_test.test_name, this.state.selected_test.test_input, this.state.selected_test.test_description)
             .then(result => {
-               this.setState({ is_submitting_changes: false });
+               this.setState({ is_submitting_changes: false, show_changes_saved: true });
+               setTimeout(() => {
+                  this.setState({ show_changes_saved: false});  
+               }, 5000); 
                this.getTestCases();
             })
             .catch(result => {
@@ -46,7 +52,12 @@ class ManageTestsComponent extends Component {
       const privilege = this.props.models.course.getCoursePrivileges(this.props.current_user.course_role);
       if(privilege.can_modify_course === true) {
          this.setState({can_edit_tests: true}); 
-         this.getTestCases();
+         this.getTestCases()
+         .finally(() => {
+            if(this.state.test_cases.length > 0) {
+               this.setState({ selected_test_index: 0, selected_test: this.state.test_cases[0] });
+            }
+         });
       }
       else {
          this.setState({can_edit_tests: false}); 
@@ -62,7 +73,8 @@ class ManageTestsComponent extends Component {
    testCaseSelected(evt) {
       this.setState({
          selected_test_index: evt.target.value,
-         selected_test: this.state.test_cases[evt.target.value]
+         selected_test: this.state.test_cases[evt.target.value],
+         show_changes_saved: false
       });
    }
 
@@ -76,37 +88,45 @@ class ManageTestsComponent extends Component {
    }
 
    getTestCases(assignment_id = null) {
-      if(assignment_id === null){
-         assignment_id = this.props.assignment.id;
-      }
-      this.props.models.assignment.getTestCases(assignment_id)
-         .then(result => {
-            //add option for custom test
-            result.push({
-               id: -1, 
-               test_name: "Custom Test",
-               test_input: "",
-               test_description: "Write a custom test for your software"
+      return new Promise((resolve, reject) => {
+         if(assignment_id === null){
+            assignment_id = this.props.assignment.id;
+         }
+         this.props.models.assignment.getTestCases(assignment_id)
+            .then(result => {
+               //add option for custom test
+               result.push({
+                  id: -1, 
+                  test_name: this.new_test_name,
+                  test_input: "",
+                  test_description: ""
+               });
+               let test_names = [];
+               for (let test of result) {
+                  test_names.push(test.test_name);
+               }
+               this.setState({
+                  test_cases: result,
+                  test_names: test_names
+               });
+               resolve(); 
+            })
+            .catch(err => {
+               console.log("Could not load test cases");
+               reject(); 
             });
-            let test_names = [];
-            for (let test of result) {
-               test_names.push(test.test_name);
-            }
-            this.setState({
-               test_cases: result,
-               test_names: test_names,
-               selected_test: result[0]
-            });
-         })
-         .catch(err => {
-            console.log("Could not load test cases");
-         });
+      })
    }
 
 render() {
       let submit_text = "submitting changes...";
       if (this.state.is_submitting_changes === false) {
          submit_text = "";
+      }
+
+      let changes_saved_text = "changes saved!"; 
+      if(this.state.show_changes_saved === false) {
+         changes_saved_text = ""; 
       }
 
       if(this.props.modify_permissions === false)
@@ -136,8 +156,9 @@ render() {
                         name="test_name"
                         type="text"
                         className="form-control"
-                        value={this.state.selected_test.test_name}
+                        value={this.state.selected_test.test_name === this.new_test_name ? "" : this.state.selected_test.test_name}
                         onChange={this.testCaseChanged}
+                        required="required"
                     />
                 </div>
                 <div className="form-group">
@@ -167,6 +188,7 @@ render() {
                   className="btn btn-outline-primary">Submit Changes</button>
                   <br />
                   <span>{submit_text}</span> 
+                  <span>{changes_saved_text}</span>
             </form>
          </div >
       );
