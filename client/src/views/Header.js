@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { BrowserRouter as Router, Route, Link, Redirect } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { connect } from "react-redux";
 
 const mapStateToProps = state => {

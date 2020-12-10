@@ -166,7 +166,6 @@ class ManageView extends Component {
    }
 
    render() {
-      const self = this;
       //const headers = ['First Name', 'Last Name', 'Email'];
       //const student_headers = ['first_name', 'last_name', 'email'];
       const headers = ['Name', 'Login'];

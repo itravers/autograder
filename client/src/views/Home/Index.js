@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import { connect } from "react-redux";
-import { BrowserRouter as Router, Route, Link, Redirect } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 
 const mapStateToProps = state => {
    return { current_user: state.current_user, models: state.models };
