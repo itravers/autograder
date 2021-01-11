@@ -68,6 +68,7 @@ exports.compileAndRun = function(req, res, db, config, acl, Compiler) {
    let session = req.session;
    const current_user = session.user;
    const assignment_id = req.params.assignment_id;
+   const selected_user = {id: parseInt(req.params.user_id)}; 
    const dockerfile_path = "Models/compilers/cpp_clang";
    const stdin = req.body.stdin;
    const test_name = req.body.test_name;
@@ -75,16 +76,29 @@ exports.compileAndRun = function(req, res, db, config, acl, Compiler) {
    //do we have an active user?
    acl.isLoggedIn(session)
 
-      //and this user can access the current assignment
-      .then(() => acl.userHasAssignment(current_user, assignment_id))
-
+      // determine if the current user wants to compile their own code or 
+      // someone else's (e.g. one of their students')
+      .then(() => {
+         if (selected_user.id === current_user.id) {
+            // user wants to compile their own code; make sure they can access
+            // the current assignment 
+            return acl.userHasAssignment(current_user, assignment_id)
+         }
+         else {
+            // user wants to compile someone else's code; make sure given user_id
+            // can access assignment and current_user has privileges 
+            return acl.userHasAssignment(selected_user, assignment_id)
+            .then(result => acl.canGradeAssignment(current_user, result.course_id))
+         }
+      })
+      
       //then, try to compile and build the assignment
       .then(() => {
          let compiler = Compiler.createCompiler(
             db,
             config.temp_path,
             req.params.assignment_id,
-            current_user.id,
+            selected_user.id,
             dockerfile_path,
             stdin
          );
@@ -93,21 +107,21 @@ exports.compileAndRun = function(req, res, db, config, acl, Compiler) {
 
       // log test results in database 
       .then((result) => {
-         db.Assignments.TestCases.log(assignment_id, current_user.id, test_name, stdin, result)
+         db.Assignments.TestCases.log(assignment_id, selected_user.id, test_name, stdin, result)
             .then(() => {
                res.json({ response: result });
             })
             .catch(log_err => {
-               res.json({ response: log_err });
+               res.json({ response: log_err.message });
             });
       })
       .catch((err) => {
-         db.Assignments.TestCases.log(assignment_id, current_user.id, test_name, stdin, err.message)
+         db.Assignments.TestCases.log(assignment_id, selected_user.id, test_name, stdin, err)
             .then(() => {
-               res.json({ response: err.message });
+               res.json({ response: err });
             })
             .catch(log_err => {
-               res.json({ response: log_err });
+               res.json({ response: log_err.message });
             });
       });
 }
@@ -156,43 +170,6 @@ exports.createTestCase = function(req, res, db, acl) {
          {
             res.json({response: err});
          }
-      });
-}
-
-/**
- * Checks if a given assignment for a given user has tests run with outdated versions of files for that assignment and user.
- * @param {Object} req HTTP request object. 
- * @param {Object} res HTTP response object. 
- * @param {Object} db Database connection. 
- * @param {Object} acl Object containing AccessControlList methods.
- * @returns {Object} JSON response with test case's ID if successful, or
- *    with error message if unsuccessful for any reason.
- */
-exports.dateMismatch = function(req, res, db, acl) {
-   let session = req.session;
-   const current_user = session.user;
-   const assignment_id = req.params.aid;
-   const user_id = req.params.uid;
-   const test_name = req.params.test;
-
-   // if user is logged in
-   acl.isLoggedIn(session)
-
-      //and this user can grade
-      .then(() => acl.canGradeAssignment(current_user, assignment_id))
-
-      //then make the call
-      .then(() => {
-         db.Assignments.TestCases.dateMismatch(assignment_id, user_id, test_name)
-            .then(result => {
-               res.json({ response: result });
-            })
-            .catch(err => {
-               res.json({ response: err });
-            });
-         })
-      .catch((error) => {
-         return res.status(500).send(error);
       });
 }
 
@@ -265,6 +242,7 @@ exports.downloadResults = function(req, res, db, acl) {
  exports.deleteFile = function(req, res, db, acl) {
    let session = req.session;
    const current_user = session.user;
+   const assignment_id = req.params.aid; 
    const file_id = req.body.id;
 
    //do we have an active user?
@@ -274,18 +252,19 @@ exports.downloadResults = function(req, res, db, acl) {
       .then(() => acl.userOwnsFile(current_user, file_id))
 
       //then make the call
+      .then(() => db.AssignmentFiles.remove(file_id))
       .then(() => {
-
-         db.AssignmentFiles.remove(file_id)
-            .then(() => {
-               return res.json({ response: file_id }); 
-            })
-            .catch(err => {
-               console.log(err);
-               return res.status(500).send("Error");
-            });
+         db.Assignments.TestCases.updateTestOutdated(assignment_id, current_user.id)
+         .catch(err => {
+            // file uploaded successfully but updating the test_results 
+            // table failed for whatever reason 
+         })
+         .finally(() => {
+            return res.json({ response: file_id });
+         }) 
       })
-      .catch((error) => {
+      .catch(err => {
+         console.log(err);
          return res.status(500).send("Error");
       });
 }
@@ -484,12 +463,14 @@ exports.getTestCases = function(req, res, db) {
     let user_id = req.params.user_id;
     const assignment_id = req.params.assignment_id;
     acl.isLoggedIn(session)
-       .then(() => {
-          //admins and instructors are allowed to look at others' stuff.  Students not.
-          if (session.user.is_instructor !== 1 && session.user.is_admin !== 1) {
-             user_id = session.user.id;
-          }
-       })
+      // user should either be an admin, or should be an instructor with 
+      // permission to grade for this course 
+      .then(() => acl.isAdmin(session))
+      .catch(() => {
+         // not admin, so check for grading permissions 
+         return acl.userHasAssignment(session.user, assignment_id)
+         .then(result => acl.canGradeAssignment(session.user, result.course_id))
+      })
        .then(() => db.Assignments.TestCases.testResults(assignment_id, user_id))
        .then(results => {
           res.json({ response: results });
@@ -513,6 +494,7 @@ exports.getTestCases = function(req, res, db) {
     let session = req.session;
     const current_user = session.user;
     const assignment_id = req.params.assignment_id;
+    const selected_user = {id: parseInt(req.params.user_id)}; 
     const tools_command = config.compiler.tools_path + "\\" + config.compiler.tools_batch;
     const compile_cmd = config.compiler.compile_command;
     const stdin = req.body.stdin;
@@ -521,8 +503,21 @@ exports.getTestCases = function(req, res, db) {
     //do we have an active user?
     acl.isLoggedIn(session)
  
-       //and this user can access the current assignment
-       .then(() => acl.userHasAssignment(current_user, assignment_id))
+       // determine if the current user wants to compile their own code or 
+      // someone else's (e.g. one of their students')
+      .then(() => {
+         if (selected_user.id === current_user.id) {
+            // user wants to compile their own code; make sure they can access
+            // the current assignment 
+            return acl.userHasAssignment(current_user, assignment_id)
+         }
+         else {
+            // user wants to compile someone else's code; make sure given user_id
+            // can access assignment and current_user has privileges 
+            return acl.userHasAssignment(selected_user, assignment_id)
+            .then(result => acl.canGradeAssignment(current_user, result.course_id))
+         }
+      })
  
        //then, try to compile and build the assignment
        .then(() => {
@@ -530,18 +525,20 @@ exports.getTestCases = function(req, res, db) {
              db,
              config.temp_path,
              req.params.assignment_id,
-             current_user.id,
+             selected_user.id,
              tools_command,
              compile_cmd,
              stdin
           );
+          // TODO: Docker container broke this function. Update as needed when
+          // it's fixed in Compiler.js
           return compiler.canRunFiles()
              .then(() => compiler.runFiles());
        })
        
        // log test results in database 
       .then((result) => {
-         db.Assignments.TestCases.log(assignment_id, current_user.id, test_name, stdin, result)
+         db.Assignments.TestCases.log(assignment_id, selected_user.id, test_name, stdin, result)
             .then(() => {
                res.json({ response: result });
             })
@@ -550,7 +547,7 @@ exports.getTestCases = function(req, res, db) {
             });
       })
       .catch((err) => {
-         db.Assignments.TestCases.log(assignment_id, current_user.id, test_name, stdin, err.message)
+         db.Assignments.TestCases.log(assignment_id, selected_user.id, test_name, stdin, err.message)
             .then(() => {
                res.json({ response: err.message });
             })
@@ -588,7 +585,14 @@ exports.uploadFile = function(req, res, db, acl) {
 
           db.AssignmentFiles.add(current_user.id, assignment_id, uploaded_file.name, text)
             .then(result => {
-               res.type('html').send(String(result));
+               db.Assignments.TestCases.updateTestOutdated(assignment_id, current_user.id)
+               .catch(err => {
+                  // file uploaded successfully but updating the test_results 
+                  // table failed for whatever reason 
+               })
+               .finally(() => {
+                  res.type('html').send(String(result));
+               }); 
             })
             .catch(err => {
                return res.status(500).send(err);
@@ -625,7 +629,7 @@ exports.zipGradingFiles = function(req, res, db, acl) {
 
    .then(assignment_dir => { 
       // then start streaming data to local zip file 
-      let assignment_path = path.resolve('downloads', assignment_dir); 
+      let assignment_path = path.resolve('..', 'data', 'temp', 'downloads', assignment_dir);
       let file_name = assignment_path  + '.zip';
       let output = fs.createWriteStream(file_name); 
       let archive = archiver('zip', {

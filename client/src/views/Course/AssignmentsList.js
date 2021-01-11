@@ -1,8 +1,7 @@
 import React, { Component } from 'react';
 import { connect } from "react-redux";
-import { sortBy } from 'lodash';
 import UserList from './../components/UserList'
-import { BrowserRouter as Router, Route, Link, Redirect } from 'react-router-dom';
+import { Redirect } from 'react-router-dom';
 
 
 const mapStateToProps = state => {

@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import { connect } from "react-redux";
-import { BrowserRouter as Router, Route, NavLink, Redirect, withRouter } from 'react-router-dom';
+import { Route, NavLink, Redirect, withRouter } from 'react-router-dom';
 import CourseAssignmentSelector from '../components/CourseAssignmentSelector';
 import './index.css'; 
 
@@ -244,7 +244,7 @@ class IndexView extends Component {
       const self = this;
 
       //always start out at the file upload component
-      if (this.props.location.pathname.toLowerCase() == '/assignment/' || this.props.location.pathname.toLowerCase() == '/assignment') {
+      if (this.props.location.pathname.toLowerCase() === '/assignment/' || this.props.location.pathname.toLowerCase() === '/assignment') {
          return (<Redirect to="/assignment/add-files" />)
       }
       return (
@@ -262,7 +262,6 @@ class IndexView extends Component {
                   <ul className="nav nav-tabs">
                      {Object.keys(links).map((key) => {
                         const item = links[key];
-                        const active_tab = this.state.active_tab;
                         let style = item.css; 
                         return (
                            <li key={item.url} className="nav-item">
@@ -322,7 +321,7 @@ class IndexView extends Component {
                   render={
                      (props) => {
                         return (
-                           <div>
+                           <div className="container">
                               <Description assignment={this.state.current_assignment} />
                            </div>
                         )
@@ -332,7 +331,11 @@ class IndexView extends Component {
                      (props) => {
                         return (
                            <div className="container">
-                              <TestCases assignment={this.state.current_assignment} />
+                              <TestCases 
+                                 assignment={this.state.current_assignment} 
+                                 selected_user={this.state.selected_user}
+                                 getAssignmentFiles={this.getAssignmentFiles}
+                              />
                            </div>
                         )
                      }} />

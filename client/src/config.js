@@ -17,11 +17,11 @@ class SharedConfig{
       let next_arg = 0; 
 
       // while there is still an unreplaced {parameter} in path
-      let regex_find = path.search(/{([^}]*)}/);  
-      while(path.search(/{([^}]*)}/) > -1)
+      let regex = /{([^}]*)}/; 
+      while(path.search(regex) > -1)
       {
          // replace whatever's in {} with the next passed argument
-         path = path.replace(/{([^}]*)}/, params[next_arg]);
+         path = path.replace(regex, params[next_arg]);
          next_arg++; 
       }
       return path; 
@@ -39,9 +39,8 @@ class SharedConfig{
             submit_assignment: root_endpoint + "/api/assignment/{:assignment_id}/user/{:user_id}/submitAssignment",
             lock_assignment: root_endpoint + "/api/assignment/{:assignment_id}/lockAssignment",
             is_locked: root_endpoint + "/api/assignment/{:assignment_id}/isLocked",
-            date_mismatch: root_endpoint + "/api/assignment/{:assignment_id}/user/{:user_id}/dateMismatch",
-            run: root_endpoint + "/api/assignment/{:assignment_id}/run",
-            compile: root_endpoint + "/api/assignment/{:assignment_id}/compile",
+            run: root_endpoint + "/api/assignment/{:assignment_id}/user/{:user_id}/run",
+            compile: root_endpoint + "/api/assignment/{:assignment_id}/user/{:user_id}/compile",
             download_results: root_endpoint + "/api/assignment/{:assignment_id}/downloadResults",
             download_files: root_endpoint + "/api/assignment/{:assignment_id}/downloadFiles",
             grading_files_link: root_endpoint + "/api/assignment/{:assignment_id}/gradingFilesLink"
